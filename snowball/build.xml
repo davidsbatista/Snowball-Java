@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project default="create_run_jar" name="Create Runnable Jar for Project snowball">
+    <!--this file was created by Eclipse Runnable JAR Export Wizard-->
+    <!--ANT 1.7 is required                                        -->
+    <target name="create_run_jar">
+        <jar destfile="/home/dsbatista/workspace/snowball/snowball.jar" filesetmanifest="mergewithoutmain">
+            <manifest>
+                <attribute name="Main-Class" value="bin.Main"/>
+                <attribute name="Class-Path" value="."/>
+            </manifest>
+            <fileset dir="/home/dsbatista/workspace/snowball/bin"/>
+            <zipfileset excludes="META-INF/*.SF" src="/home/dsbatista/git/snowball/jars/ansj_seg-1.0.alpha.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="/home/dsbatista/git/snowball/jars/lingpipe-4.1.0.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="/home/dsbatista/git/snowball/jars/opennlp-maxent-3.0.2-incubating.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="/home/dsbatista/git/snowball/jars/opennlp-tools-1.5.2-incubating.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="/home/dsbatista/git/snowball/jars/opennlp-uima-1.5.2-incubating.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="/home/dsbatista/git/snowball/jars/PTStemmer_v2.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="/home/dsbatista/git/snowball/jars/tree_split-1.0.1.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="/home/dsbatista/git/snowball/jars/trove-3.0.3.jar"/>
+        </jar>
+    </target>
+</project>
