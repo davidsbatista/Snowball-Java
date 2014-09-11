@@ -7,6 +7,8 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 
+import org.jblas.FloatMatrix;
+
 import nlp.Stopwords;
 import bin.Config;
 
@@ -52,17 +54,15 @@ public abstract class TermsVector {
 	}
 	
 	// for Word2Vec vectors
-	public static double cosSimilarity(double[] a, double[] b){
-		double normA = norm(a);
-		double normB = norm(b); 		
-		if (normA==0 || normB==0) return 0;		
-		return (double) dotProdut(a,b) / (normA*normB);
+	public static double cosSimilarity(FloatMatrix a, FloatMatrix b){		 		
+		if (a.norm2()==0 || b.norm2()==0) return 0;
+		return (double) dotProdut(a,b) / (a.norm2() * b.norm2());
 	}
 	
-	public static double dotProdut(double[] a, double[] b) {		
+	public static double dotProdut(FloatMatrix a, FloatMatrix b) {		
 		double sum = 0;
 		for (int i = 0; i < b.length; i++) {
-			sum = sum + (a[i] * b[i]);
+			sum = sum + (a.get(i) * b.get(i));
 		}	
 		return sum;
 	} 

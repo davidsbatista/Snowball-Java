@@ -14,7 +14,7 @@ public class DBSCAN {
 
 		@Override
 		public double compute(double[] arg0, double[] arg1) {
-			TermsVector.cosSimilarity(arg0,arg1);
+			//TermsVector.cosSimilarity(arg0,arg1);
 			return 0;
 		}		
 	}

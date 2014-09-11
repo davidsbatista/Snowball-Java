@@ -31,6 +31,7 @@ public class Config {
 	public static String clusterType = null;	
 	public static Word2VEC word2vec = null;
 	public static int word2Vec_dim = 0;
+	public static boolean useWord2Vec = true;
 	
 	public static void init(String configFile, String sentencesFile, String stopwords, String vectors, String word2vecmodelPath) throws IOException {		
 		BufferedReader f;
@@ -102,8 +103,7 @@ public class Config {
 		word2vec.loadGoogleModel(word2vecmodelPath);			
 		System.out.println(word2vec.getWords() + " words loaded");
 		word2Vec_dim = word2vec.getSize();
-		
-		/*
+	
 		// calculate vocabulary term overall frequency
 		try {
 			generateTF(sentencesFile);
@@ -112,8 +112,6 @@ public class Config {
 			e.printStackTrace();
 			System.exit(0);
 		}
-		*/
-
 	}
 		
 	// read seed instances from file

@@ -1,10 +1,13 @@
 package tuples;
 
-import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+
+import org.jblas.FloatMatrix;
 
 import vsm.TermsVector;
 import vsm.Word2Vec;
@@ -17,13 +20,17 @@ public class Tuple extends TermsVector implements Comparable<Tuple> {
 	public Map<String,Double> middle;
 	public Map<String,Double> right;
 	
-	public float[] left_sum;
-	public float[] middle_sum;
-	public float[] right_sum;
+	public Set<String> left_words;
+	public Set<String> middle_words;
+	public Set<String> right_words;
 	
-	public float[] left_centroid;
-	public float[] middle_centroid;
-	public float[] right_centroid;
+	public FloatMatrix left_sum;
+	public FloatMatrix middle_sum;
+	public FloatMatrix right_sum;
+	
+	public FloatMatrix left_centroid;
+	public FloatMatrix middle_centroid;
+	public FloatMatrix right_centroid;
 	
 	public String e1;
 	public String e2;
@@ -48,25 +55,39 @@ public class Tuple extends TermsVector implements Comparable<Tuple> {
 		this.date = t_date;
 		this.sentence_id = t_sentence_id;
 		this.url_id = t_url_id;
-		try {		
-
+		this.left_words = new HashSet<String>();
+		this.middle_words = new HashSet<String>();
+		this.right_words = new HashSet<String>();
+		try {
 			/* use tokens only inside window interval */
 			/* caculate TF-IDF of each term */
-			
-			/*
-			if (left!=null) this.left = Config.vsm.tfidf(chopLeft(left));			
-			if (middle!=null) this.middle = Config.vsm.tfidf(middle);			
-			if (right!=null) this.right = Config.vsm.tfidf(chopRight(right));
-			*/
-			
+
 			/* create word2vec representations */
-			left_sum = Word2Vec.createVecSum(left);
-			middle_sum = Word2Vec.createVecSum(middle);
-			right_sum = Word2Vec.createVecSum(right);
+			if (Config.useWord2Vec==true) {
+				
+				// sum vectors
+				left_sum = Word2Vec.createVecSum(chopLeft(left));
+				middle_sum = Word2Vec.createVecSum(middle);
+				right_sum = Word2Vec.createVecSum(chopRight(right));
+				
+				// centroid of vectors
+				left_centroid = Word2Vec.createVecCentroid(chopLeft(left));
+				middle_centroid = Word2Vec.createVecCentroid(middle);
+				right_centroid = Word2Vec.createVecCentroid(chopRight(right));
+				
+				// keep words
+				left_words.addAll(chopLeft(left));
+				middle_words.addAll(chopLeft(middle));
+				right_words.addAll(chopLeft(right));
+			}
 			
-			left_centroid = Word2Vec.createVecCentroid(left);
-			middle_centroid = Word2Vec.createVecCentroid(middle);
-			right_centroid = Word2Vec.createVecCentroid(right);
+			else {
+				
+				if (left!=null) this.left = Config.vsm.tfidf(chopLeft(left));			
+				if (middle!=null) this.middle = Config.vsm.tfidf(middle);			
+				if (right!=null) this.right = Config.vsm.tfidf(chopRight(right));				
+			}
+
 			
 		} catch (Exception e) {
 			System.out.println(sentence);
@@ -123,7 +144,6 @@ public class Tuple extends TermsVector implements Comparable<Tuple> {
 		return choped_middle_terms;
 	}
 	
-	
 	public double[] convertFloatDouble(float[] v) {
 		double[] w = new double[v.length];
 		for (int i = 0; i < v.length; i++) {
@@ -132,7 +152,8 @@ public class Tuple extends TermsVector implements Comparable<Tuple> {
 		return w;
 	}
 	
-	public double degreeMatchWord2Vec(float[] w2v_left_sum_centroid, float[] w2v_middle_sum_centroid, float[] w2v_right_sum_centroid){	
+	//TODO: esta dar zero em todo
+	public double degreeMatchWord2Vec(FloatMatrix w2v_left_sum_centroid, FloatMatrix w2v_middle_sum_centroid, FloatMatrix w2v_right_sum_centroid){	
 		double l_w = Config.parameters.get("weight_left_context");
 		double m_w = Config.parameters.get("weight_middle_context");
 		double r_w = Config.parameters.get("weight_right_context");
@@ -140,14 +161,12 @@ public class Tuple extends TermsVector implements Comparable<Tuple> {
 		double middle_similarity;
 		double right_similarity;
 				
-		left_similarity = cosSimilarity(convertFloatDouble(this.left_sum),convertFloatDouble(w2v_left_sum_centroid))*l_w;
-		middle_similarity = cosSimilarity(convertFloatDouble(this.middle_sum),convertFloatDouble(w2v_middle_sum_centroid))*m_w;
-		right_similarity = cosSimilarity(convertFloatDouble(this.right_sum),convertFloatDouble(w2v_right_sum_centroid))*r_w;
-		
+		left_similarity = cosSimilarity(this.left_sum,w2v_left_sum_centroid)*l_w;
+		middle_similarity = cosSimilarity(this.middle_sum,w2v_middle_sum_centroid)*m_w;
+		right_similarity = cosSimilarity(this.right_sum,w2v_right_sum_centroid)*r_w;
 		
 		return 	(left_similarity + middle_similarity + right_similarity);
 	}
-	
 	
 	public double degreeMatchCosTFIDF(Map<String,Double> t_left_vector, Map<String,Double> t_middle_vector, Map<String,Double> t_right_vector){	
 		double l_w = Config.parameters.get("weight_left_context");
@@ -186,8 +205,6 @@ public class Tuple extends TermsVector implements Comparable<Tuple> {
 		
 		return 	(left_similarity + middle_similarity + right_similarity);
 	}
-	
-	
 	
 	public boolean equals(Object obj) {
   	  if (obj == null) return false;

@@ -31,7 +31,6 @@ import clustering.SnowballPattern;
 public class Main {
 	
 	static int iter = 0;
-	static boolean word2vec = false;
 	
 	public static void main(String[] args) throws Exception {
 		long maxBytes = Runtime.getRuntime().maxMemory();
@@ -60,15 +59,30 @@ public class Main {
 		
 		/* TEST WORD2VEC
 		System.out.println("Size   			: " + Config.word2vec.getSize());
-		System.out.println("Analogy			: " + Config.word2vec.analogy("king", "man", "queen"));
-		System.out.println("Word Vector		: " + Config.word2vec.getWordVector("king"));
+		System.out.println("Analogy			: " + Config.word2vec.analogy("rei", "homem", "mulher"));
+		System.out.println("Word Vector		: " + Config.word2vec.getWordVector("rei"));
 		System.out.println("TopNSize		: " + Config.word2vec.getTopNSize());		
-		System.out.println("Distance		: " + Config.word2vec.distance("accused"));		
+		System.out.println("Distance		: " + Config.word2vec.distance("acusou"));		
 		System.out.println();
 
-		float[] v1 = Config.word2vec.getWordVector("accused");
-		float[] v2 = Config.word2vec.getWordVector("accused");	
-		System.out.println("cos(): " + TupleWord2Vec.cosSimilarity(v1,v2));		
+		float[] v1 = Config.word2vec.getWordVector("chefe");
+		float[] v2 = Config.word2vec.getWordVector("do");
+		
+		float[] v3 = Config.word2vec.getWordVector("presidente");
+		float[] v4 = Config.word2vec.getWordVector("do");
+				
+		FloatMatrix m1 =  new FloatMatrix(v1);
+		FloatMatrix m2 =  new FloatMatrix(v2);
+		
+		FloatMatrix m3 =  new FloatMatrix(v3);
+		FloatMatrix m4 =  new FloatMatrix(v4);
+		
+		m1.addi(m2);
+		m3.addi(m4);
+				
+		System.out.println(m1);		
+		System.out.println(m3);		
+		System.out.println("cos(): " + TermsVector.cosSimilarity(m1,m3));		
 		System.exit(0);
 		*/
 	
@@ -85,7 +99,7 @@ public class Main {
 		Map<Tuple, List<Pair<SnowballPattern, Double>>> candidateTuples = new HashMap<Tuple, List<Pair<SnowballPattern,Double>>>();
 		LinkedList<SnowballPattern> patterns = new LinkedList<SnowballPattern>();
 		LinkedList<Tuple> tuples = null;
-		iterationTFIDF(startTime, sentencesFile,candidateTuples,patterns,tuples);
+		iteration(startTime, sentencesFile,candidateTuples,patterns,tuples);
 	}
 		
 	
@@ -97,7 +111,7 @@ public class Main {
 	}
 		
 	// starts a Snowball extraction process
-	static void iterationTFIDF(long startTime, String sentencesFile, Map<Tuple, List<Pair<SnowballPattern, Double>>> candidateTuples, LinkedList<SnowballPattern> patterns, LinkedList<Tuple> tuples) throws IOException, Exception {					
+	static void iteration(long startTime, String sentencesFile, Map<Tuple, List<Pair<SnowballPattern, Double>>> candidateTuples, LinkedList<SnowballPattern> patterns, LinkedList<Tuple> tuples) throws IOException, Exception {					
 		
 		while (iter<=Config.parameters.get("number_iterations")) {
 			
@@ -114,8 +128,7 @@ public class Main {
 			}
 			
 			else {
-				//Singlepass.singlePassTFIDF(tuples,patterns);
-				Singlepass.singlePassWord2Vec(tuples,patterns);
+				Singlepass.singlePass(tuples, patterns);
 				
 				//patterns = Dbscan.applyDbscan(tuples, patterns);				
 				System.out.println("\n"+patterns.size() + " patterns generated");
@@ -128,12 +141,25 @@ public class Main {
 				}
 				patternIter = null;
 				System.out.println(patterns.size() + " patterns supported by at least " + Config.parameters.get("min_pattern_support") + " tuple(s)");
+				
 				System.out.println("Applying patterns to find new instances(tuples) and score patterns confidence");
 								
 				// find more occurrences using generated patterns, generate tuples from the occurrences 
 				// tuples are also used to score patterns confidence
-				generateTuples(candidateTuples,patterns,sentencesFile);				
+				generateTuples(candidateTuples,patterns,sentencesFile);
 				System.out.println("\n"+candidateTuples.size() + " tuples found");
+				
+				System.out.println("Patterns:");
+				for (SnowballPattern p: patterns) {
+					System.out.println("confidence	:" + p.confidence);
+					System.out.println("#tuples		:" + p.tuples.size());
+					for (Tuple t: p.tuples) {
+						System.out.println("left 	:" + t.left_words);
+						System.out.println("middle 	:" + t.middle_words);
+						System.out.println("right	:" + t.right_words);
+						System.out.println();
+					}					
+				}
 				
 				// update tuple confidence based on patterns confidence
 				calculateTupleConfidence(candidateTuples);
@@ -281,8 +307,13 @@ public class Main {
 	        			// calculate its similarity with each generated pattern
 	        			for (SnowballPattern pattern : patterns) {
 	        				
-	        				//Double similarity = t.degreeMatchCosTFIDF(pattern.left_centroid, pattern.middle_centroid, pattern.right_centroid);	        				
-	        				Double similarity = t.degreeMatchWord2Vec(pattern.w2v_left_sum_centroid,pattern.w2v_middle_sum_centroid,pattern.w2v_right_sum_centroid);
+	        				Double similarity = null;
+	        				
+	        				if (Config.useWord2Vec==true)
+	        					similarity = t.degreeMatchWord2Vec(pattern.w2v_left_sum_centroid,pattern.w2v_middle_sum_centroid,pattern.w2v_right_sum_centroid);
+	        						        				
+	        				else 
+	        					similarity = t.degreeMatchCosTFIDF(pattern.left_centroid, pattern.middle_centroid, pattern.right_centroid);
 	        				
 	        				// if the similarity between the sentence where the tuple was extracted and the pattern is greater than a threshold
 	        				// update the pattern confidence and its RlogF measure

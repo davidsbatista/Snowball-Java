@@ -7,6 +7,16 @@ import tuples.Tuple;
 import bin.Config;
 
 public class Singlepass {
+	
+	public static void singlePass(LinkedList<Tuple> tuples, LinkedList<SnowballPattern> patterns) throws IOException {
+	
+		if (Config.useWord2Vec==true) 
+			Singlepass.singlePassWord2Vec(tuples, patterns);
+		
+		else 
+			Singlepass.singlePassTFIDF(tuples, patterns);
+	}
+		
 		
 	public static void singlePassTFIDF(LinkedList<Tuple> tuples, LinkedList<SnowballPattern> patterns) throws IOException {
 		System.out.println(tuples.size() + " tuples to process");		
@@ -63,7 +73,7 @@ public class Singlepass {
 			int max_similarity_cluster_index = 0;
 			if (count % 100 == 0) System.out.print(".");			
 			for (int j = 0; j < patterns.size(); j++) {				
-				SnowballPattern c = patterns.get(j);				
+				SnowballPattern c = patterns.get(j);			
 				double similarity = tuples.get(i).degreeMatchWord2Vec(c.w2v_left_sum_centroid, c.w2v_middle_sum_centroid, c.w2v_right_sum_centroid);
 				if (similarity > max_similarity) {					
 					max_similarity = similarity;

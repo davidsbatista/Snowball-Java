@@ -1,56 +1,43 @@
 package vsm;
 
-import java.util.Arrays;
 import java.util.List;
+
+import org.jblas.FloatMatrix;
+
 import bin.Config;
 
 public class Word2Vec {
 	
-	public static float[] createVecSum(List<String> text){
-		
-		float[] sum = new float[Config.word2Vec_dim];
-		Arrays.fill(sum, 0);		
-		
+	public static FloatMatrix createVecSum(List<String> text){		
+		FloatMatrix sum = new FloatMatrix(Config.word2Vec_dim);
 		for (String word : text) {
 			try {
 				float[] vector = Config.word2vec.getWordVector(word);
-				
-				if (vector == null) {
-					continue;
-				}
+				if (vector == null) continue;
 				else {
-					for (int i = 0; i < vector.length; i++) {
-						sum[i] = sum[i] + vector[i];
-					}			
-				}				
+					FloatMatrix v = new FloatMatrix(vector);
+					sum.addi(v);
+				}			
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 				System.out.println(e);
 				System.out.println(word);
-			}			
-			
-			
-		}		
+			}
+		}
 		return sum;
 	}
 		
-	public static float[] createVecCentroid(List<String> text){
-		
-		float[] centroid = new float[Config.word2Vec_dim];
-		Arrays.fill(centroid, 0);
-		
+	public static FloatMatrix createVecCentroid(List<String> text){
+		FloatMatrix centroid = new FloatMatrix(Config.word2Vec_dim);
 		for (String word : text) {
 			try {
-				float[] vector = Config.word2vec.getWordVector(word);				
-				if (vector == null) {
-					continue;
-				}
+				float[] vector = Config.word2vec.getWordVector(word);
+				if (vector == null) continue;
 				else {
-					for (int i = 0; i < vector.length; i++) {
-						centroid[i] = centroid[i] + vector[i];
-					}			
-				}				
+					FloatMatrix v = new FloatMatrix(vector);
+					centroid.addi(v);
+				}		 		
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -58,11 +45,7 @@ public class Word2Vec {
 				System.out.println(word);
 			}									
 		}
-		
-		for (int i = 0; i < centroid.length; i++) {
-			centroid[i] = centroid[i] / (float) Config.word2Vec_dim;
-		}
-		
+		centroid = centroid.divi((float) Config.word2Vec_dim);		
 		return centroid;
 	}
 }

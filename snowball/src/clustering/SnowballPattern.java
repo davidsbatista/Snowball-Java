@@ -2,13 +2,14 @@ package clustering;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
+
+import org.jblas.FloatMatrix;
 
 import tuples.Seed;
 import tuples.Tuple;
@@ -23,9 +24,9 @@ public class SnowballPattern {
 	public Map<String,Double> middle_centroid = new HashMap<String, Double>();
 	public Map<String,Double> right_centroid = new HashMap<String, Double>();
 	
-	public float[] w2v_left_sum_centroid;
-	public float[] w2v_middle_sum_centroid;
-	public float[] w2v_right_sum_centroid;	
+	public FloatMatrix w2v_left_sum_centroid;
+	public FloatMatrix w2v_middle_sum_centroid;
+	public FloatMatrix w2v_right_sum_centroid;	
 	
 	public int positive = 0;
 	public int negative = 0;	
@@ -34,11 +35,12 @@ public class SnowballPattern {
 	public double RlogF = 0;	
 	public double RlogF_old = 0;
 	
-	
 	// new cluster with just one tuple that is the centroid
 	public SnowballPattern(Tuple tuple){ 
 		tuples = new LinkedList<Tuple>();	
+		
 		this.tuples.add(tuple);
+		
 		left_centroid = tuple.left;
 		middle_centroid = tuple.middle;
 		right_centroid = tuple.right;
@@ -107,47 +109,21 @@ public class SnowballPattern {
 		return out.toString();
 	}
 	
-	public void calculateCentroidWord2Vec(){		
-		float[] acc_left_sum = new float[Config.word2Vec_dim];
-		Arrays.fill(acc_left_sum, 0);
-		
-		float[] acc_middle_sum = new float[Config.word2Vec_dim];
-		Arrays.fill(acc_middle_sum, 0);
-		
-		float[] acc_right_sum = new float[Config.word2Vec_dim];
-		Arrays.fill(acc_right_sum, 0);
+	public void calculateCentroidWord2Vec(){
+
+		FloatMatrix left_sum = new FloatMatrix(Config.word2Vec_dim);
+		FloatMatrix middle_sum = new FloatMatrix(Config.word2Vec_dim);
+		FloatMatrix right_sum = new FloatMatrix(Config.word2Vec_dim);
 		
 		for (Tuple t : tuples) {
-			
-			for (int i = 0; i < t.left_sum.length; i++) {
-				acc_left_sum[i] += t.left_sum[i];
-			}
-			
-			for (int i = 0; i < t.middle_sum.length; i++) {
-				acc_middle_sum[i] += t.middle_sum[i];
-			}
-			
-			for (int i = 0; i < t.right_sum.length; i++) {
-				acc_right_sum[i] += t.right_sum[i];
-			}
+			left_sum = left_sum.addi(t.left_sum);
+			middle_sum = middle_sum.addi(t.left_sum);
+			right_sum = right_sum.addi(t.left_sum);
 		}
 		
-		for (int i = 0; i < acc_left_sum.length; i++) {
-			acc_left_sum[i] /= tuples.size(); 
-		}
-		w2v_left_sum_centroid = acc_left_sum.clone();
-		
-		for (int i = 0; i < acc_middle_sum.length; i++) { 
-			acc_middle_sum[i] /= tuples.size(); 
-		}
-		w2v_middle_sum_centroid = acc_middle_sum.clone();
-		
-		
-		for (int i = 0; i < acc_right_sum.length; i++) { 
-			acc_right_sum[i] /= tuples.size(); 
-		}
-		w2v_right_sum_centroid = acc_right_sum.clone(); 
-				
+		w2v_left_sum_centroid = left_sum.divi(Config.word2Vec_dim);
+		w2v_middle_sum_centroid = middle_sum.divi(Config.word2Vec_dim);
+		w2v_right_sum_centroid = right_sum.divi(Config.word2Vec_dim); 
 	}
 	
 	public void calculateCentroidTFIDF(String vector) {
