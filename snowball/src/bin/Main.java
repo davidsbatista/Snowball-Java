@@ -214,9 +214,25 @@ public class Main {
 			f1.write(t.date + '\t' + t.url_id + '\t' + t.sentence + "\n\n");
 		}
 		f1.close();
-		for (SnowballPattern p : patterns) 
-			f2.write(String.valueOf(p.confidence) + '\t' + p.left_centroid + '\t' + p.middle_centroid + '\t' + p.right_centroid + '\n');
-		f2.close();
+		if (Config.useWord2Vec==true) {
+			for (SnowballPattern p : patterns)
+				f2.write(String.valueOf(p.confidence) + '\t' + p.left_centroid + '\t' + p.middle_centroid + '\t' + p.right_centroid + '\n');
+			f2.close();			
+		}
+		else {
+			for (SnowballPattern p : patterns) {
+				f2.write(String.valueOf(p.confidence+'\n'));
+				for (Tuple tuple : p.tuples) {					
+					for (String word : tuple.left_words) f2.write(word+',');
+					f2.write('\n');
+					for (String word : tuple.middle_words) f2.write(word+',');
+					f2.write('\n');
+					for (String word : tuple.right_words) f2.write(word+',');
+				}
+				
+			}
+			f2.close();						
+		}		
 	}
 		
 	// calculates the confidence of a tuple is: Conf(P_i) * DegreeMatch(P_i) 
