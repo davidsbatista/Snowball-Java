@@ -19,7 +19,7 @@ import opennlp.tools.tokenize.TokenizerModel;
 import opennlp.tools.util.InvalidFormatException;
 import utils.Pair;
 
-public class PortuguesePOSTagger {
+public class PortuguesePoSTagger {
 	
 	static POSModel model = null;
 	static TokenizerModel tModel = null; 
@@ -49,7 +49,7 @@ public class PortuguesePOSTagger {
 	
 	public static List<String> extractRVBPatterns(String text) {
 		
-		String[] sourcePOS = posTags(text.replaceAll("<[^>]+>",""));		
+		String[] sourcePOS = posTags(text.replaceAll("<[^>]+>",""));
 		String[] sourceTokens = tokenize(text.replaceAll("<[^>]+>",""));
 		List<String> set_patterns = new ArrayList<String>();
 		if (sourcePOS.length==sourceTokens.length) {					
@@ -62,7 +62,7 @@ public class PortuguesePOSTagger {
 					
 					//este primero if trata dos casos em que o verbo é um verbo auxilar: "ser", "estar", "ter", "ir", "haver", etc.
 					//se o próximo token for um verbo também, ver se a sequência de tokens é um padrão ReVerb				
-					if (sourcePOS[i+1].startsWith("verb") || sourcePOS[i+1].startsWith("pp")) {					
+					if (( i+1 < sourceTokens.length-1 ) && (sourcePOS[i+1].startsWith("verb") || sourcePOS[i+1].startsWith("pp"))) {					
 						pattern += "_" + sourceTokens[i+1].toLowerCase();
 						int j = i;
 						//ReVerb inspired: um verbo, seguido de vários nomes, adjectivos ou adverbios, terminando numa preposição.					

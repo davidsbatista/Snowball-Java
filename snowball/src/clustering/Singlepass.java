@@ -8,16 +8,13 @@ import bin.Config;
 
 public class Singlepass {
 	
-	public static void singlePass(LinkedList<Tuple> tuples, LinkedList<SnowballPattern> patterns) throws IOException {
-	
+	public static void singlePass(LinkedList<Tuple> tuples, LinkedList<SnowballPattern> patterns) throws IOException {	
 		if (Config.useWord2Vec==true) 
-			Singlepass.singlePassWord2Vec(tuples, patterns);
-		
+			Singlepass.singlePassWord2Vec(tuples, patterns);		
 		else 
 			Singlepass.singlePassTFIDF(tuples, patterns);
 	}
-		
-		
+				
 	public static void singlePassTFIDF(LinkedList<Tuple> tuples, LinkedList<SnowballPattern> patterns) throws IOException {
 		System.out.println(tuples.size() + " tuples to process");		
 		int count = 0;

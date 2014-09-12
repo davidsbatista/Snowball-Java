@@ -14,6 +14,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import nlp.PortuguesePoSTagger;
 import nlp.PortugueseTokenizer;
 import nlp.Stopwords;
 import tuples.Seed;
@@ -23,6 +24,7 @@ import word2vec.com.ansj.vec.Word2VEC;
 public class Config {
 	
 	public static PortugueseTokenizer tokenizer;	
+	public static PortuguesePoSTagger tagger;
 	public static VectorSpaceModel vsm = null;
 	public static String e1_type = null;
 	public static String e2_type = null;	
@@ -32,7 +34,7 @@ public class Config {
 	public static Word2VEC word2vec = null;
 	public static int word2Vec_dim = 0;
 	public static boolean useWord2Vec = false;
-	public static boolean extract_ReVerb = false;
+	public static boolean extract_ReVerb = true;
 	
 	public static void init(String configFile, String sentencesFile, String stopwords, String vectors, String word2vecmodelPath) throws IOException {		
 		BufferedReader f;
@@ -97,6 +99,10 @@ public class Config {
 			System.exit(0);
 		}
 		System.out.println("done");
+		
+		if (Config.extract_ReVerb==true) {
+			PortuguesePoSTagger.initialize();
+		}
 		
 		// load word2vec model
 		word2vec = new Word2VEC();

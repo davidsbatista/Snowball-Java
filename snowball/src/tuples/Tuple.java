@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import nlp.PortuguesePoSTagger;
+
 import org.jblas.FloatMatrix;
 
 import vsm.TermsVector;
@@ -45,23 +47,21 @@ public class Tuple extends TermsVector implements Comparable<Tuple> {
 		super();
 	}
 	
-	public Tuple(List<String> left, List<String> middle, List<String> right, String e1, String e2, String t_sentence, String t_date, Integer t_url_id, Integer t_sentence_id) {
+	public Tuple(List<String> left, List<String> middle, List<String> right, String e1, String e2, String t_sentence, String middle_txt) {
 		super();		
 		this.e1 = e1;
 		this.e2 = e2;
 		this.confidence = 0;
 		this.confidence_old = 0;
 		this.sentence = t_sentence;
-		this.date = t_date;
-		this.sentence_id = t_sentence_id;
-		this.url_id = t_url_id;
 		this.left_words = new HashSet<String>();
 		this.middle_words = new HashSet<String>();
 		this.right_words = new HashSet<String>();
 		try {
+			
 			/* use tokens only inside window interval */
 			/* caculate TF-IDF of each term */
-
+						
 			/* create word2vec representations */
 			if (Config.useWord2Vec==true) {
 				
@@ -87,6 +87,16 @@ public class Tuple extends TermsVector implements Comparable<Tuple> {
 				if (middle!=null) this.middle = Config.vsm.tfidf(middle);			
 				if (right!=null) this.right = Config.vsm.tfidf(chopRight(right));				
 			}
+			
+			if (Config.extract_ReVerb==true) {				
+				List<String> patterns = PortuguesePoSTagger.extractRVBPatterns(middle_txt);				
+				if (patterns.size()>0) {
+					System.out.println("sentence: " + this.sentence);
+					System.out.println("patterns: " + patterns);
+					System.out.println();
+				}				
+			}
+			
 
 			
 		} catch (Exception e) {

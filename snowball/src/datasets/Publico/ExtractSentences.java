@@ -9,7 +9,7 @@ import java.util.LinkedList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import nlp.PortuguesePOSTagger;
+import nlp.PortuguesePoSTagger;
 
 public class ExtractSentences {
 	
@@ -24,7 +24,7 @@ public class ExtractSentences {
 			if (processed % 1000 == 0) System.out.println(processed+"/"+articles.size());
 			String date = article.date;
 			String text = cleanArticle(article.text);
-			for (String s : PortuguesePOSTagger.sent.sentDetect(text)) {				
+			for (String s : PortuguesePoSTagger.sent.sentDetect(text)) {				
 				output_sentences.write(String.valueOf(id) + '\t' + date + '\t' + s.trim().replaceAll("\n", " ") + '\n');
 				id++;
 			}
@@ -65,7 +65,7 @@ public class ExtractSentences {
 				continue;				
 			}
 			
-			for (String s : PortuguesePOSTagger.sent.sentDetect(text)) {				
+			for (String s : PortuguesePoSTagger.sent.sentDetect(text)) {				
 				output_sentences.write(String.valueOf(id) + '\t' + date + '\t' + s.trim().replaceAll("\n", " ") + '\n');
 				id++;
 			}

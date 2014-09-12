@@ -256,9 +256,6 @@ public class Main {
 	// uses the extraction patterns to scan the sentences and find more tuples 
 	static void generateTuples(Map<Tuple, List<Pair<SnowballPattern, Double>>> candidateTuples, LinkedList<SnowballPattern> patterns, String file) throws Exception {
 		String sentence = null;
-		Integer sentence_id = null;
-		Integer url_id = null;
-		String date = null;
 		String e1_begin = "<"+Config.e1_type+">";
 		String e1_end = "</"+Config.e1_type+">";
 		String e2_begin = "<"+Config.e2_type+">";
@@ -276,9 +273,6 @@ public class Main {
 			if (count % 10000 == 0) System.out.print(".");
 			String[] parts = sentence.split("\t");
 			if (parts.length<4) continue;
-			url_id = Integer.parseInt(parts[0]);
-			sentence_id = Integer.parseInt(parts[1]);
-			date = parts[2];
 			sentence = parts[3];
 			Matcher matcher1 = pattern1.matcher(sentence);
 			Matcher matcher2 = pattern2.matcher(sentence);			
@@ -315,7 +309,7 @@ public class Main {
 	                if (middle_t.size()<=Config.parameters.get("max_tokens_away") && middle_t.size()>=Config.parameters.get("min_tokens_away") && middle_t.size()>0) {
 	                	
 	                	// create a tuple for an occurrence found
-	        			Tuple t = new Tuple(left_t, middle_t, right_t, e1, e2, sentence, date, url_id, sentence_id);        				
+	        			Tuple t = new Tuple(left_t, middle_t, right_t, e1, e2, sentence, middle_txt);        				
 	        			double simBest = 0;
 	        			SnowballPattern patternBest = null;
 	        			List<Integer> patternsMatched = new LinkedList<Integer>();
@@ -455,22 +449,6 @@ public class Main {
 	            		//Pattern pattern = Pattern.compile("<[^>]+>[^<]+</[^>]+>");            		
 	            		//Matcher matcher = pattern.matcher(middleText);            		
 	            		//if (matcher.find()) continue;
-	               
-	                	// ignore sentences with certain words
-	                	/*
-	                	String[] exceptions = {"frisou","afirmou","garantiu","referiu"};                	
-	                	List<String> except = Arrays.asList(exceptions);
-	                	boolean ignore=false;
-	                	
-	                	for (String term : terms) {
-							if (except.contains(term)) {
-								ignore=true;
-								break;	
-							}						
-						}                	
-	                	if (ignore) continue;
-	                	*/
-	            		
 	            		
 	            		// ignore contexts where another entity occur between the two entities	    					
 	    				String middleText = sentence.substring(matcher1.end(),matcher2.start());
@@ -489,8 +467,9 @@ public class Main {
 						right = TermsVector.normalize(right_txt);
 	                	
 	                	if (middle.size()<=Config.parameters.get("max_tokens_away") && middle.size()>=Config.parameters.get("min_tokens_away") && middle.size()>0) {
-		                	// generate a tuple with TF-IDF vectors and Word2Vec vectors
-	                		t = new Tuple(left, middle, right, seed.e1, seed.e2, sentence, date, url_id, sentence_id);
+		                	
+	                		// generate a tuple with TF-IDF vectors and Word2Vec vectors
+	                		t = new Tuple(left, middle, right, seed.e1, seed.e2, sentence, middle_txt);
 	                		tuples.add(t);	                			        				
 	                		Integer count = counts.get(seed);
 	        				if (count==null) counts.put(seed, 1);
