@@ -1,5 +1,6 @@
 package tuples;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -9,13 +10,14 @@ import java.util.Set;
 
 import nlp.PortuguesePoSTagger;
 
+import org.apache.commons.math3.ml.clustering.Clusterable;
 import org.jblas.FloatMatrix;
 
 import vsm.TermsVector;
 import vsm.Word2Vec;
 import bin.Config;
 
-public class Tuple extends TermsVector implements Comparable<Tuple> {
+public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable {
 	
 	public String id;
 	public Map<String,Double> left;
@@ -25,6 +27,11 @@ public class Tuple extends TermsVector implements Comparable<Tuple> {
 	public Set<String> left_words;
 	public Set<String> middle_words;
 	public Set<String> right_words;
+	
+	public String middle_text;
+	
+	public List<FloatMatrix> patternsWord2Vec;
+	public List<String> patterns;	
 	
 	public FloatMatrix left_sum;
 	public FloatMatrix middle_sum;
@@ -47,7 +54,7 @@ public class Tuple extends TermsVector implements Comparable<Tuple> {
 		super();
 	}
 	
-	public Tuple(List<String> left, List<String> middle, List<String> right, String e1, String e2, String t_sentence, String middle_txt) {
+	public Tuple(List<String> left, List<String> middle, List<String> right, String e1, String e2, String t_sentence, String t_middle_txt) {
 		super();		
 		this.e1 = e1;
 		this.e2 = e2;
@@ -57,47 +64,62 @@ public class Tuple extends TermsVector implements Comparable<Tuple> {
 		this.left_words = new HashSet<String>();
 		this.middle_words = new HashSet<String>();
 		this.right_words = new HashSet<String>();
+		this.patternsWord2Vec = new LinkedList<FloatMatrix>();
+		this.patterns = new LinkedList<String>();
+		
 		try {
 			
 			/* use tokens only inside window interval */
-			/* caculate TF-IDF of each term */
+
 						
 			/* create word2vec representations */
-			if (Config.useWord2Vec==true) {
 				
-				// sum vectors
-				left_sum = Word2Vec.createVecSum(chopLeft(left));
-				middle_sum = Word2Vec.createVecSum(middle);
-				right_sum = Word2Vec.createVecSum(chopRight(right));
-				
-				// centroid of vectors
-				left_centroid = Word2Vec.createVecCentroid(chopLeft(left));
-				middle_centroid = Word2Vec.createVecCentroid(middle);
-				right_centroid = Word2Vec.createVecCentroid(chopRight(right));
-				
-				// keep words
-				left_words.addAll(chopLeft(left));
-				middle_words.addAll(chopLeft(middle));
-				right_words.addAll(chopLeft(right));
-			}
+			// sum vectors
+			left_sum = Word2Vec.createVecSum(chopLeft(left));
+			middle_sum = Word2Vec.createVecSum(middle);
+			right_sum = Word2Vec.createVecSum(chopRight(right));
 			
-			else {
-				
-				if (left!=null) this.left = Config.vsm.tfidf(chopLeft(left));			
-				if (middle!=null) this.middle = Config.vsm.tfidf(middle);			
-				if (right!=null) this.right = Config.vsm.tfidf(chopRight(right));				
-			}
+			// centroid of vectors
+			left_centroid = Word2Vec.createVecCentroid(chopLeft(left));
+			middle_centroid = Word2Vec.createVecCentroid(middle);
+			right_centroid = Word2Vec.createVecCentroid(chopRight(right));
+			
+			// keep words				
+			left_words.addAll(left);
+			middle_words.addAll(middle);
+			right_words.addAll(right);				
+			this.middle_text = t_middle_txt;
+
+			
+			/* Compute TF-IDF of each term */
+			
+			if (left!=null) this.left = Config.vsm.tfidf(chopLeft(left));			
+			if (middle!=null) this.middle = Config.vsm.tfidf(middle);			
+			if (right!=null) this.right = Config.vsm.tfidf(chopRight(right));				
+			
+			/* Extract ReVerb patterns and construct Word2Vec representations */
 			
 			if (Config.extract_ReVerb==true) {				
-				List<String> patterns = PortuguesePoSTagger.extractRVBPatterns(middle_txt);				
+				List<String> patterns = PortuguesePoSTagger.extractRVBPatterns(t_middle_txt);				
 				if (patterns.size()>0) {
-					System.out.println("sentence: " + this.sentence);
-					System.out.println("patterns: " + patterns);
-					System.out.println();
-				}				
+					// Sum each word vector of each patterns
+					for (String pattern : patterns) {
+						this.patterns.add(pattern);
+						String[] t = pattern.split("_");
+						List<String> tokens = (List<String>) Arrays.asList(t); 
+						FloatMatrix patternWord2Vec = Word2Vec.createVecSum(tokens);
+						this.patternsWord2Vec.add(patternWord2Vec);
+					}
+				}
+				else {
+					// If no ReVerb patterns are found
+					// add middle words as if it was a pattern					
+					// TODO: discard ADV and ADJ					
+					this.patterns.add(middle_text);
+					FloatMatrix patternWord2Vec = Word2Vec.createVecSum(middle);
+					this.patternsWord2Vec.add(patternWord2Vec);					
+				}
 			}
-			
-
 			
 		} catch (Exception e) {
 			System.out.println(sentence);
@@ -162,7 +184,6 @@ public class Tuple extends TermsVector implements Comparable<Tuple> {
 		return w;
 	}
 	
-	//TODO: esta dar zero em todo
 	public double degreeMatchWord2Vec(FloatMatrix w2v_left_sum_centroid, FloatMatrix w2v_middle_sum_centroid, FloatMatrix w2v_right_sum_centroid){	
 		double l_w = Config.parameters.get("weight_left_context");
 		double m_w = Config.parameters.get("weight_middle_context");
@@ -241,4 +262,23 @@ public class Tuple extends TermsVector implements Comparable<Tuple> {
 	public String toString(){
 		return e1 + '\t' + e2;
 	}
+
+	@Override
+	/*
+	 * (non-Javadoc)
+	 * @see org.apache.commons.math3.ml.clustering.Clusterable#getPoint()
+	 * 
+	 * returns the n-dimensional vector to be used by DBSCAN
+	 */
+	public double[] getPoint() {
+		FloatMatrix v = this.patternsWord2Vec.get(0);		
+		float[] t = v.toArray();
+		double[] vector = new double[t.length];
+		for (int i = 0; i < t.length; i++) {
+			vector[i] = t[i];
+		}
+		return vector;
+	}
 }
+
+

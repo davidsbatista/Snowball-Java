@@ -32,8 +32,8 @@ public class Config {
 	public static Set<Seed> seedTuples = new HashSet<Seed>();
 	public static String clusterType = null;	
 	public static Word2VEC word2vec = null;
-	public static int word2Vec_dim = 0;
-	public static boolean useWord2Vec = false;
+	public static int word2Vec_dim;
+	public static boolean useWord2Vec = true;
 	public static boolean extract_ReVerb = true;
 	
 	public static void init(String configFile, String sentencesFile, String stopwords, String vectors, String word2vecmodelPath) throws IOException {		
