@@ -4,8 +4,6 @@ import org.apache.commons.math3.ml.clustering.Clusterable;
 import org.apache.commons.math3.ml.clustering.DBSCANClusterer;
 import org.apache.commons.math3.ml.distance.DistanceMeasure;
 
-import vsm.TermsVector;
-
 public class DBSCAN {
 	
 	public class CosineMeasure implements DistanceMeasure{

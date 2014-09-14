@@ -53,7 +53,7 @@ public abstract class TermsVector {
 		return terms;		
 	}
 	
-	// for Word2Vec vectors
+	// Cosine Similarity between FloatMatrix vectors
 	public static double cosSimilarity(FloatMatrix a, FloatMatrix b){		 		
 		if (a.norm2()==0 || b.norm2()==0) return 0;
 		return (double) dotProdut(a,b) / (a.norm2() * b.norm2());

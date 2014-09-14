@@ -2,7 +2,7 @@ package clustering.dbscan;
 
 import org.apache.commons.math3.ml.distance.DistanceMeasure;
 
-public class CosineMeasure implements DistanceMeasure{
+public class CosineMeasure implements DistanceMeasure {
 
 	/**
 	 * 

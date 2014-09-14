@@ -35,7 +35,7 @@ public class SnowballPattern {
 	public double RlogF = 0;	
 	public double RlogF_old = 0;
 	
-	// new cluster with just one tuple that is the centroid
+	// Create a new cluster with just one tuple, which will be the centroid
 	public SnowballPattern(Tuple tuple){ 
 		tuples = new LinkedList<Tuple>();	
 		

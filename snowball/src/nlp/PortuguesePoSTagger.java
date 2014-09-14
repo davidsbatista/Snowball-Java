@@ -60,12 +60,12 @@ public class PortuguesePoSTagger {
 					String pattern = null;
 					pattern = sourceTokens[i].toLowerCase();
 					
-					//este primero if trata dos casos em que o verbo é um verbo auxilar: "ser", "estar", "ter", "ir", "haver", etc.
-					//se o próximo token for um verbo também, ver se a sequência de tokens é um padrão ReVerb				
+					// Este primero if trata dos casos em que o verbo é um verbo auxilar: "ser", "estar", "ter", "ir", "haver", etc.
+					// Se o próximo token for um verbo também, ver se a sequência de tokens é um padrão ReVerb				
 					if (( i+1 < sourceTokens.length-1 ) && (sourcePOS[i+1].startsWith("verb") || sourcePOS[i+1].startsWith("pp"))) {					
 						pattern += "_" + sourceTokens[i+1].toLowerCase();
 						int j = i;
-						//ReVerb inspired: um verbo, seguido de vários nomes, adjectivos ou adverbios, terminando numa preposição.					
+						// ReVerb inspired: a VERB, followed by several NOUNS, ADJ or ADV, ending in a PREP					
 						if (i+2 < sourceTokens.length - 2) {	  			
 							j = j+2;
 							while ( ((j < sourceTokens.length - 2)) && ( 
@@ -80,7 +80,7 @@ public class PortuguesePoSTagger {
 						i=j;
 					}				
 					else {
-						//ReVerb inspired: um verbo, seguido de vários nomes, adjectivos ou adverbios, terminando numa preposição.					
+						// ReVerb inspired: a VERB, followed by several NOUNS, ADJ or ADV, ending in a PREP					
 						if (i < sourceTokens.length - 2) {	  			
 							int j = i+1;
 							while ( ((j < sourceTokens.length - 2)) && ( 

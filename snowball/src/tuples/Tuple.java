@@ -106,14 +106,20 @@ public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable
 					for (String pattern : patterns) {
 						this.patterns.add(pattern);
 						String[] t = pattern.split("_");
-						List<String> tokens = (List<String>) Arrays.asList(t); 
+						List<String> tokens = (List<String>) Arrays.asList(t);
+						
+						//TODO: if pattern contains only one verb and is an auxialiary verb
+						// discard pattern
+						// e.g.(Portuguese): "é_PRE", "foi_PRE", "ser_PRE"												
+						
+						
 						FloatMatrix patternWord2Vec = Word2Vec.createVecSum(tokens);
 						this.patternsWord2Vec.add(patternWord2Vec);
 					}
 				}
 				else {
 					// If no ReVerb patterns are found
-					// add middle words as if it was a pattern					
+					// add middle words as if it was a pattern
 					// TODO: discard ADV and ADJ					
 					this.patterns.add(middle_text);
 					FloatMatrix patternWord2Vec = Word2Vec.createVecSum(middle);
