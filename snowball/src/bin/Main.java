@@ -25,6 +25,7 @@ import org.apache.commons.math3.ml.clustering.Cluster;
 import org.apache.commons.math3.ml.clustering.Clusterable;
 import org.apache.commons.math3.ml.clustering.DBSCANClusterer;
 import org.apache.commons.math3.ml.distance.DistanceMeasure;
+import org.jblas.FloatMatrix;
 
 import tuples.Seed;
 import tuples.Tuple;
@@ -80,7 +81,7 @@ public class Main {
 		iteration(startTime, sentencesFile,candidateTuples,patterns,tuples);
 	}
 		
-	// starts a Snowball extraction process
+	// Starts a Snowball extraction process
 	static void iteration(long startTime, String sentencesFile, Map<Tuple, List<Pair<SnowballPattern, Double>>> candidateTuples, LinkedList<SnowballPattern> patterns, LinkedList<Tuple> tuples) throws IOException, Exception {					
 				
 		while (iter<=Config.parameters.get("number_iterations")) {
@@ -96,12 +97,8 @@ public class Main {
 				System.exit(0);	
 			}			
 			else {
-				if (iter>0) {
-					// Before clustering, discard non-related sentences
-					detectSemanticDrif(tuples);
-				}
-				Singlepass.singlePass(tuples, patterns);
-								
+				if (Config.useDBSCAN) DBSCAN(tuples,patterns);
+				else Singlepass.singlePass(tuples, patterns);
 				System.out.println("\n"+patterns.size() + " patterns generated");
 				
 		        // Eliminate patterns supported by less than 'min_pattern_support' tuples			
@@ -127,7 +124,7 @@ public class Main {
 					System.out.println("confidence	:" + p.confidence);
 					System.out.println("#tuples		:" + p.tuples.size());
 					for (Tuple t: p.tuples) {
-						System.out.println("left 	:" + t.left);
+						System.out.println("left 	:" + t.left_words);
 						System.out.println("middle 	:" + t.middle_words);
 						System.out.println("right	:" + t.right_words);
 						System.out.println();
@@ -178,6 +175,7 @@ public class Main {
 	}
 	
 	/*
+	//TODO:
 	private static void expandPatterns(LinkedList<SnowballPattern> patterns) {
 		for (SnowballPattern p : patterns) {			
 			for (Tuple t : p.tuples) {
@@ -186,12 +184,17 @@ public class Main {
 	}
 	*/
 
-
-	private static void detectSemanticDrif(LinkedList<Tuple> tuples) {
+	/*
+	 * Clusters all the collected Tuples with DBSCAN
+	 *  - ReVerb patterns are extracted from the middle context
+	 *  - If no patterns are found, the middle words are considered
+	 *  - Word2Vec vectors from the ReVerb patterns/middle words are summed
+	 *  - Tuples are clustered according to: 1-cos(a,b) where a and b are Word2Vec vectors
+	 */  
+	private static void DBSCAN(LinkedList<Tuple> tuples, LinkedList<SnowballPattern> patterns) {
 		DistanceMeasure measure = new CosineMeasure();
 		double eps = 0.3;
 		int minPts = 2;
-		System.out.println("\nClustering patterns");
 		DBSCANClusterer<Clusterable> dbscan = new DBSCANClusterer<>(eps, minPts, measure);
 
 		// Tuples implement the Clusterable Interface to allow clustering
@@ -210,23 +213,20 @@ public class Main {
 		System.out.println("#Tuples not considered : " + not_considered);
 		
 		List<Cluster<Clusterable>> clusters = dbscan.cluster(points);
-		int count = 0;
 		
 		System.out.println("\nClusters generated: " + clusters.size());
 		
+		/* Transform the clustered tuples into SnowballPattern */
 		for (Cluster<Clusterable> cluster : clusters) {
 			List<Clusterable> objects = cluster.getPoints();
-			double compact = compactness(objects);
-			System.out.println(count + '\t' + objects.size() +'\t' + compact);	
+			SnowballPattern pattern = new SnowballPattern();			
 			for (Clusterable object : objects) {
 				Tuple t = (Tuple) object;
-				System.out.println(t.patterns.get(0));				
+				pattern.tuples.add(t);
 			}
-			System.out.println();
-			count += 1;						
-		}		
+			System.out.println();						
+		}
 	}
-	
 	
 	private static double compactness(List<Clusterable> objects){
 		CosineMeasure ms = new CosineMeasure();
@@ -242,8 +242,6 @@ public class Main {
 		}
 		return (double) (avg / (double) objects.size());
 	}
-	
-	
 	
 	// Writes the extracted Tuples and the generated Extraction Patterns to files 
 	static void outputToFiles( Map<Tuple, List<Pair<SnowballPattern, Double>>> candidateTuples, LinkedList<SnowballPattern> patterns) throws IOException {
@@ -266,13 +264,14 @@ public class Main {
 			for (SnowballPattern p : patterns) {
 				f2.write(String.valueOf(p.confidence+'\n'));
 				for (Tuple tuple : p.tuples) {					
+					f2.write("\nleft: ");
 					for (String word : tuple.left_words) f2.write(word+',');
-					f2.write('\n');
+					f2.write("\nmiddle: ");
 					for (String word : tuple.middle_words) f2.write(word+',');
-					f2.write('\n');
+					f2.write("\nright: ");
 					for (String word : tuple.right_words) f2.write(word+',');
-				}
-				
+					f2.write("\n\n");
+				}				
 			}
 			f2.close();						
 		}		
@@ -358,92 +357,118 @@ public class Main {
 	        			SnowballPattern patternBest = null;
 	        			List<Integer> patternsMatched = new LinkedList<Integer>();
 	        			
-	        			// Calculate its similarity with each generated pattern
-	        			for (SnowballPattern pattern : patterns) {	        				
-	        				Double similarity = null;	        				
-	        				if (Config.useWord2Vec==true)
-	        					similarity = t.degreeMatchWord2Vec(pattern.w2v_left_sum_centroid,pattern.w2v_middle_sum_centroid,pattern.w2v_right_sum_centroid);
-	        						        				
-	        				else 
-	        					similarity = t.degreeMatchCosTFIDF(pattern.left_centroid, pattern.middle_centroid, pattern.right_centroid);
-	        				
-	        				// If the similarity between the sentence where the tuple was extracted and a 
-	        				// pattern is greater than a threshold update the pattern confidence and 
-	        				// its RlogF measure
-	        				if (similarity>=Config.parameters.get("min_degree_match")) {
-	        					patternsMatched.add(patterns.indexOf(pattern));
-	        					pattern.updatePatternSelectivity(e1,e2);
-	        					if (iter>0) {
-	        						pattern.confidence_old = pattern.confidence;	        						
-	        						pattern.RlogF_old = pattern.RlogF;
-	        					}
-	        					pattern.confidence();        						
-	        					if (Config.parameters.get("use_RlogF")==1) {	        						
-	        						pattern.ConfidencePatternRlogF();
-	        					}
-	        					if (similarity>=simBest) {
-	        						simBest = similarity;
-	        						patternBest = pattern;    
+	        			if (Config.useWord2Vec==true) { 	        				
+	        				// Compare the ReVerb patterns/middle words with every 
+	        				// extraction pattern (clusters of sentences/tuples) 
+	        			    // - use the maximum score
+	        			    // - use average
+	        				//TODO
+	        				/*
+	        				for (SnowballPattern p : patterns) {
+	        					
+	        					double max = Double.NEGATIVE_INFINITY;
+	        					
+	        					for (Tuple w : p.tuples) {
+									FloatMatrix a = w.patternsWord2Vec.get(0);
+									FloatMatrix b = t.patternsWord2Vec.get(0);
+									double score = TermsVector.cosSimilarity(a, b); 
+									if (score>max){
+										max = score;
+									}									 
+								}	        					
+	        					if (max>0.8) {
+	        						
 	        					}
 	        				}
+	        				*/
 	        			}
-	        			
-	        			// RlogF needs to be normalized: [0,1]
-	        			if (Config.parameters.get("use_RlogF")==1) {	        				
-	        				// find maximum confidence value
-	        				for (SnowballPattern p : patterns) {
-								if (p.RlogF>maxRlogF) maxRlogF=p.RlogF;
-							}	        				
-	        				// normalize
-	        				for (Integer integer : patternsMatched) {
-	        					SnowballPattern p = patterns.get(integer);
-	        					if (p.RlogF>0) p.RlogF = p.RlogF / maxRlogF;
-	        					else p.RlogF = 0;
-	        				}			
-	        			}
-	        			// use confidence values from past iterations to calculate pattern confidence: updateConfidencePattern()
-						if (iter>0) {							
-							for (Integer i : patternsMatched) {
-								SnowballPattern p = patterns.get(i);
-								p.updateConfidencePattern();
-								p.confidence_old = p.confidence;
-								p.RlogF_old = p.RlogF;
-							}							
-						}
-						
-						if (simBest>=Config.parameters.get("min_degree_match")) {
-        					List<Pair<SnowballPattern, Double>> list = null;
-        					
-							// Create a Pair object with the Pattern and the similarity score to the tuple that it matched
-        					Pair<SnowballPattern,Double> p = new Pair<SnowballPattern, Double>(patternBest, simBest);
 
-        					// Check if the tuple was already extracted in a previous iteration
-        					Tuple tupleInCandidatesMap = null;
-        					
-        					for (Tuple extractedT : candidateTuples.keySet()) {
-        						if (t.equals(extractedT)) {
-        							tupleInCandidatesMap = extractedT;        							
-        						}        						
+	        			else {
+		        			// Calculate its similarity with each generated pattern
+		        			// using TF-IDF representation, that is, classic Snowball	        				
+	        				for (SnowballPattern pattern : patterns) {	        				
+		        				Double similarity = null;	        				
+			  					similarity = t.degreeMatchCosTFIDF(pattern.left_centroid, pattern.middle_centroid, pattern.right_centroid);
+		        				
+		        				// If the similarity between the sentence where the tuple was extracted and a 
+		        				// pattern is greater than a threshold update the pattern confidence and 
+		        				// its RlogF measure
+		        				if (similarity>=Config.parameters.get("min_degree_match")) {
+		        					patternsMatched.add(patterns.indexOf(pattern));
+		        					pattern.updatePatternSelectivity(e1,e2);
+		        					if (iter>0) {
+		        						pattern.confidence_old = pattern.confidence;	        						
+		        						pattern.RlogF_old = pattern.RlogF;
+		        					}
+		        					pattern.confidence();        						
+		        					if (Config.parameters.get("use_RlogF")==1) {	        						
+		        						pattern.ConfidencePatternRlogF();
+		        					}
+		        					if (similarity>=simBest) {
+		        						simBest = similarity;
+		        						patternBest = pattern;    
+		        					}
+		        				}
+		        			}
+		        			
+		        			// RlogF needs to be normalized: [0,1]
+		        			if (Config.parameters.get("use_RlogF")==1) {	        				
+		        				// find maximum confidence value
+		        				for (SnowballPattern p : patterns) {
+									if (p.RlogF>maxRlogF) maxRlogF=p.RlogF;
+								}	        				
+		        				// normalize
+		        				for (Integer integer : patternsMatched) {
+		        					SnowballPattern p = patterns.get(integer);
+		        					if (p.RlogF>0) p.RlogF = p.RlogF / maxRlogF;
+		        					else p.RlogF = 0;
+		        				}			
+		        			}
+		        			
+		        			// use confidence values from past iterations to calculate pattern confidence: updateConfidencePattern()
+							if (iter>0) {							
+								for (Integer i : patternsMatched) {
+									SnowballPattern p = patterns.get(i);
+									p.updateConfidencePattern();
+									p.confidence_old = p.confidence;
+									p.RlogF_old = p.RlogF;
+								}							
 							}
-        					
-        					// If the tuple was not seen before:
-        					//  - associate it with this Pattern and similarity score 
-        					//  - add it to the list of candidate Tuples
-        					if ( tupleInCandidatesMap == null ) {
-        						list = new LinkedList<Pair<SnowballPattern,Double>>();        						
-        						list.add(p);
-        						tupleInCandidatesMap = t;
-        					}
-        					// If the tuple was already extracted:
-        					//  - associate it with this Pattern and similarity score    
-        					else {        						
-        						list = candidateTuples.get(tupleInCandidatesMap);
-        						if (!list.contains(p)) list.add(p);       						
-        					}
-        					candidateTuples.put(tupleInCandidatesMap, list);
-        					
-        				}        				
-	                }					
+							
+							if (simBest>=Config.parameters.get("min_degree_match")) {
+	        					List<Pair<SnowballPattern, Double>> list = null;
+	        					
+								// Create a Pair object with the Pattern and the similarity score to the tuple that it matched
+	        					Pair<SnowballPattern,Double> p = new Pair<SnowballPattern, Double>(patternBest, simBest);
+
+	        					// Check if the tuple was already extracted in a previous iteration
+	        					Tuple tupleInCandidatesMap = null;
+	        					
+	        					for (Tuple extractedT : candidateTuples.keySet()) {
+	        						if (t.equals(extractedT)) {
+	        							tupleInCandidatesMap = extractedT;        							
+	        						}        						
+								}
+	        					
+	        					// If the tuple was not seen before:
+	        					//  - associate it with this Pattern and similarity score 
+	        					//  - add it to the list of candidate Tuples
+	        					if ( tupleInCandidatesMap == null ) {
+	        						list = new LinkedList<Pair<SnowballPattern,Double>>();        						
+	        						list.add(p);
+	        						tupleInCandidatesMap = t;
+	        					}
+	        					// If the tuple was already extracted:
+	        					//  - associate it with this Pattern and similarity score    
+	        					else {        						
+	        						list = candidateTuples.get(tupleInCandidatesMap);
+	        						if (!list.contains(p)) list.add(p);       						
+	        					}
+	        					candidateTuples.put(tupleInCandidatesMap, list);
+	        					
+	        				}
+	        			}
+        			}
 				}				
 			} catch (java.lang.IllegalStateException e) {
 				/*

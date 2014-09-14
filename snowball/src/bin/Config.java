@@ -32,9 +32,11 @@ public class Config {
 	public static Set<Seed> seedTuples = new HashSet<Seed>();
 	public static String clusterType = null;	
 	public static Word2VEC word2vec = null;
-	public static int word2Vec_dim;
-	public static boolean useWord2Vec = false;
-	public static boolean extract_ReVerb = true;
+	public static int word2Vec_dim;	
+	
+	public static boolean useWord2Vec = false;	
+	public static boolean extract_ReVerb = false;
+	public static boolean useDBSCAN = false;
 	
 	public static void init(String configFile, String sentencesFile, String stopwords, String vectors, String word2vecmodelPath) throws IOException {		
 		BufferedReader f;
@@ -75,7 +77,7 @@ public class Config {
 			parameters.put("min_tokens_away",new Float(1));
 			parameters.put("context_window_size",new Float(5));
 			parameters.put("number_iterations",new Float(3.0));	
-			parameters.put("mind_degree_match",new Float(0.6));
+			parameters.put("min_degree_match",new Float(0.6));
 			parameters.put("min_tuple_confidence",new Float(0.8));
 			parameters.put("min_pattern_support",new Float(2));
 			parameters.put("weight_left_context",new Float(0.2));

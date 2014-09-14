@@ -51,6 +51,10 @@ public class SnowballPattern {
 
 	}
 	
+	public SnowballPattern() {
+		super();
+	}
+
 	public void updateConfidencePattern(){
 		if (Config.parameters.get("use_RlogF")==1) {
 			confidence = this.RlogF * Config.parameters.get("wUpdt") + this.RlogF_old * (1 - Config.parameters.get("wUpdt"));
