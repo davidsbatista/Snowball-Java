@@ -25,7 +25,6 @@ import org.apache.commons.math3.ml.clustering.Cluster;
 import org.apache.commons.math3.ml.clustering.Clusterable;
 import org.apache.commons.math3.ml.clustering.DBSCANClusterer;
 import org.apache.commons.math3.ml.distance.DistanceMeasure;
-import org.jblas.FloatMatrix;
 
 import tuples.Seed;
 import tuples.Tuple;
@@ -51,7 +50,7 @@ public class Main {
 			System.exit(0);
 		}
 		
-		/* read configuration files, sentence files, initial seeds files */
+		/* Read configuration files, sentence files, initial seeds files */
 		String sentencesFile = args[0];
 		String vectors = args[1];
 		String stopwords = args[2];
@@ -65,13 +64,14 @@ public class Main {
 			System.exit(0);
 		}
 	
-		// initialize Stemmer
+		// Initialize Stemmer
 		// StemmerWrapper.initialize();
 		
 		// initialize VerbLexicon for normalization */
 		PortugueseVerbNormalizer.initialize();
 				
 		// print parameters values to screen
+		System.out.println();
 		for (String p : Config.parameters.keySet()) System.out.println(p + '\t' + Config.parameters.get(p));
 		
 		// start iterative process
@@ -97,6 +97,8 @@ public class Main {
 				System.exit(0);	
 			}			
 			else {
+		        // Cluster the Tuples objects according to TF-IDF representations
+				// or Word2Vec vector representation
 				if (Config.useDBSCAN) DBSCAN(tuples,patterns);
 				else Singlepass.singlePass(tuples, patterns);
 				System.out.println("\n"+patterns.size() + " patterns generated");
@@ -113,9 +115,13 @@ public class Main {
 				//TODO: Expand extraction patterns
 				//expandPatterns(patterns);				
 				
-				// Find more occurrences using generated patterns, generate tuples from the occurrences 
-				// Tuples are also used to score patterns confidence				
-				System.out.println("Applying patterns to find new instances(tuples) and score patterns confidence");				
+
+				// - Look for sentences with occurrence of seeds semantic type (e.g., ORG - LOC)
+				// - Measure the similarity of each sentence with each Pattern
+				// - Matching tuples are also used to score patterns confidence, based on being correct
+				//   or not according to the seed set
+				
+				System.out.println("Collecting " + Config.e1_type + " - " + Config.e2_type + " sentences and computing similarity with patterns");				
 				generateTuples(candidateTuples,patterns,sentencesFile);				
 				System.out.println("\n"+candidateTuples.size() + " tuples found");				
 				
@@ -134,19 +140,21 @@ public class Main {
 				
 				// Update tuple confidence based on patterns confidence
 				System.out.println("Calculating tuples confidence");
-				calculateTupleConfidence(candidateTuples);
 								
+				calculateTupleConfidence(candidateTuples);
 				// Print extracted tuples and confidence of each
+				/*
 				ArrayList<Tuple> tuplesOrdered  = new ArrayList<Tuple>(candidateTuples.keySet());				
 				Collections.sort(tuplesOrdered);
 				for (Tuple t : tuplesOrdered) System.out.println(t.e1 + '\t' + t.e2 + '\t' + t.confidence);
 				System.out.println();
+				*/
 								
 				// Generating new seed set of tuples to use in next iteration:
-				//  seeds = { T | Conf(T) > min_tuple_confidence }
+				// seeds = { T | Conf(T) > min_tuple_confidence }
 				System.out.println("Adding tuples with confidence =>" + Config.parameters.get("min_tuple_confidence") + " as seed for next iteration");
-				int added=0;
-				int removed=0;
+				int added = 0;
+				int removed = 0;
 				int current_seeds = Config.seedTuples.size();
 				for (Tuple t : candidateTuples.keySet()) {
 					if (t.confidence>=Config.parameters.get("min_tuple_confidence")) {
@@ -155,7 +163,7 @@ public class Main {
 					} else removed++;
 				}
 				if (Config.parameters.get("stop_when_no_new_tuples")==1) {
-					if (current_seeds==Config.seedTuples.size()) {
+					if ( current_seeds == Config.seedTuples.size() ) {
 						System.out.println("No new tuples added");
 						System.out.println(iter + " iterations done.");
 						break;
@@ -171,6 +179,20 @@ public class Main {
 		System.out.println("Runtime: " + TimeUnit.SECONDS.convert(elapsedTime, TimeUnit.NANOSECONDS) + " seconds");
 		System.out.println();
 		System.out.println(candidateTuples.size() + " tuples extracted");
+		
+		System.out.println("Patterns " + patterns.size() + " generated");
+		for (SnowballPattern p: patterns) {
+			System.out.println("confidence	:" + p.confidence);
+			System.out.println("#tuples		:" + p.tuples.size());
+			for (Tuple t: p.tuples) {
+				System.out.println("left 	:" + t.left_words);
+				System.out.println("middle 	:" + t.middle_words);
+				System.out.println("right	:" + t.right_words);
+				System.out.println();
+			}
+			System.out.println("====================================\n");
+		}
+		
 		outputToFiles(candidateTuples,patterns);
 	}
 	
@@ -189,7 +211,7 @@ public class Main {
 	 *  - ReVerb patterns are extracted from the middle context
 	 *  - If no patterns are found, the middle words are considered
 	 *  - Word2Vec vectors from the ReVerb patterns/middle words are summed
-	 *  - Tuples are clustered according to: 1-cos(a,b) where a and b are Word2Vec vectors
+	 *  - Tuples are clustered according to: 1-cos(a,b) where 'a' and' b' are Word2Vec vectors
 	 */  
 	private static void DBSCAN(LinkedList<Tuple> tuples, LinkedList<SnowballPattern> patterns) {
 		DistanceMeasure measure = new CosineMeasure();
@@ -260,18 +282,20 @@ public class Main {
 				f2.write(String.valueOf(p.confidence) + '\t' + p.left_centroid + '\t' + p.middle_centroid + '\t' + p.right_centroid + '\n');
 			f2.close();			
 		}
-		else {
+		else {			
 			for (SnowballPattern p : patterns) {
-				f2.write(String.valueOf(p.confidence+'\n'));
-				for (Tuple tuple : p.tuples) {					
+				f2.write("confidence	:" + p.confidence+'\n');
+				f2.write("#tuples		:" + p.tuples.size()+'\n');
+				for (Tuple tuple : p.tuples) {				
 					f2.write("\nleft: ");
 					for (String word : tuple.left_words) f2.write(word+',');
 					f2.write("\nmiddle: ");
 					for (String word : tuple.middle_words) f2.write(word+',');
 					f2.write("\nright: ");
 					for (String word : tuple.right_words) f2.write(word+',');
-					f2.write("\n\n");
-				}				
+					f2.write("\n");
+				}
+				f2.write("\n================================================\n");
 			}
 			f2.close();						
 		}		
@@ -287,8 +311,7 @@ public class Main {
 				confidence *= ( 1 - (pair.getFirst().confidence() * pair.getSecond()) );
 			}
 			t.confidence = 1 - confidence;
-			// If tuple was already seen use past confidence values to calculate new confidence
-			// in the same fashion as for the patterns
+			// If tuple was already seen use past confidence values to calculate new confidence 
 			if (iter>0) {
 				t.confidence = t.confidence * Config.parameters.get("wUpdt") + t.confidence_old * (1 - Config.parameters.get("wUpdt"));
 			}
@@ -314,9 +337,7 @@ public class Main {
 		// Find all possible pairs of seed e1_type and e2_type
 		while ( ( sentence = f1.readLine() ) != null) {
 			if (count % 10000 == 0) System.out.print(".");
-			String[] parts = sentence.split("\t");
-			if (parts.length<4) continue;
-			sentence = parts[3];
+			sentence = sentence.trim();			
 			Matcher matcher1 = pattern1.matcher(sentence);
 			Matcher matcher2 = pattern2.matcher(sentence);			
 			// make sure e2 is not the same as e1, if e1 and e2 have the same type
@@ -334,13 +355,13 @@ public class Main {
 								
 				if ( (found1 && found2) && matcher1.end()<matcher2.end()) {
 					
-					// ignore contexts where another entity occur between the two entities
+					// Ignore contexts where another entity occur between the two entities
 					String middleText = sentence.substring(matcher1.end(),matcher2.start());
             		Pattern ptr = Pattern.compile("<[^>]+>[^<]+</[^>]+>");            		
             		Matcher matcher = ptr.matcher(middleText);            		
 	            	if (matcher.find()) continue;
 	            	
-					// constructs vectors considering only tokens outside tags               		
+					// Constructs vectors considering only tokens, name-entities are not part of the vectors               		
 	            	String left_txt = sentence.substring(0,matcher1.start()).replaceAll("<[^>]+>[^<]+</[^>]+>","");
 	            	String middle_txt = sentence.substring(matcher1.end(),matcher2.start()).replaceAll("<[^>]+>[^<]+</[^>]+>","");
 	            	String right_txt = sentence.substring(matcher2.end()).replaceAll("<[^>]+>[^<]+</[^>]+>","");
@@ -356,6 +377,8 @@ public class Main {
 	        			double simBest = 0;
 	        			SnowballPattern patternBest = null;
 	        			List<Integer> patternsMatched = new LinkedList<Integer>();
+	        			
+	        			// Measure similarity with all the Patterns
 	        			
 	        			if (Config.useWord2Vec==true) { 	        				
 	        				// Compare the ReVerb patterns/middle words with every 
@@ -442,8 +465,7 @@ public class Main {
 	        					Pair<SnowballPattern,Double> p = new Pair<SnowballPattern, Double>(patternBest, simBest);
 
 	        					// Check if the tuple was already extracted in a previous iteration
-	        					Tuple tupleInCandidatesMap = null;
-	        					
+	        					Tuple tupleInCandidatesMap = null;	        					
 	        					for (Tuple extractedT : candidateTuples.keySet()) {
 	        						if (t.equals(extractedT)) {
 	        							tupleInCandidatesMap = extractedT;        							
@@ -459,7 +481,7 @@ public class Main {
 	        						tupleInCandidatesMap = t;
 	        					}
 	        					// If the tuple was already extracted:
-	        					//  - associate it with this Pattern and similarity score    
+	        					//  - associate this Pattern and similarity score with the Tuple    
 	        					else {        						
 	        						list = candidateTuples.get(tupleInCandidatesMap);
 	        						if (!list.contains(p)) list.add(p);       						
@@ -481,7 +503,7 @@ public class Main {
 		f1.close();		
 	}
 		
-	// Gathers sentences based on initial seeds 
+	// Collects sentences based on seeds 
 	static LinkedList<Tuple> gatherSentences(String sentencesFile, Set<Seed> seeds) throws IOException{
 		String e1_begin = "<"+Config.e1_type+">";
 		String e1_end = "</"+Config.e1_type+">";
@@ -493,20 +515,18 @@ public class Main {
 		List<String> right = null;
 		List<String> middle = null;
 		String sentence = null;
+		/*
 		String date = null;
 		Integer sentence_id = null;
 		Integer url_id = null;
+		*/
 		Tuple t = null;
     	int n_lines = 0;
 		BufferedReader f = new BufferedReader(new FileReader(new File(sentencesFile)));	   	    
 	    while ( ( sentence = f.readLine() ) != null ) {
-			if (n_lines % 10000 == 0) System.out.print(".");
-			String[] parts = sentence.split("\t");
+			if (n_lines % 10000 == 0) System.out.print(".");			
+			sentence = sentence.trim();
 			try {
-				url_id = Integer.parseInt(parts[0]);
-				sentence_id = Integer.parseInt(parts[1]);
-				date = parts[2];
-				sentence = parts[3];
 				for (Seed seed : seeds) {
 	            	Pattern pattern1 = Pattern.compile(e1_begin+seed.e1+e1_end);
 	        		Pattern pattern2 = Pattern.compile(e2_begin+seed.e2+e2_end);
@@ -527,18 +547,18 @@ public class Main {
 	            		//Matcher matcher = pattern.matcher(middleText);            		
 	            		//if (matcher.find()) continue;
 	            		
-	            		// ignore contexts where another entity occur between the two entities	    					
+	            		// Ignore contexts where another entity occur between the two entities	    					
 	    				String middleText = sentence.substring(matcher1.end(),matcher2.start());
 	                	Pattern ptr = Pattern.compile("<[^>]+>[^<]+</[^>]+>");            		
 	                	Matcher matcher = ptr.matcher(middleText);            		
 	    	            if (matcher.find()) continue;
 	    	            	
-	            		//constructs vectors considering only tokens outside tags                		
+	            		// Split the sentence into three contexts: BEF, BET, AFT                		
 	            		String left_txt = sentence.substring(0,matcher1.start()).replaceAll("<[^>]+>[^<]+</[^>]+>","");
 	            		String middle_txt = sentence.substring(matcher1.end(),matcher2.start()).replaceAll("<[^>]+>[^<]+</[^>]+>","");
 	            		String right_txt = sentence.substring(matcher2.end()).replaceAll("<[^>]+>[^<]+</[^>]+>","");
 	            		
-	            		// normalize text
+	            		// Normalize text, convert to to lower case, remove stop words
 	            		left = TermsVector.normalize(left_txt);				
 	        			middle = TermsVector.normalize(middle_txt);
 						right = TermsVector.normalize(right_txt);
