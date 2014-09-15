@@ -14,7 +14,7 @@ import org.apache.commons.math3.ml.clustering.Clusterable;
 import org.jblas.FloatMatrix;
 
 import vsm.TermsVector;
-import vsm.Word2Vec;
+import vsm.CreateWord2VecVectors;
 import bin.Config;
 
 public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable {
@@ -68,21 +68,19 @@ public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable
 		this.patterns = new LinkedList<String>();
 		
 		try {
-			
 			/* use tokens only inside window interval */
-
 						
 			/* create word2vec representations */
 				
 			// sum vectors
-			left_sum = Word2Vec.createVecSum(chopLeft(left));
-			middle_sum = Word2Vec.createVecSum(middle);
-			right_sum = Word2Vec.createVecSum(chopRight(right));
+			left_sum = CreateWord2VecVectors.createVecSum(chopLeft(left));
+			middle_sum = CreateWord2VecVectors.createVecSum(middle);
+			right_sum = CreateWord2VecVectors.createVecSum(chopRight(right));
 			
 			// centroid of vectors
-			left_centroid = Word2Vec.createVecCentroid(chopLeft(left));
-			middle_centroid = Word2Vec.createVecCentroid(middle);
-			right_centroid = Word2Vec.createVecCentroid(chopRight(right));
+			left_centroid = CreateWord2VecVectors.createVecCentroid(chopLeft(left));
+			middle_centroid = CreateWord2VecVectors.createVecCentroid(middle);
+			right_centroid = CreateWord2VecVectors.createVecCentroid(chopRight(right));
 			
 			// keep words				
 			left_words.addAll(left);
@@ -113,7 +111,7 @@ public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable
 						// e.g.(Portuguese): "é_PRE", "foi_PRE", "ser_PRE"												
 						
 						
-						FloatMatrix patternWord2Vec = Word2Vec.createVecSum(tokens);
+						FloatMatrix patternWord2Vec = CreateWord2VecVectors.createVecSum(tokens);
 						this.patternsWord2Vec.add(patternWord2Vec);
 					}
 				}
@@ -122,7 +120,7 @@ public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable
 					// add middle words as if it was a pattern
 					// TODO: discard ADV and ADJ					
 					this.patterns.add(middle_text);
-					FloatMatrix patternWord2Vec = Word2Vec.createVecSum(middle);
+					FloatMatrix patternWord2Vec = CreateWord2VecVectors.createVecSum(middle);
 					this.patternsWord2Vec.add(patternWord2Vec);					
 				}
 			}
@@ -190,7 +188,10 @@ public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable
 		return w;
 	}
 	
-	public double degreeMatchWord2Vec(FloatMatrix w2v_left_sum_centroid, FloatMatrix w2v_middle_sum_centroid, FloatMatrix w2v_right_sum_centroid){	
+	/* Word2Vec
+	 * Computes the similarity using the sum of the words from each context  
+	 */	
+	public double degreeMatchWord2VecSum(FloatMatrix w2v_left_centroid, FloatMatrix w2v_middle_centroid, FloatMatrix w2v_right_centroid){	
 		double l_w = Config.parameters.get("weight_left_context");
 		double m_w = Config.parameters.get("weight_middle_context");
 		double r_w = Config.parameters.get("weight_right_context");
@@ -198,12 +199,31 @@ public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable
 		double middle_similarity;
 		double right_similarity;
 				
-		left_similarity = cosSimilarity(this.left_sum,w2v_left_sum_centroid)*l_w;
-		middle_similarity = cosSimilarity(this.middle_sum,w2v_middle_sum_centroid)*m_w;
-		right_similarity = cosSimilarity(this.right_sum,w2v_right_sum_centroid)*r_w;
+		left_similarity = cosSimilarity(this.left_sum,w2v_left_centroid)*l_w;
+		middle_similarity = cosSimilarity(this.middle_sum,w2v_middle_centroid)*m_w;
+		right_similarity = cosSimilarity(this.right_sum,w2v_right_centroid)*r_w;
 		
 		return 	(left_similarity + middle_similarity + right_similarity);
 	}
+	
+	/* Word2Vec
+	 * Computes the similarity using the centroid of the words from each context  
+	 */
+	public double degreeMatchWord2VecCentroid(FloatMatrix w2v_left_centroid, FloatMatrix w2v_middle_centroid, FloatMatrix w2v_right_centroid){	
+		double l_w = Config.parameters.get("weight_left_context");
+		double m_w = Config.parameters.get("weight_middle_context");
+		double r_w = Config.parameters.get("weight_right_context");
+		double left_similarity;
+		double middle_similarity;
+		double right_similarity;
+				
+		left_similarity = cosSimilarity(this.left_centroid,w2v_left_centroid)*l_w;
+		middle_similarity = cosSimilarity(this.middle_centroid,w2v_middle_centroid)*m_w;
+		right_similarity = cosSimilarity(this.right_centroid,w2v_right_centroid)*r_w;
+		
+		return 	(left_similarity + middle_similarity + right_similarity);
+	}
+	
 	
 	public double degreeMatchCosTFIDF(Map<String,Double> t_left_vector, Map<String,Double> t_middle_vector, Map<String,Double> t_right_vector){	
 		double l_w = Config.parameters.get("weight_left_context");
@@ -268,15 +288,32 @@ public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable
 	public String toString(){
 		return e1 + '\t' + e2;
 	}
+	
 
-	@Override
 	/*
 	 * (non-Javadoc)
 	 * @see org.apache.commons.math3.ml.clustering.Clusterable#getPoint()
 	 * 
 	 * returns the n-dimensional vector to be used by DBSCAN
 	 */
+	
+	@Override
 	public double[] getPoint() {
+		if (Config.useMiddleSum==true) {
+			return getPointMiddleSum();
+		}
+		else if (Config.useReverb==true) { 
+			return getPointReVerb();
+		}
+		else {
+			System.out.println("Error returning vector used by DBSCAN");
+			System.exit(0);
+		}
+		return null;		
+	}
+
+	public double[] getPointReVerb() {
+		// Returns ReVerb patterns
 		FloatMatrix v = this.patternsWord2Vec.get(0);		
 		float[] t = v.toArray();
 		double[] vector = new double[t.length];
@@ -285,6 +322,22 @@ public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable
 		}
 		return vector;
 	}
+	
+	public double[] getPointMiddleSum() {
+		// Returns middle words summed
+		FloatMatrix v = this.middle_sum;		
+		float[] t = v.toArray();
+		double[] vector = new double[t.length];
+		for (int i = 0; i < t.length; i++) {
+			vector[i] = t[i];
+		}
+		return vector;
+	}
+	
 }
+
+
+
+
 
 

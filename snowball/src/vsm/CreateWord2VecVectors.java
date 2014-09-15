@@ -6,7 +6,7 @@ import org.jblas.FloatMatrix;
 
 import bin.Config;
 
-public class Word2Vec {
+public class CreateWord2VecVectors {
 	
 	public static FloatMatrix createVecSum(List<String> text){		
 		FloatMatrix sum = new FloatMatrix(Config.word2Vec_dim);
@@ -19,7 +19,6 @@ public class Word2Vec {
 					sum.addi(v);
 				}			
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 				System.out.println(e);
 				System.out.println(word);

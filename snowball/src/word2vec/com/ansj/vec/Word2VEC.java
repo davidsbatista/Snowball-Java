@@ -180,7 +180,6 @@ public class Word2VEC {
 	}
 
 	private void insertTopN(String name, float score, List<WordEntry> wordsEntrys) {
-		// TODO Auto-generated method stub
 		if (wordsEntrys.size() < topNSize) {
 			wordsEntrys.add(new WordEntry(name, score));
 			return;

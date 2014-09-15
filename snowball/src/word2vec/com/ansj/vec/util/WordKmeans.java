@@ -148,7 +148,6 @@ public class WordKmeans {
             Collections.sort(arrayList, new Comparator<Map.Entry<String, Double>>() {
                 @Override
                 public int compare(Entry<String, Double> o1, Entry<String, Double> o2) {
-                    // TODO Auto-generated method stub
                     return o1.getValue() > o2.getValue() ? 1 : -1;
                 }
             });

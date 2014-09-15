@@ -31,10 +31,9 @@ public class VectorSpaceModel implements Serializable {
 	    term_document_frequency = new TObjectIntHashMap<String>(100000);    
 	    Integer count;
 	    while ( ( sentence = sentencesBuffer.readLine() ) != null ) {
-	    	if (n_docs % 10000 == 0) System.out.print(".");
-	    	String[] sentence_parts = sentence.split("\t");
+	    	if (n_docs % 10000 == 0) System.out.print(".");	    	
 	    	try {
-				sentence = sentence_parts[3];
+				sentence = sentence.trim();
 				// normalize sentence and removed repeated
 				// even if a term occurs more than once in a document just count it once
 				Set<String> terms = new HashSet<String>(TermsVector.normalize(sentence));					

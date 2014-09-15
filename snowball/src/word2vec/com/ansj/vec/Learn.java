@@ -133,7 +133,6 @@ public class Learn {
      * @param neu1 
      */
     private void skipGram(int index, List<WordNeuron> sentence, int b) {
-        // TODO Auto-generated method stub
         WordNeuron word = sentence.get(index);
         int a, c = 0;
         for (a = b; a < window * 2 + 1 - b; a++) {

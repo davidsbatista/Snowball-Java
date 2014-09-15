@@ -25,12 +25,15 @@ import org.apache.commons.math3.ml.clustering.Cluster;
 import org.apache.commons.math3.ml.clustering.Clusterable;
 import org.apache.commons.math3.ml.clustering.DBSCANClusterer;
 import org.apache.commons.math3.ml.distance.DistanceMeasure;
+import org.jblas.FloatMatrix;
 
 import tuples.Seed;
 import tuples.Tuple;
 import utils.Pair;
 import utils.SortMaps;
 import vsm.TermsVector;
+import word2vec.com.ansj.vec.Word2VEC;
+import word2vec.com.ansj.vec.domain.WordEntry;
 import clustering.Singlepass;
 import clustering.SnowballPattern;
 import clustering.dbscan.CosineMeasure;
@@ -68,7 +71,7 @@ public class Main {
 		// StemmerWrapper.initialize();
 		
 		// initialize VerbLexicon for normalization */
-		PortugueseVerbNormalizer.initialize();
+		// PortugueseVerbNormalizer.initialize();
 				
 		// print parameters values to screen
 		System.out.println();
@@ -90,7 +93,7 @@ public class Main {
 			// Construct a Tuple object for each 
 			System.out.println("\n***************************");
 			System.out.println("Starting iteration " + iter);			
-			System.out.println("Generating tuples acording to " +  Config.seedTuples.size() + " seeds ");			
+			System.out.println("Collecting tuples acording to " +  Config.seedTuples.size() + " seeds ");			
 			tuples = gatherSentences(sentencesFile,Config.seedTuples);			
 			if (tuples.size()==0) {
 				System.out.println("No tuples found");
@@ -99,9 +102,33 @@ public class Main {
 			else {
 		        // Cluster the Tuples objects according to TF-IDF representations
 				// or Word2Vec vector representation
+				
 				if (Config.useDBSCAN) DBSCAN(tuples,patterns);
 				else Singlepass.singlePass(tuples, patterns);
+				
 				System.out.println("\n"+patterns.size() + " patterns generated");
+				
+				/*
+				for (SnowballPattern p : patterns) {
+					System.out.println("Confidence	:" + p.confidence);
+					System.out.println("#Tuples		:" + p.tuples.size());
+					for (Tuple tuple : p.tuples) {	
+						System.out.println("Left: ");
+						System.out.println(tuple.left_words);
+						System.out.println();
+						System.out.println("Middle: ");
+						System.out.println(tuple.middle_words);
+						System.out.println(tuple.patterns);
+						System.out.println();
+						System.out.println("Right: ");
+						System.out.println(tuple.right_words);
+						System.out.println();
+						System.out.println();
+					}
+					System.out.println("============================================");
+				}
+				System.out.println();
+				*/	
 				
 		        // Eliminate patterns supported by less than 'min_pattern_support' tuples			
 				Iterator<SnowballPattern> patternIter = patterns.iterator();
@@ -130,27 +157,25 @@ public class Main {
 					System.out.println("confidence	:" + p.confidence);
 					System.out.println("#tuples		:" + p.tuples.size());
 					for (Tuple t: p.tuples) {
-						System.out.println("left 	:" + t.left_words);
+						//System.out.println("left 	:" + t.left_words);
 						System.out.println("middle 	:" + t.middle_words);
-						System.out.println("right	:" + t.right_words);
+						//System.out.println("right	:" + t.right_words);
 						System.out.println();
 					}
 					System.out.println("====================================\n");
 				}
 				
-				// Update tuple confidence based on patterns confidence
+				// Update Tuple confidence based on patterns confidence
 				System.out.println("Calculating tuples confidence");
-								
 				calculateTupleConfidence(candidateTuples);
-				// Print extracted tuples and confidence of each
-				/*
+				
+				// Print each collected Tuple and its confidence				
 				ArrayList<Tuple> tuplesOrdered  = new ArrayList<Tuple>(candidateTuples.keySet());				
 				Collections.sort(tuplesOrdered);
 				for (Tuple t : tuplesOrdered) System.out.println(t.e1 + '\t' + t.e2 + '\t' + t.confidence);
 				System.out.println();
-				*/
 								
-				// Generating new seed set of tuples to use in next iteration:
+				// Generating a new seed set of tuples to use in next iteration:
 				// seeds = { T | Conf(T) > min_tuple_confidence }
 				System.out.println("Adding tuples with confidence =>" + Config.parameters.get("min_tuple_confidence") + " as seed for next iteration");
 				int added = 0;
@@ -179,33 +204,36 @@ public class Main {
 		System.out.println("Runtime: " + TimeUnit.SECONDS.convert(elapsedTime, TimeUnit.NANOSECONDS) + " seconds");
 		System.out.println();
 		System.out.println(candidateTuples.size() + " tuples extracted");
-		
-		System.out.println("Patterns " + patterns.size() + " generated");
-		for (SnowballPattern p: patterns) {
-			System.out.println("confidence	:" + p.confidence);
-			System.out.println("#tuples		:" + p.tuples.size());
-			for (Tuple t: p.tuples) {
-				System.out.println("left 	:" + t.left_words);
-				System.out.println("middle 	:" + t.middle_words);
-				System.out.println("right	:" + t.right_words);
-				System.out.println();
-			}
-			System.out.println("====================================\n");
-		}
-		
 		outputToFiles(candidateTuples,patterns);
 	}
 	
+	
 	/*
-	//TODO:
+	 * Expands the relationship words of a pattern based on similarities
+	 * 	- For each word part of a pattern
+	 * 		- Construct a set with all the similar words according to Word2Vec given a threshold t    	 
+	 *  	- Calculate the intersection of all sets
+	 *
+	 */
 	private static void expandPatterns(LinkedList<SnowballPattern> patterns) {
 		for (SnowballPattern p : patterns) {			
 			for (Tuple t : p.tuples) {
+				for (String word : t.middle_words) {
+					Set<WordEntry> words = Config.word2vec.distance(word);
+					for (WordEntry wordEntry : words) {
+						System.out.println(wordEntry.name + '\t' + wordEntry.score);
+					}
+				}
+				/* TESTAR
+				List<String> pattern_words = new LinkedList<String>();
+				pattern_words.addAll(t.middle_words);
+				Set<WordEntry> words = Config.word2vec.distance(pattern_words);
+				*/				
 			}			
 		}		
 	}
-	*/
-
+	
+	
 	/*
 	 * Clusters all the collected Tuples with DBSCAN
 	 *  - ReVerb patterns are extracted from the middle context
@@ -222,15 +250,18 @@ public class Main {
 		// Tuples implement the Clusterable Interface to allow clustering
 		// Add all tuples to a Clusterable collection to be passed to DBSCAN
 		LinkedList<Clusterable> points = new LinkedList<Clusterable>();
+				
 		for (Tuple t : tuples) {			
-			//TODO: tuples com mais do que um padrão ReVerb ?
+			// Cluster according to ReVerb patterns
+			// TODO: tuples com mais do que um padrão ReVerb ?
 			if (t.patterns.size()>0) {
 				points.add(t);
-			}
+			}	
 		}
 		
 		/* Cluster ReVerb patterns/words in middle context */		
-		int not_considered = tuples.size()-points.size();		
+		int not_considered = tuples.size()-points.size();
+		System.out.println();
 		System.out.println("#Tuples to cluster	  : " + points.size());
 		System.out.println("#Tuples not considered : " + not_considered);
 		
@@ -246,10 +277,11 @@ public class Main {
 				Tuple t = (Tuple) object;
 				pattern.tuples.add(t);
 			}
-			System.out.println();						
+			patterns.add(pattern);
 		}
 	}
 	
+
 	private static double compactness(List<Clusterable> objects){
 		CosineMeasure ms = new CosineMeasure();
 		double avg = 0;
@@ -266,6 +298,7 @@ public class Main {
 	}
 	
 	// Writes the extracted Tuples and the generated Extraction Patterns to files 
+
 	static void outputToFiles( Map<Tuple, List<Pair<SnowballPattern, Double>>> candidateTuples, LinkedList<SnowballPattern> patterns) throws IOException {
 		BufferedWriter f1 = new BufferedWriter(new FileWriter("tuples.txt"));
 		BufferedWriter f2 = new BufferedWriter(new FileWriter("patterns.txt"));
@@ -274,7 +307,7 @@ public class Main {
 		Collections.reverse(tuplesOrdered);
 		for (Tuple t : tuplesOrdered) {
 			f1.write("tuple:" + t.e1 + '\t' + t.e2 + '\t' + t.confidence + "\n");
-			f1.write(t.date + '\t' + t.url_id + '\t' + t.sentence + "\n\n");
+			f1.write(t.sentence + "\n\n");
 		}
 		f1.close();
 		if (Config.useWord2Vec==true) {
@@ -302,6 +335,7 @@ public class Main {
 	}
 		
 	// Calculates the confidence of a tuple is: Conf(P_i) * DegreeMatch(P_i) 
+	
 	static void calculateTupleConfidence(Map<Tuple, List<Pair<SnowballPattern, Double>>> candidateTuples) throws IOException {
 		for (Tuple t : candidateTuples.keySet()) {									
 			double confidence = 1;
@@ -320,6 +354,7 @@ public class Main {
 	
 	// Look for sentences with occurrence of seeds semantic type (i.e., ORG - LOC)
 	// Measure the similarity of each sentence with each Pattern 
+	
 	static void generateTuples(Map<Tuple, List<Pair<SnowballPattern, Double>>> candidateTuples, LinkedList<SnowballPattern> patterns, String file) throws Exception {
 		String sentence = null;
 		String e1_begin = "<"+Config.e1_type+">";
@@ -378,35 +413,114 @@ public class Main {
 	        			SnowballPattern patternBest = null;
 	        			List<Integer> patternsMatched = new LinkedList<Integer>();
 	        			
-	        			// Measure similarity with all the Patterns
+	        			// Compute similarity with all the Patterns
 	        			
-	        			if (Config.useWord2Vec==true) { 	        				
-	        				// Compare the ReVerb patterns/middle words with every 
-	        				// extraction pattern (clusters of sentences/tuples) 
-	        			    // - use the maximum score
-	        			    // - use average
-	        				//TODO
+	        			/*
+	        			
+	        			if ( Config.useWord2Vec==true ) {
 	        				/*
-	        				for (SnowballPattern p : patterns) {
-	        					
+	        				* Compare the ReVerb patterns/middle words with every 
+	        				* extraction pattern (clusters of sentences/tuples)
+	        				* 
+	        				*  Compare the tuple with every tuple in the SnowballPattern:
+	        			    *  if for each cluster the maximum is >= threshold, sentence/tuple is collected
+	        			    *   
+	        			    * TODO: use average
+	        				
+	        				
+	        				simBest = Double.NEGATIVE_INFINITY;
+	        				for (SnowballPattern p : patterns) {	        					
 	        					double max = Double.NEGATIVE_INFINITY;
-	        					
+	        					double score = 0;
+	        					// Compare extracted tuple with each tuple in the SnowballPattern
 	        					for (Tuple w : p.tuples) {
 									FloatMatrix a = w.patternsWord2Vec.get(0);
 									FloatMatrix b = t.patternsWord2Vec.get(0);
-									double score = TermsVector.cosSimilarity(a, b); 
-									if (score>max){
+									score = TermsVector.cosSimilarity(a, b); 
+									if (score>=max){
 										max = score;
-									}									 
+									}
 								}	        					
-	        					if (max>0.8) {
-	        						
-	        					}
+	        					if (max >= 0.6) {	        						
+	        						patternsMatched.add(patterns.indexOf(p));
+		        					p.updatePatternSelectivity(e1,e2);
+		        					if (iter>0) {
+		        						p.confidence_old = p.confidence;	        						
+		        						p.RlogF_old = p.RlogF;
+		        					}
+		        					// Update pattern confidence
+		        					p.confidence();
+		        					if (Config.parameters.get("use_RlogF")==1) {	        						
+		        						p.ConfidencePatternRlogF();
+		        					}
+		        					if (max>=simBest) {
+		        						simBest = score;
+		        						patternBest = p;    
+		        					}
+		        				}
 	        				}
-	        				*/
+	        				
+	        				// RlogF needs to be normalized: [0,1]
+		        			if (Config.parameters.get("use_RlogF")==1) {	        				
+		        				// find maximum confidence value
+		        				for (SnowballPattern p : patterns) {
+									if (p.RlogF>maxRlogF) maxRlogF=p.RlogF;
+								}	        				
+		        				// normalize
+		        				for (Integer integer : patternsMatched) {
+		        					SnowballPattern p = patterns.get(integer);
+		        					if (p.RlogF>0) p.RlogF = p.RlogF / maxRlogF;
+		        					else p.RlogF = 0;
+		        				}			
+		        			}
+		        			
+		        			// Use confidence values from past iterations to calculate pattern confidence: 
+		        			// updateConfidencePattern()
+							if (iter>0) {							
+								for (Integer i : patternsMatched) {
+									SnowballPattern p = patterns.get(i);
+									p.updateConfidencePattern();
+									p.confidence_old = p.confidence;
+									p.RlogF_old = p.RlogF;
+								}							
+							}
+							
+	        				// Associate highest scoring pattern with the Tuple
+	        				
+	        				// Create a Pair object with the Pattern and the similarity score to the tuple that it matched
+							if (simBest>=Config.parameters.get("min_degree_match")) {
+	        					List<Pair<SnowballPattern, Double>> list = null;
+	        					Pair<SnowballPattern,Double> p = new Pair<SnowballPattern, Double>(patternBest, simBest);
+	
+	        					// Check if the tuple was already extracted in a previous iteration
+	        					Tuple tupleInCandidatesMap = null;	        					
+	        					for (Tuple extractedT : candidateTuples.keySet()) {
+	        						if (t.equals(extractedT)) {
+	        							tupleInCandidatesMap = extractedT;        							
+	        						}        						
+								}
+	        					
+	        					// If the tuple was not seen before:
+	        					//  - associate it with this Pattern and similarity score 
+	        					//  - add it to the list of candidate Tuples
+	        					if ( tupleInCandidatesMap == null ) {
+	        						list = new LinkedList<Pair<SnowballPattern,Double>>();        						
+	        						list.add(p);
+	        						tupleInCandidatesMap = t;
+	        					}
+	        					// If the tuple was already extracted:
+	        					//  - associate this Pattern and similarity score with the Tuple    
+	        					else {        						
+	        						list = candidateTuples.get(tupleInCandidatesMap);
+	        						if (!list.contains(p)) list.add(p);       						
+	        					}
+	        					candidateTuples.put(tupleInCandidatesMap, list);
+							}	        				
 	        			}
+	        						
 
 	        			else {
+	        			*/
 		        			// Calculate its similarity with each generated pattern
 		        			// using TF-IDF representation, that is, classic Snowball	        				
 	        				for (SnowballPattern pattern : patterns) {	        				
@@ -414,8 +528,7 @@ public class Main {
 			  					similarity = t.degreeMatchCosTFIDF(pattern.left_centroid, pattern.middle_centroid, pattern.right_centroid);
 		        				
 		        				// If the similarity between the sentence where the tuple was extracted and a 
-		        				// pattern is greater than a threshold update the pattern confidence and 
-		        				// its RlogF measure
+		        				// pattern is greater than a threshold update the pattern confidence
 		        				if (similarity>=Config.parameters.get("min_degree_match")) {
 		        					patternsMatched.add(patterns.indexOf(pattern));
 		        					pattern.updatePatternSelectivity(e1,e2);
@@ -448,7 +561,8 @@ public class Main {
 		        				}			
 		        			}
 		        			
-		        			// use confidence values from past iterations to calculate pattern confidence: updateConfidencePattern()
+		        			// Use confidence values from past iterations to calculate pattern confidence: 
+		        			// updateConfidencePattern()
 							if (iter>0) {							
 								for (Integer i : patternsMatched) {
 									SnowballPattern p = patterns.get(i);
@@ -486,12 +600,11 @@ public class Main {
 	        						list = candidateTuples.get(tupleInCandidatesMap);
 	        						if (!list.contains(p)) list.add(p);       						
 	        					}
-	        					candidateTuples.put(tupleInCandidatesMap, list);
-	        					
+	        					candidateTuples.put(tupleInCandidatesMap, list);	        					
 	        				}
 	        			}
         			}
-				}				
+				//}				
 			} catch (java.lang.IllegalStateException e) {
 				/*
 				System.out.println(e.getLocalizedMessage());
@@ -502,6 +615,7 @@ public class Main {
 		}
 		f1.close();		
 	}
+	
 		
 	// Collects sentences based on seeds 
 	static LinkedList<Tuple> gatherSentences(String sentencesFile, Set<Seed> seeds) throws IOException{

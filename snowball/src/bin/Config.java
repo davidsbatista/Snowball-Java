@@ -38,6 +38,10 @@ public class Config {
 	public static boolean extract_ReVerb = false;
 	public static boolean useDBSCAN = false;
 	
+	/* Clustering according to */
+	public static boolean useReverb = false;
+	public static boolean useMiddleSum = true;
+	
 	public static void init(String configFile, String sentencesFile, String stopwords, String vectors, String word2vecmodelPath) throws IOException {		
 		BufferedReader f;
 		try {
@@ -117,7 +121,6 @@ public class Config {
 		try {
 			generateTF(sentencesFile);
 		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			System.exit(0);
 		}

@@ -24,9 +24,9 @@ public class SnowballPattern {
 	public Map<String,Double> middle_centroid = new HashMap<String, Double>();
 	public Map<String,Double> right_centroid = new HashMap<String, Double>();
 	
-	public FloatMatrix w2v_left_sum_centroid;
-	public FloatMatrix w2v_middle_sum_centroid;
-	public FloatMatrix w2v_right_sum_centroid;	
+	public FloatMatrix w2v_left_centroid;
+	public FloatMatrix w2v_middle_centroid;
+	public FloatMatrix w2v_right_centroid;	
 	
 	public int positive = 0;
 	public int negative = 0;	
@@ -45,14 +45,15 @@ public class SnowballPattern {
 		middle_centroid = tuple.middle;
 		right_centroid = tuple.right;
 		
-		this.w2v_left_sum_centroid = tuple.left_sum;
-		this.w2v_middle_sum_centroid = tuple.middle_sum;
-		this.w2v_right_sum_centroid = tuple.right_sum;
+		this.w2v_left_centroid = tuple.left_sum;
+		this.w2v_middle_centroid = tuple.middle_sum;
+		this.w2v_right_centroid = tuple.right_sum;
 
 	}
 	
 	public SnowballPattern() {
 		super();
+		tuples = new LinkedList<Tuple>();
 	}
 
 	public void updateConfidencePattern(){
@@ -125,9 +126,9 @@ public class SnowballPattern {
 			right_sum = right_sum.addi(t.left_sum);
 		}
 		
-		w2v_left_sum_centroid = left_sum.divi(Config.word2Vec_dim);
-		w2v_middle_sum_centroid = middle_sum.divi(Config.word2Vec_dim);
-		w2v_right_sum_centroid = right_sum.divi(Config.word2Vec_dim); 
+		w2v_left_centroid = left_sum.divi(Config.word2Vec_dim);
+		w2v_middle_centroid = middle_sum.divi(Config.word2Vec_dim);
+		w2v_right_centroid = right_sum.divi(Config.word2Vec_dim); 
 	}
 	
 	public void calculateCentroidTFIDF(String vector) {
