@@ -19,20 +19,16 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import nlp.PortugueseVerbNormalizer;
-
 import org.apache.commons.math3.ml.clustering.Cluster;
 import org.apache.commons.math3.ml.clustering.Clusterable;
 import org.apache.commons.math3.ml.clustering.DBSCANClusterer;
 import org.apache.commons.math3.ml.distance.DistanceMeasure;
-import org.jblas.FloatMatrix;
 
 import tuples.Seed;
 import tuples.Tuple;
 import utils.Pair;
 import utils.SortMaps;
 import vsm.TermsVector;
-import word2vec.com.ansj.vec.Word2VEC;
 import word2vec.com.ansj.vec.domain.WordEntry;
 import clustering.Singlepass;
 import clustering.SnowballPattern;
@@ -73,7 +69,7 @@ public class Main {
 		// initialize VerbLexicon for normalization */
 		// PortugueseVerbNormalizer.initialize();
 				
-		// print parameters values to screen
+		// Print parameters values to screen
 		System.out.println();
 		for (String p : Config.parameters.keySet()) System.out.println(p + '\t' + Config.parameters.get(p));
 		
@@ -201,7 +197,15 @@ public class Main {
 		}		
 		long stopTime = System.nanoTime();
 		long elapsedTime = stopTime - startTime;
-		System.out.println("Runtime: " + TimeUnit.SECONDS.convert(elapsedTime, TimeUnit.NANOSECONDS) + " seconds");
+		
+		long elapsedTimeSeconds = TimeUnit.SECONDS.convert(elapsedTime, TimeUnit.NANOSECONDS);
+		
+		long hours = elapsedTimeSeconds / 3600;
+		long minutes = (elapsedTimeSeconds % 3600) / 60;
+		long seconds = elapsedTimeSeconds % 60;
+
+		String timeString = hours + ":" + minutes + ":" + seconds + " seconds";
+		System.out.println("Runtime: " + timeString);		
 		System.out.println();
 		System.out.println(candidateTuples.size() + " tuples extracted");
 		outputToFiles(candidateTuples,patterns);

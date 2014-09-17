@@ -34,18 +34,24 @@ public class Config {
 	public static Word2VEC word2vec = null;
 	public static int word2Vec_dim;	
 	
-	public static boolean useWord2Vec = false;	
+	public static boolean useWord2Vec = true;	
 	public static boolean extract_ReVerb = false;
 	public static boolean useDBSCAN = false;
 	
-	/* Clustering according to */
+	/* Word2Vec configuration */
 	public static boolean useReverb = false;
 	public static boolean useMiddleSum = true;
 	
+	/* Represent tuples as sum of Word2Vec vectors
+	 * or use the centroid of all vectors
+	 */
+	public static boolean useSum = true;
+	public static boolean useCentroid = false;
+		
 	public static void init(String configFile, String sentencesFile, String stopwords, String vectors, String word2vecmodelPath) throws IOException {		
 		BufferedReader f;
 		try {
-			f = new BufferedReader(new FileReader( new File(configFile)));
+			f = new BufferedReader(new FileReader( new File(configFile)) );
 			String line = null;
 			Float value = null;
 			String parameter = null;
@@ -126,7 +132,7 @@ public class Config {
 		}
 	}
 		
-	// read seed instances from file
+	// Read seed instances from file
 	static void readSeeds(String seedsFile){
 		BufferedReader f = null;
 		try {
@@ -170,7 +176,7 @@ public class Config {
 		}
 	}
 
-	// gather individual term count considering the whole document collection
+	// Count individual terms frequency over whole document collection
 	static void generateTF(String sentencesFile) throws IOException, FileNotFoundException, ClassNotFoundException {
 		VectorSpaceModel vsm;
 		File f = new File("vsm.obj");

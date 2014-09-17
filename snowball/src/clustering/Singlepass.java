@@ -21,14 +21,15 @@ public class Singlepass {
 		System.out.println(tuples.size() + " tuples to process");		
 		int count = 0;
 				
-		// initialize: first tuple is first cluster
+		// Initialize: first tuple is first cluster
 		if (patterns.size()==0) {
 			SnowballPattern c1 = new SnowballPattern(tuples.get(0));
 			patterns.add(c1);
 		}
-		
-		
-		// calculate similarity with each cluster centroid */
+				
+		/* Go through all tuples and calculate the 
+		 * similarity with each cluster centroid  
+		 */  		
 		for (int i = 1; i < tuples.size(); i++) {
 			double max_similarity = 0;
 			int max_similarity_cluster_index = 0;
@@ -77,9 +78,14 @@ public class Singlepass {
 			int max_similarity_cluster_index = 0;
 			if (count % 100 == 0) System.out.print(".");			
 			for (int j = 0; j < patterns.size(); j++) {				
-				SnowballPattern c = patterns.get(j);			
-				double similarity = tuples.get(i).degreeMatchWord2VecSum(c.w2v_left_centroid, c.w2v_middle_centroid, c.w2v_right_centroid);
-				//double similarity = tuples.get(i).degreeMatchWord2VecCentroid(c.w2v_left_centroid, c.w2v_middle_centroid, c.w2v_right_centroid);
+				SnowballPattern c = patterns.get(j);
+				double similarity;
+				if (Config.useSum==true) {
+					similarity = tuples.get(i).degreeMatchWord2VecSum(c.w2v_left_centroid, c.w2v_middle_centroid, c.w2v_right_centroid);
+				}
+				else {
+					similarity = tuples.get(i).degreeMatchWord2VecCentroid(c.w2v_left_centroid, c.w2v_middle_centroid, c.w2v_right_centroid);
+				}
 				if (similarity > max_similarity) {					
 					max_similarity = similarity;
 					max_similarity_cluster_index = j;
