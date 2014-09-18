@@ -38,15 +38,15 @@ public class Config {
 	public static boolean extract_ReVerb = false;
 	public static boolean useDBSCAN = false;
 	
-	/* Word2Vec configuration */
+	/* What will DBSCAN use to compare sentences */
 	public static boolean useReverb = false;
-	public static boolean useMiddleSum = true;
+	public static boolean useMiddleSum = false;
 	
 	/* Represent tuples as sum of Word2Vec vectors
 	 * or use the centroid of all vectors
 	 */
-	public static boolean useSum = true;
-	public static boolean useCentroid = false;
+	public static boolean useSum = false;
+	public static boolean useCentroid = true;
 		
 	public static void init(String configFile, String sentencesFile, String stopwords, String vectors, String word2vecmodelPath) throws IOException {		
 		BufferedReader f;
@@ -117,18 +117,21 @@ public class Config {
 		}
 		
 		// load word2vec model
-		word2vec = new Word2VEC();
-		System.out.print("Loading word2vec model... ");
-		word2vec.loadGoogleModel(word2vecmodelPath);			
-		System.out.println(word2vec.getWords() + " words loaded");
-		word2Vec_dim = word2vec.getSize();
-	
-		// calculate vocabulary term overall frequency
-		try {
-			generateTF(sentencesFile);
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-			System.exit(0);
+		if (useWord2Vec==true) {
+			word2vec = new Word2VEC();
+			System.out.print("Loading word2vec model... ");
+			word2vec.loadGoogleModel(word2vecmodelPath);			
+			System.out.println(word2vec.getWords() + " words loaded");
+			word2Vec_dim = word2vec.getSize();
+		}
+		// VSM, TF-IDF: calculate vocabulary term overall frequency
+		else if (useWord2Vec==false) {
+			try {
+				generateTF(sentencesFile);
+			} catch (ClassNotFoundException e) {
+				e.printStackTrace();
+				System.exit(0);
+			}
 		}
 	}
 		
@@ -156,12 +159,7 @@ public class Config {
 						e1 = line.split(";")[0];
 						e2 = line.split(";")[1];
 						seed = new Seed(e1, e2);
-						seedTuples.add(seed);
-						if (Config.parameters.get("occ_both_directions")==1) {
-							seed = new Seed(e2, e1);
-							seedTuples.add(seed);
-						}
-						
+						seedTuples.add(seed);						
 					}					
 				} catch (Exception e) {
 					System.out.println("Error parsing: " + line);

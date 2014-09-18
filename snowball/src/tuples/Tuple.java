@@ -69,31 +69,36 @@ public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable
 		
 		try {
 			/* use tokens only inside window interval */
-						
-			/* create word2vec representations */
 				
-			// sum vectors
-			left_sum = CreateWord2VecVectors.createVecSum(chopLeft(left));
-			middle_sum = CreateWord2VecVectors.createVecSum(middle);
-			right_sum = CreateWord2VecVectors.createVecSum(chopRight(right));
+			if (Config.useWord2Vec==true) {
+				
+				/* create word2vec representations */
+				
+				// sum vectors
+				left_sum = CreateWord2VecVectors.createVecSum(chopLeft(left));
+				middle_sum = CreateWord2VecVectors.createVecSum(middle);
+				right_sum = CreateWord2VecVectors.createVecSum(chopRight(right));
+				
+				// centroid of vectors
+				left_centroid = CreateWord2VecVectors.createVecCentroid(chopLeft(left));
+				middle_centroid = CreateWord2VecVectors.createVecCentroid(middle);
+				right_centroid = CreateWord2VecVectors.createVecCentroid(chopRight(right));
+				
+				// keep words				
+				left_words.addAll(left);
+				middle_words.addAll(middle);
+				right_words.addAll(right);				
+				this.middle_text = t_middle_txt;
+				
+			}
 			
-			// centroid of vectors
-			left_centroid = CreateWord2VecVectors.createVecCentroid(chopLeft(left));
-			middle_centroid = CreateWord2VecVectors.createVecCentroid(middle);
-			right_centroid = CreateWord2VecVectors.createVecCentroid(chopRight(right));
-			
-			// keep words				
-			left_words.addAll(left);
-			middle_words.addAll(middle);
-			right_words.addAll(right);				
-			this.middle_text = t_middle_txt;
-
-			
-			/* Compute TF-IDF of each term */
-			
-			if (left!=null) this.left = Config.vsm.tfidf(chopLeft(left));			
-			if (middle!=null) this.middle = Config.vsm.tfidf(middle);			
-			if (right!=null) this.right = Config.vsm.tfidf(chopRight(right));				
+			else if (Config.useWord2Vec==false) {
+				/* Compute TF-IDF of each term */
+				
+				if (left!=null) this.left = Config.vsm.tfidf(chopLeft(left));			
+				if (middle!=null) this.middle = Config.vsm.tfidf(middle);			
+				if (right!=null) this.right = Config.vsm.tfidf(chopRight(right));				
+			}
 			
 			/* Extract ReVerb patterns and construct Word2Vec representations */
 			
