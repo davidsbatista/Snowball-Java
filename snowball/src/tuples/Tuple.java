@@ -68,40 +68,41 @@ public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable
 		this.patterns = new LinkedList<String>();
 		
 		try {
-			/* use tokens only inside window interval */
-				
+			
+			/* 
+			 * Create Word2vec representations 
+			 */				
 			if (Config.useWord2Vec==true) {
 				
-				/* create word2vec representations */
-				
-				// sum vectors
+				// for each context sum the words vectors representations
 				left_sum = CreateWord2VecVectors.createVecSum(chopLeft(left));
 				middle_sum = CreateWord2VecVectors.createVecSum(middle);
 				right_sum = CreateWord2VecVectors.createVecSum(chopRight(right));
 				
-				// centroid of vectors
+				// for each context calculate the centroid of the words vectors representations
 				left_centroid = CreateWord2VecVectors.createVecCentroid(chopLeft(left));
 				middle_centroid = CreateWord2VecVectors.createVecCentroid(middle);
 				right_centroid = CreateWord2VecVectors.createVecCentroid(chopRight(right));
 				
-				// keep words				
+				// keep words
 				left_words.addAll(left);
 				middle_words.addAll(middle);
 				right_words.addAll(right);				
 				this.middle_text = t_middle_txt;
 				
 			}
-			
-			else if (Config.useWord2Vec==false) {
-				/* Compute TF-IDF of each term */
-				
+			/* 
+			 * Create TF-IDF representations 
+			 */			
+			else if (Config.useWord2Vec==false) {				
 				if (left!=null) this.left = Config.vsm.tfidf(chopLeft(left));			
 				if (middle!=null) this.middle = Config.vsm.tfidf(middle);			
 				if (right!=null) this.right = Config.vsm.tfidf(chopRight(right));				
 			}
 			
-			/* Extract ReVerb patterns and construct Word2Vec representations */
-			
+			/* 
+			 * Extract ReVerb patterns and construct Word2Vec representations 
+			 */			
 			if (Config.extract_ReVerb==true) {				
 				List<String> patterns = PortuguesePoSTagger.extractRVBPatterns(t_middle_txt);				
 				if (patterns.size()>0) {
@@ -109,13 +110,10 @@ public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable
 					for (String pattern : patterns) {
 						this.patterns.add(pattern);
 						String[] t = pattern.split("_");
-						List<String> tokens = (List<String>) Arrays.asList(t);
-						
+						List<String> tokens = (List<String>) Arrays.asList(t);						
 						//TODO: if pattern contains only one verb and is an auxialiary verb
 						// discard pattern
-						// e.g.(Portuguese): "é_PRE", "foi_PRE", "ser_PRE"												
-						
-						
+						// e.g.(Portuguese): "é_PRE", "foi_PRE", "ser_PRE"						
 						FloatMatrix patternWord2Vec = CreateWord2VecVectors.createVecSum(tokens);
 						this.patternsWord2Vec.add(patternWord2Vec);
 					}

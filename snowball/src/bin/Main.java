@@ -23,7 +23,6 @@ import org.apache.commons.math3.ml.clustering.Cluster;
 import org.apache.commons.math3.ml.clustering.Clusterable;
 import org.apache.commons.math3.ml.clustering.DBSCANClusterer;
 import org.apache.commons.math3.ml.distance.DistanceMeasure;
-import org.jblas.FloatMatrix;
 
 import tuples.Seed;
 import tuples.Tuple;
@@ -81,7 +80,9 @@ public class Main {
 		iteration(startTime, sentencesFile,candidateTuples,patterns,tuples);
 	}
 		
-	// Starts a Snowball extraction process
+	/*
+	 *  Starts a Snowball extraction process
+	 */
 	static void iteration(long startTime, String sentencesFile, Map<Tuple, List<Pair<SnowballPattern, Double>>> candidateTuples, LinkedList<SnowballPattern> patterns, LinkedList<Tuple> tuples) throws IOException, Exception {					
 				
 		while (iter<=Config.parameters.get("number_iterations")) {
@@ -97,6 +98,7 @@ public class Main {
 				System.exit(0);	
 			}			
 			else {
+				System.out.println("Clustering tuples ...");
 				if (Config.useDBSCAN) DBSCAN(tuples,patterns);
 				else Singlepass.singlePass(tuples, patterns);				
 				System.out.println("\n"+patterns.size() + " patterns generated");
@@ -170,7 +172,7 @@ public class Main {
 				for (Tuple t : tuplesOrdered) System.out.println(t.e1 + '\t' + t.e2 + '\t' + t.confidence);
 				System.out.println();
 								
-				// Generating a new seed set of tuples to use in next iteration:
+				// Calculate a new seed set of tuples to use in next iteration, such that:
 				// seeds = { T | Conf(T) > min_tuple_confidence }
 				System.out.println("Adding tuples with confidence =>" + Config.parameters.get("min_tuple_confidence") + " as seed for next iteration");
 				int added = 0;
@@ -195,14 +197,11 @@ public class Main {
 			}			
 		}		
 		long stopTime = System.nanoTime();
-		long elapsedTime = stopTime - startTime;
-		
-		long elapsedTimeSeconds = TimeUnit.SECONDS.convert(elapsedTime, TimeUnit.NANOSECONDS);
-		
+		long elapsedTime = stopTime - startTime;		
+		long elapsedTimeSeconds = TimeUnit.SECONDS.convert(elapsedTime, TimeUnit.NANOSECONDS);		
 		long hours = elapsedTimeSeconds / 3600;
 		long minutes = (elapsedTimeSeconds % 3600) / 60;
 		long seconds = elapsedTimeSeconds % 60;
-
 		String timeString = hours + ":" + minutes + ":" + seconds + " seconds";
 		System.out.println("Runtime: " + timeString);		
 		System.out.println();

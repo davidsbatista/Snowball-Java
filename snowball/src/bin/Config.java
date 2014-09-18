@@ -45,8 +45,8 @@ public class Config {
 	/* Represent tuples as sum of Word2Vec vectors
 	 * or use the centroid of all vectors
 	 */
-	public static boolean useSum = false;
-	public static boolean useCentroid = true;
+	public static boolean useSum = true;
+	public static boolean useCentroid = false;
 		
 	public static void init(String configFile, String sentencesFile, String stopwords, String vectors, String word2vecmodelPath) throws IOException {		
 		BufferedReader f;
