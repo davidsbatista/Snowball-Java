@@ -6,30 +6,41 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import nlp.EnglishTokenizer;
 import nlp.PortugueseTokenizer;
 
 import bin.Config;
 
 public class Tokenization {
 		
-	public static void main(String[] args) {		
+	public static void main(String[] args) {
+		/*
 		String text = "<MSC>Grande Prémio do Júri</MSC> foi entregue a \" Halbe Treppe\" de <PER>Andreas Dresen</PER>, um dos quatro filmes alemães na competição para o <LOC>Urso de Ouro</LOC>, enquanto <PER>Géorgien Otar Iosseliani</PER>, fixado em <LOC>França</LOC> há mais de vinte anos, obteve o Prémio para melhor realizador pelo filme \" Lundi matin\".";
 		String sentence = ", coordenadora da parte norte-americana do programa, e <PER>Charles L. Cooney</PER>, do <LOC>Centro Deshpande para a Inovação Tecnológica</LOC> -- e de docentes e empresas portuguesas que trabalham em articulação com a investigação universitária.";
 		String a = "Sob o lema \" Floresta: preservação e inovação\", <PER>Cavaco Silva</PER> visita na tarde de hoje uma empresa de exploração de Madeiras em <LOC>Oleiros</LOC> ( PINORVAL ), uma <MSC>Central Termoelétrica a Biomassa Florestal</MSC> na <LOC>Sertã</LOC> ( PALSER ) e, já em <LOC>Proença-a-Nova</LOC>, um <LOC>Centro de Ciência Viva da Floresta</LOC>.";
 		String b = "e de <PER>General Torres</PER>, enquanto na <LOC>Linha Vermelha</LOC> as composições não circulamentre <LOC>Varziela</LOC> e <LOC>Vilar do Pinheiro</LOC>.";
 		String c = "A <ORG>OGMA</ORG> - Indústria Aeronáutica de Portugal e a unidade na <LOC>China</LOC> ( a parceria Harbin-Embraer ) não estão incluídas porque a <ORG>Embraer</ORG> não detém 100 por cento do capital '', avançou o porta-voz.";
 		splitSentence(c);
+		*/
+		tokenize("Zzuspicion that he forcefully disrupted business operations with the e-mail , '' said a police official of the   .");
 	}
 	
 	public static void tokenize(String text){				
 		text  = text.replaceAll("<[^>]+>[^<]+</?[^>]+>"," ").replaceAll("[0-9]+?(,|\\.|/)?([0-9]+)?.?(º|ª|%)?", "");
 		/* tokenize  */
+		
 		List<String> terms = new ArrayList<String>();
-		Config.tokenizer = new PortugueseTokenizer();
-		terms = (List<String>) Arrays.asList(Config.tokenizer.tokenize(text));		
+		Config.PTtokenizer = new PortugueseTokenizer();
+		
+		System.out.println(text);
+		terms = (List<String>) Arrays.asList(text.split("\\s+"));
+
+		System.out.println();
+		terms = (List<String>) Arrays.asList(Config.ENtokenizer.tokenize(text));
 		for (String t : terms) {
 			System.out.println(t);
 		}		
+				
 	}
 	
 	public static void splitSentence(String sentence){

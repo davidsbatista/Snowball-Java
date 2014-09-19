@@ -7,9 +7,10 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 
+import nlp.Stopwords;
+
 import org.jblas.FloatMatrix;
 
-import nlp.Stopwords;
 import bin.Config;
 
 public abstract class TermsVector {
@@ -22,8 +23,8 @@ public abstract class TermsVector {
 		/* clean tags and numbers, constructs vectors considering only tokens outside tags */		
 		text  = text.replaceAll("<[^>]+>[^<]+</?[^>]+>"," ").replaceAll("[0-9]+?(,|\\.|/)?([0-9]+)?.?(º|ª|%)?", "");
 		
-		/* tokenize  */		
-		terms = (List<String>) Arrays.asList(Config.tokenizer.tokenize(text));
+		/* Tokenize  */
+		terms = (List<String>) Arrays.asList(Config.PTtokenizer.tokenize(text));
 				
 		/* normalize verbs
 		List<String> new_terms = new LinkedList<String>();

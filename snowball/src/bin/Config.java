@@ -14,6 +14,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import nlp.EnglishTokenizer;
 import nlp.PortuguesePoSTagger;
 import nlp.PortugueseTokenizer;
 import nlp.Stopwords;
@@ -23,7 +24,8 @@ import word2vec.com.ansj.vec.Word2VEC;
 
 public class Config {
 	
-	public static PortugueseTokenizer tokenizer;	
+	public static EnglishTokenizer ENtokenizer;	
+	public static PortugueseTokenizer PTtokenizer;
 	public static PortuguesePoSTagger tagger;
 	public static VectorSpaceModel vsm = null;
 	public static String e1_type = null;
@@ -34,19 +36,18 @@ public class Config {
 	public static Word2VEC word2vec = null;
 	public static int word2Vec_dim;	
 	
-	public static boolean useWord2Vec = true;	
-	public static boolean extract_ReVerb = false;
-	public static boolean useDBSCAN = false;
-	
-	/* What will DBSCAN use to compare sentences */
-	public static boolean useReverb = false;
-	public static boolean useMiddleSum = false;
-	
+	public static boolean useWord2Vec = true;		
 	/* Represent tuples as sum of Word2Vec vectors
 	 * or use the centroid of all vectors
 	 */
-	public static boolean useSum = true;
-	public static boolean useCentroid = false;
+	public static boolean useSum = false;
+	public static boolean useCentroid = true;
+
+	/* What will DBSCAN use to compare sentences */
+	public static boolean useDBSCAN = false;
+	public static boolean extract_ReVerb = false;
+	public static boolean useReverb = false;
+	public static boolean useMiddleSum = false;
 		
 	public static void init(String configFile, String sentencesFile, String stopwords, String vectors, String word2vecmodelPath) throws IOException {		
 		BufferedReader f;
@@ -58,6 +59,7 @@ public class Config {
 			try {
 				while ( ( line = f.readLine() ) != null) {
 					if (line.isEmpty() || line.startsWith("#")) continue;
+					
 					parameter = line.split("=")[0];
 					try {
 						value = Float.parseFloat(line.split("=")[1]);
@@ -81,8 +83,7 @@ public class Config {
 			}
 		} catch (FileNotFoundException e1) {
 			System.out.println("paramters.cfg not found");
-			// set default values
-			parameters.put("occ_both_directions",new Float(0));			
+			// Set default values
 			parameters.put("max_tokens_away",new Float(8));
 			parameters.put("min_tokens_away",new Float(1));
 			parameters.put("context_window_size",new Float(5));
@@ -94,15 +95,11 @@ public class Config {
 			parameters.put("weight_middle_context",new Float(0.6));
 			parameters.put("weight_right_context",new Float(0.2));	
 			parameters.put("wUpdt",new Float(0.5));
-			parameters.put("DBScan_min_points", new Float(1));
-			parameters.put("wUpdt",new Float(0.5));
-			parameters.put("wNeg",new Float(0.5));
-			parameters.put("wUnk",new Float(0.5));			
 		}
 		
-		// initialize a tokenizer and load stopwords
-		tokenizer = new PortugueseTokenizer();		
-		System.out.print("Loading stopwords ...");		
+		// Initialize a Tokenizer and load Stopwords		
+		PTtokenizer = new PortugueseTokenizer();		
+		System.out.print("Loading stopwords ...");
 		try {
 			Stopwords.loadStopWords(stopwords);
 		} catch (IOException e) {
@@ -110,7 +107,9 @@ public class Config {
 			e.printStackTrace();
 			System.exit(0);
 		}
+		
 		System.out.println("done");
+		
 		
 		if (Config.extract_ReVerb==true) {
 			PortuguesePoSTagger.initialize();

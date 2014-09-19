@@ -162,8 +162,8 @@ public class SnowballPattern {
 			}
 		}
 		
-		//create a new centroid: get the current value of each word and add it to the centroid
-		//or if word is not in centroid create a new entry for that word, with the score of the word in the tuple where it was found
+		// Creates a new centroid: get the current value of each word and add it to the centroid
+		// or if word is not in centroid create a new entry for that word, with the score of the word in the tuple where it was found
 		Map<String,Double> centroid_t = new HashMap<String, Double>();
 		Set<String> max_keys = null;
 		

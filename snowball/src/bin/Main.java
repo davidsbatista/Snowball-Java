@@ -98,7 +98,7 @@ public class Main {
 				System.exit(0);	
 			}			
 			else {
-				System.out.println("Clustering tuples ...");
+				System.out.println("\nClustering tuples ...");
 				if (Config.useDBSCAN) DBSCAN(tuples,patterns);
 				else Singlepass.singlePass(tuples, patterns);				
 				System.out.println("\n"+patterns.size() + " patterns generated");
@@ -147,6 +147,7 @@ public class Main {
 				generateTuples(candidateTuples,patterns,sentencesFile);				
 				System.out.println("\n"+candidateTuples.size() + " tuples found");				
 				
+				
 				/*
 				System.out.println("Patterns " + patterns.size() + " generated");
 				for (SnowballPattern p: patterns) {
@@ -154,7 +155,7 @@ public class Main {
 					System.out.println("#tuples		:" + p.tuples.size());
 					for (Tuple t: p.tuples) {
 						//System.out.println("left 	:" + t.left_words);
-						System.out.println("middle 	:" + t.middle_words);
+						System.out.println("middle 	:" + t.);
 						//System.out.println("right	:" + t.right_words);
 						System.out.println();
 					}
@@ -166,12 +167,16 @@ public class Main {
 				System.out.println("Calculating tuples confidence");
 				calculateTupleConfidence(candidateTuples);
 				
+				System.out.println("\n"+candidateTuples.size() + " tuples");
+
+				/*
 				// Print each collected Tuple and its confidence				
 				ArrayList<Tuple> tuplesOrdered  = new ArrayList<Tuple>(candidateTuples.keySet());				
 				Collections.sort(tuplesOrdered);
 				for (Tuple t : tuplesOrdered) System.out.println(t.e1 + '\t' + t.e2 + '\t' + t.confidence);
 				System.out.println();
-								
+				*/
+				
 				// Calculate a new seed set of tuples to use in next iteration, such that:
 				// seeds = { T | Conf(T) > min_tuple_confidence }
 				System.out.println("Adding tuples with confidence =>" + Config.parameters.get("min_tuple_confidence") + " as seed for next iteration");
@@ -343,9 +348,11 @@ public class Main {
 	 * Calculates the confidence of a tuple is: Conf(P_i) * DegreeMatch(P_i)
 	 */	
 	static void calculateTupleConfidence(Map<Tuple, List<Pair<SnowballPattern, Double>>> candidateTuples) throws IOException {
-		for (Tuple t : candidateTuples.keySet()) {									
+		for (Tuple t : candidateTuples.keySet()) {			
 			double confidence = 1;
-			t.confidence_old = t.confidence;
+			if (iter>0) {
+				t.confidence_old = t.confidence;
+			}
 			List<Pair<SnowballPattern, Double>> listPatterns = candidateTuples.get(t);
 			for (Pair<SnowballPattern, Double> pair : listPatterns) {
 				confidence *= ( 1 - (pair.getFirst().confidence() * pair.getSecond()) );
@@ -440,8 +447,6 @@ public class Main {
     					*/
 	        			
         				simBest = Double.NEGATIVE_INFINITY;
-    					double max = Double.NEGATIVE_INFINITY;
-    					double score = 0;
 	        				
         				for (SnowballPattern pattern : patterns) {
         					Double similarity = null;
@@ -451,7 +456,7 @@ public class Main {
             				 *  this is independt whether the Sum or Centroid was used to generate the context vectors   
             			     *  if for each cluster the maximum is >= threshold, sentence/tuple is collected   
             			     */
-        					if ( Config.useWord2Vec==true ) {	        						
+        					if ( Config.useWord2Vec==true ) {
         						if (Config.useSum==true) {
 		        					similarity = t.degreeMatchWord2VecSum(pattern.w2v_left_centroid, pattern.w2v_middle_centroid, pattern.w2v_right_centroid);		        				
 		        				}
@@ -489,28 +494,17 @@ public class Main {
 	        				
         				// RlogF needs to be normalized: [0,1]
 	        			if (Config.parameters.get("use_RlogF")==1) {	        				
-	        				// find maximum confidence value
+	        				// Find maximum confidence value
 	        				for (SnowballPattern p : patterns) {
 								if (p.RlogF>maxRlogF) maxRlogF=p.RlogF;
 							}	        				
-	        				// normalize
+	        				// Normalize
 	        				for (Integer integer : patternsMatched) {
 	        					SnowballPattern p = patterns.get(integer);
 	        					if (p.RlogF>0) p.RlogF = p.RlogF / maxRlogF;
 	        					else p.RlogF = 0;
 	        				}			
 	        			}
-		        			
-	        			// Use confidence values from past iterations to calculate pattern confidence: 
-	        			// updateConfidencePattern()
-						if (iter>0) {							
-							for (Integer i : patternsMatched) {
-								SnowballPattern p = patterns.get(i);
-								p.updateConfidencePattern();
-								p.confidence_old = p.confidence;
-								p.RlogF_old = p.RlogF;
-							}							
-						}
 							
 						/*
 						 * Associate highest scoring pattern with the Tuple
@@ -544,6 +538,18 @@ public class Main {
         					}
         					candidateTuples.put(tupleInCandidatesMap, list);
 						}
+						
+						
+						// Use confidence values from past iterations to calculate pattern confidence: 
+	        			// updateConfidencePattern()
+						if (iter>0) {							
+							for (Integer i : patternsMatched) {
+								SnowballPattern p = patterns.get(i);
+								p.updateConfidencePattern();
+								p.confidence_old = p.confidence;
+								p.RlogF_old = p.RlogF;
+							}							
+						}						
         			}
 				}				
 			} catch (java.lang.IllegalStateException e) {
