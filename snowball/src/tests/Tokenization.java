@@ -6,9 +6,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import nlp.EnglishTokenizer;
 import nlp.PortugueseTokenizer;
-
 import bin.Config;
 
 public class Tokenization {
@@ -34,12 +32,6 @@ public class Tokenization {
 		
 		System.out.println(text);
 		terms = (List<String>) Arrays.asList(text.split("\\s+"));
-
-		System.out.println();
-		terms = (List<String>) Arrays.asList(Config.ENtokenizer.tokenize(text));
-		for (String t : terms) {
-			System.out.println(t);
-		}		
 				
 	}
 	

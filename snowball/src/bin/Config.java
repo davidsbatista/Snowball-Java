@@ -14,7 +14,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import nlp.EnglishTokenizer;
 import nlp.PortuguesePoSTagger;
 import nlp.PortugueseTokenizer;
 import nlp.Stopwords;
@@ -23,8 +22,7 @@ import vsm.VectorSpaceModel;
 import word2vec.com.ansj.vec.Word2VEC;
 
 public class Config {
-	
-	public static EnglishTokenizer ENtokenizer;	
+		
 	public static PortugueseTokenizer PTtokenizer;
 	public static PortuguesePoSTagger tagger;
 	public static VectorSpaceModel vsm = null;
