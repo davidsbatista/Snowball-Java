@@ -30,7 +30,8 @@ public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable
 	
 	public String middle_text;
 	
-	public List<FloatMatrix> patternsWord2Vec;
+	public List<FloatMatrix> middleReverbPatternsWord2VecSum;
+	public List<FloatMatrix> middleReverbPatternsWord2VecCentroid;
 	public List<String> patterns;	
 	
 	public FloatMatrix left_sum;
@@ -64,10 +65,16 @@ public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable
 		this.left_words = new HashSet<String>();
 		this.middle_words = new HashSet<String>();
 		this.right_words = new HashSet<String>();
-		this.patternsWord2Vec = new LinkedList<FloatMatrix>();
+		this.middleReverbPatternsWord2VecSum = new LinkedList<FloatMatrix>();
 		this.patterns = new LinkedList<String>();
 		
 		try {
+			
+			// keep words
+			left_words.addAll(chopLeft(left));
+			middle_words.addAll(middle);
+			right_words.addAll(chopLeft(left));				
+			this.middle_text = t_middle_txt;
 			
 			/* 
 			 * Create Word2vec representations 
@@ -82,14 +89,7 @@ public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable
 				// for each context calculate the centroid of the words vectors representations
 				left_centroid = CreateWord2VecVectors.createVecCentroid(chopLeft(left));
 				middle_centroid = CreateWord2VecVectors.createVecCentroid(middle);
-				right_centroid = CreateWord2VecVectors.createVecCentroid(chopRight(right));
-				
-				// keep words
-				left_words.addAll(left);
-				middle_words.addAll(middle);
-				right_words.addAll(right);				
-				this.middle_text = t_middle_txt;
-				
+				right_centroid = CreateWord2VecVectors.createVecCentroid(chopRight(right));				
 			}
 			/* 
 			 * Create TF-IDF representations 
@@ -115,7 +115,7 @@ public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable
 						// discard pattern
 						// e.g.(Portuguese): "é_PRE", "foi_PRE", "ser_PRE"						
 						FloatMatrix patternWord2Vec = CreateWord2VecVectors.createVecSum(tokens);
-						this.patternsWord2Vec.add(patternWord2Vec);
+						this.middleReverbPatternsWord2VecSum.add(patternWord2Vec);
 					}
 				}
 				else {
@@ -124,7 +124,7 @@ public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable
 					// TODO: discard ADV and ADJ					
 					this.patterns.add(middle_text);
 					FloatMatrix patternWord2Vec = CreateWord2VecVectors.createVecSum(middle);
-					this.patternsWord2Vec.add(patternWord2Vec);					
+					this.middleReverbPatternsWord2VecSum.add(patternWord2Vec);					
 				}
 			}
 			
@@ -317,7 +317,7 @@ public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable
 
 	public double[] getPointReVerb() {
 		// Returns ReVerb patterns
-		FloatMatrix v = this.patternsWord2Vec.get(0);		
+		FloatMatrix v = this.middleReverbPatternsWord2VecSum.get(0);		
 		float[] t = v.toArray();
 		double[] vector = new double[t.length];
 		for (int i = 0; i < t.length; i++) {
