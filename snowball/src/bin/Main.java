@@ -148,20 +148,18 @@ public class Main {
 				System.out.println("\n"+candidateTuples.size() + " tuples found");				
 				
 				
-				/*
 				System.out.println("Patterns " + patterns.size() + " generated");
 				for (SnowballPattern p: patterns) {
 					System.out.println("confidence	:" + p.confidence);
 					System.out.println("#tuples		:" + p.tuples.size());
 					for (Tuple t: p.tuples) {
 						//System.out.println("left 	:" + t.left_words);
-						System.out.println("middle 	:" + t.);
+						System.out.println("middle 	:" + t.middle_words);
 						//System.out.println("right	:" + t.right_words);
 						System.out.println();
 					}
 					System.out.println("====================================\n");
 				}
-				*/
 				
 				// Update Tuple confidence based on patterns confidence
 				System.out.println("Calculating tuples confidence");
@@ -169,32 +167,22 @@ public class Main {
 				
 				System.out.println("\n"+candidateTuples.size() + " tuples");
 
-				/*
 				// Print each collected Tuple and its confidence				
 				ArrayList<Tuple> tuplesOrdered  = new ArrayList<Tuple>(candidateTuples.keySet());				
 				Collections.sort(tuplesOrdered);
 				for (Tuple t : tuplesOrdered) System.out.println(t.e1 + '\t' + t.e2 + '\t' + t.confidence);
 				System.out.println();
-				*/
 				
 				// Calculate a new seed set of tuples to use in next iteration, such that:
 				// seeds = { T | Conf(T) > min_tuple_confidence }
 				System.out.println("Adding tuples with confidence =>" + Config.parameters.get("min_tuple_confidence") + " as seed for next iteration");
 				int added = 0;
-				int removed = 0;
-				int current_seeds = Config.seedTuples.size();
+				int removed = 0;				
 				for (Tuple t : candidateTuples.keySet()) {
 					if (t.confidence>=Config.parameters.get("min_tuple_confidence")) {
 						Config.seedTuples.add(new Seed(t.e1.trim(),t.e2.trim()));
 						added++;
 					} else removed++;
-				}
-				if (Config.parameters.get("stop_when_no_new_tuples")==1) {
-					if ( current_seeds == Config.seedTuples.size() ) {
-						System.out.println("No new tuples added");
-						System.out.println(iter + " iterations done.");
-						break;
-					}					
 				}
 				System.out.println(removed + " tuples removed due to confidence lower than " + Config.parameters.get("min_tuple_confidence"));				
 				System.out.println(added + " tuples added to seed set");
@@ -447,21 +435,24 @@ public class Main {
     					*/
 	        			
         				simBest = Double.NEGATIVE_INFINITY;
-	        				
+	        			
+        				
+        				
         				for (SnowballPattern pattern : patterns) {
-        					Double similarity = null;
+        					Double similarity = null;       					
+        					
             			    /*
             				 *  Compare using word2vec representations   
             				 *  Compare each sentence/Tuple with a Pattern centroid according to a Word2Vec representation
-            				 *  this is independt whether the Sum or Centroid was used to generate the context vectors   
+            				 *  this is independent whether the Sum or Centroid was used to generate the context vectors   
             			     *  if for each cluster the maximum is >= threshold, sentence/tuple is collected   
             			     */
         					if ( Config.useWord2Vec==true ) {
         						if (Config.useSum==true) {
 		        					similarity = t.degreeMatchWord2VecSum(pattern.w2v_left_centroid, pattern.w2v_middle_centroid, pattern.w2v_right_centroid);		        				
 		        				}
-			  					else if (Config.useCentroid==true) {
-			  						similarity = t.degreeMatchWord2VecCentroid(pattern.w2v_left_centroid, pattern.w2v_middle_centroid, pattern.w2v_right_centroid);
+			  					else if (Config.useCentroid==true) {			  						
+ 			  						similarity = t.degreeMatchWord2VecCentroid(pattern.w2v_left_centroid, pattern.w2v_middle_centroid, pattern.w2v_right_centroid);
 			  					}
         					}
         					
@@ -473,7 +464,8 @@ public class Main {
         					}
         					
 	        				// If the similarity between the sentence where the tuple was extracted and a 
-	        				// pattern is greater than a threshold update the pattern confidence        					
+	        				// pattern is greater than a threshold update the pattern confidence
+        					
         					if (similarity>=Config.parameters.get("min_degree_match")) {
 	        					patternsMatched.add(patterns.indexOf(pattern));
 	        					pattern.updatePatternSelectivity(e1,e2);
