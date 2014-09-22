@@ -14,6 +14,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import nlp.EnglishPoSTagger;
 import nlp.PortuguesePoSTagger;
 import nlp.PortugueseTokenizer;
 import nlp.Stopwords;
@@ -34,6 +35,8 @@ public class Config {
 	public static Word2VEC word2vec = null;
 	public static int word2Vec_dim;	
 	
+	public static boolean REDS=true;
+	
 	public static boolean useWord2Vec = true;		
 	/* Represent tuples as sum of Word2Vec vectors
 	 * or use the centroid of all vectors
@@ -42,9 +45,9 @@ public class Config {
 	public static boolean useCentroid = true;
 
 	/* What will DBSCAN use to compare sentences */
-	public static boolean useDBSCAN = false;
-	public static boolean extract_ReVerb = false;
-	public static boolean useReverb = false;
+	public static boolean useDBSCAN = true;
+	public static boolean extract_ReVerb = true;
+	public static boolean useReverb = true;
 	public static boolean useMiddleSum = false;
 		
 	public static void init(String configFile, String sentencesFile, String stopwords, String vectors, String word2vecmodelPath) throws IOException {		
@@ -110,7 +113,8 @@ public class Config {
 		
 		
 		if (Config.extract_ReVerb==true) {
-			PortuguesePoSTagger.initialize();
+			//PortuguesePoSTagger.initialize();
+			EnglishPoSTagger.initialize();
 		}
 		
 		// load word2vec model

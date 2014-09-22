@@ -35,13 +35,14 @@ public abstract class TermsVector {
 		terms = new_terms;
 		*/
 		
-		/* remove ".", e.g : "afirmou." */
+		/* remove ".", e.g : "afirmou."
 		for (int i = 0; i < terms.size(); i++) {
 			if (terms.get(i).endsWith(".")) terms.set(i, terms.get(i).replace(".", ""));
 		}
+		*/
 		
 		/* remove stopwords */
-		terms = Stopwords.removeStopWords(terms);
+		//terms = Stopwords.removeStopWords(terms);
 		
 		/* lowercase everything */
 	    ListIterator<String> iterator = terms.listIterator();

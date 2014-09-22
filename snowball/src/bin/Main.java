@@ -62,6 +62,14 @@ public class Main {
 			System.out.println("No semantic types defined");
 			System.exit(0);
 		}
+		
+		Map<Tuple, List<Pair<SnowballPattern, Double>>> candidateTuples = new HashMap<Tuple, List<Pair<SnowballPattern,Double>>>();
+		LinkedList<SnowballPattern> patterns = new LinkedList<SnowballPattern>();
+		LinkedList<Tuple> tuples = null;
+		
+		if (Config.REDS==true) {
+			REDS.iteration(startTime, sentencesFile, candidateTuples, patterns, tuples);
+		}
 	
 		// Initialize Stemmer
 		// StemmerWrapper.initialize();
@@ -74,9 +82,6 @@ public class Main {
 		for (String p : Config.parameters.keySet()) System.out.println(p + '\t' + Config.parameters.get(p));
 		
 		// start iterative process
-		Map<Tuple, List<Pair<SnowballPattern, Double>>> candidateTuples = new HashMap<Tuple, List<Pair<SnowballPattern,Double>>>();
-		LinkedList<SnowballPattern> patterns = new LinkedList<SnowballPattern>();
-		LinkedList<Tuple> tuples = null;
 		iteration(startTime, sentencesFile,candidateTuples,patterns,tuples);
 	}
 		
@@ -249,7 +254,7 @@ public class Main {
 		for (Tuple t : tuples) {			
 			// Cluster according to ReVerb patterns
 			// TODO: tuples com mais do que um padrão ReVerb ?
-			if (t.patterns.size()>0) {
+			if (t.ReVerbpatterns.size()>0) {
 				points.add(t);
 			}	
 		}
@@ -265,15 +270,20 @@ public class Main {
 		System.out.println("\nClusters generated: " + clusters.size());
 		
 		/* Transform the clustered tuples into SnowballPattern */
+		int c = 1;
 		for (Cluster<Clusterable> cluster : clusters) {
 			List<Clusterable> objects = cluster.getPoints();
-			SnowballPattern pattern = new SnowballPattern();			
+			SnowballPattern pattern = new SnowballPattern();
+			System.out.println("Cluster " + c);
 			for (Clusterable object : objects) {
 				Tuple t = (Tuple) object;
-				pattern.tuples.add(t);
+				pattern.tuples.add(t);				
+				System.out.println(t.ReVerbpatterns);
 			}
 			patterns.add(pattern);
+			System.out.println();
 		}
+		c++;
 	}
 	
 

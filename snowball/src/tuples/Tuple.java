@@ -8,11 +8,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import nlp.EnglishPoSTagger;
 import nlp.PortuguesePoSTagger;
 
 import org.apache.commons.math3.ml.clustering.Clusterable;
 import org.jblas.FloatMatrix;
 
+import utils.Pair;
 import vsm.TermsVector;
 import vsm.CreateWord2VecVectors;
 import bin.Config;
@@ -32,7 +34,7 @@ public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable
 	
 	public List<FloatMatrix> middleReverbPatternsWord2VecSum;
 	public List<FloatMatrix> middleReverbPatternsWord2VecCentroid;
-	public List<String> patterns;	
+	public List<String> ReVerbpatterns;	
 	
 	public FloatMatrix left_sum;
 	public FloatMatrix middle_sum;
@@ -66,7 +68,7 @@ public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable
 		this.middle_words = new HashSet<String>();
 		this.right_words = new HashSet<String>();
 		this.middleReverbPatternsWord2VecSum = new LinkedList<FloatMatrix>();
-		this.patterns = new LinkedList<String>();
+		this.ReVerbpatterns = new LinkedList<String>();
 		
 		try {
 			
@@ -79,6 +81,7 @@ public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable
 			/* 
 			 * Create Word2vec representations 
 			 */				
+			/*
 			if (Config.useWord2Vec==true) {
 				
 				// for each context sum the words vectors representations
@@ -93,25 +96,31 @@ public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable
 			}
 			/* 
 			 * Create TF-IDF representations 
-			 */			
+			 *			
 			else if (Config.useWord2Vec==false) {				
 				if (left!=null) this.left = Config.vsm.tfidf(chopLeft(left));			
 				if (middle!=null) this.middle = Config.vsm.tfidf(middle);			
 				if (right!=null) this.right = Config.vsm.tfidf(chopRight(right));				
 			}
+			*/
 			
 			/* 
 			 * Extract ReVerb patterns and construct Word2Vec representations 
 			 */			
 			if (Config.extract_ReVerb==true) {				
-				List<String> patterns = PortuguesePoSTagger.extractRVBPatterns(t_middle_txt);				
+				//List<String> patterns = PortuguesePoSTagger.extractRVBPatterns(t_middle_txt);				
+				List<String> patterns = EnglishPoSTagger.extractRVBPatterns(t_middle_txt);
 				if (patterns.size()>0) {
 					// Sum each word vector of each patterns
 					for (String pattern : patterns) {
-						this.patterns.add(pattern);
+						/*
+						System.out.println(this.sentence);
+						System.out.println("ReVerb: " + pattern);
+						*/
+						this.ReVerbpatterns.add(pattern);
 						String[] t = pattern.split("_");
 						List<String> tokens = (List<String>) Arrays.asList(t);						
-						//TODO: if pattern contains only one verb and is an auxialiary verb
+						//TODO: if pattern contains only one verb and is an auxiliary verb
 						// discard pattern
 						// e.g.(Portuguese): "é_PRE", "foi_PRE", "ser_PRE"						
 						FloatMatrix patternWord2Vec = CreateWord2VecVectors.createVecSum(tokens);
@@ -121,8 +130,17 @@ public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable
 				else {
 					// If no ReVerb patterns are found
 					// add middle words as if it was a pattern
-					// TODO: discard ADV and ADJ					
-					this.patterns.add(middle_text);
+					// TODO: discard ADV and ADJ		
+					Pair<String[], String[]> tagged = EnglishPoSTagger.tagSentence(middle_text);
+					/*
+					System.out.println(this.sentence);
+					String[] tokens = tagged.getFirst();
+					String[] tags = tagged.getSecond();
+					for (int i = 0; i < tagged.getFirst().length; i++) {
+						System.out.println(tokens[i] + ' ' + tags[i]);
+					}
+					*/
+					this.ReVerbpatterns.add(middle_text);
 					FloatMatrix patternWord2Vec = CreateWord2VecVectors.createVecSum(middle);
 					this.middleReverbPatternsWord2VecSum.add(patternWord2Vec);					
 				}
