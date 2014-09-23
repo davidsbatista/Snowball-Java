@@ -37,17 +37,17 @@ public class Config {
 	
 	public static boolean REDS=false;
 	
-	public static boolean useWord2Vec = true;		
+	public static boolean useWord2Vec = false;		
 	/* Represent tuples as sum of Word2Vec vectors
 	 * or use the centroid of all vectors
 	 */
 	public static boolean useSum = false;
-	public static boolean useCentroid = true;
+	public static boolean useCentroid = false;
 
 	/* What will DBSCAN use to compare sentences */
 	//public static boolean useDBSCAN = true;
-	public static boolean extract_ReVerb = true;
-	public static boolean useReverb = true;
+	public static boolean extract_ReVerb = false;
+	public static boolean useReverb = false;
 	public static boolean useMiddleSum = false;
 		
 	public static void init(String configFile, String sentencesFile, String stopwords, String vectors, String word2vecmodelPath) throws IOException {		
