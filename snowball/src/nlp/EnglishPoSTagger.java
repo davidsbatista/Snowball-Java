@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import opennlp.tools.postag.POSModel;
@@ -23,11 +24,6 @@ public class EnglishPoSTagger {
 	public static void main(String[] args) throws InvalidFormatException, FileNotFoundException, IOException {		
 		initialize();		
 		UniversalTagSet.init();		
-		List<String> patterns = extractRVBPatterns("are based on");
-		
-		for (String string : patterns) {
-			System.out.println(string);
-		}
 	}
 	
 	public static void initialize() throws InvalidFormatException, FileNotFoundException, IOException {		
@@ -45,43 +41,64 @@ public class EnglishPoSTagger {
        UniversalTagSet.init();
 	}
 	
-	public static Pair<String[],String[]> tagSentence(String sentence){				
+	public static List<ReVerbPattern> tagSentence(String sentence){
 		String[] tokens = _tokenizer.tokenize(sentence.trim());
-		String[] pos_tags = _posTagger.tag(tokens);			
-		Pair<String[], String[]> p = new Pair<String[], String[]>(tokens, pos_tags);
-		return p;		
+		String[] PTB_POS = _posTagger.tag(tokens);
+		String[] sourcePOS = new String[PTB_POS.length];
+		
+		for (int i = 0; i < PTB_POS.length; i++) {
+			sourcePOS[i] = UniversalTagSet.convertTagsPTB.get(PTB_POS[i]);
+		}
+		
+		List<String> token_words = new ArrayList<String>();
+		List<String> token_universal_pos_tags = new ArrayList<String>();
+		List<String> token_ptb_pos_tags = new ArrayList<String>();
+		
+		List<ReVerbPattern> patterns = new LinkedList<>();
+		
+		for (int j = 0; j < tokens.length; j++) {
+			token_words.add(tokens[j].toLowerCase());
+			token_ptb_pos_tags.add(PTB_POS[j]);
+			token_universal_pos_tags.add(sourcePOS[j]);
+		}
+		
+		ReVerbPattern p = new ReVerbPattern(token_words, token_universal_pos_tags, token_ptb_pos_tags);
+		patterns.add(p);
+		
+		return patterns;		
 	}
 	
-	public static List<String> extractRVBPatterns(String text) {
+	
+	public static List<ReVerbPattern> extractRVBPatterns(String text) {
 		
 		String[] sourceTokens = _tokenizer.tokenize(text.replaceAll("<[^>]+>",""));
 		String[] PTB_POS = _posTagger.tag(sourceTokens);
 		String[] sourcePOS = new String[PTB_POS.length];
 		for (int i = 0; i < PTB_POS.length; i++) {
 			sourcePOS[i] = UniversalTagSet.convertTagsPTB.get(PTB_POS[i]);
-		}
+		}				
+		List<ReVerbPattern> patterns = new LinkedList<>();		
 		
-		/*
-		for (int i = 0; i < sourceTokens.length; i++) {
-			System.out.print(sourceTokens[i] + '\t');
-			System.out.print(PTB_POS[i] + '\t');
-			System.out.print(sourcePOS[i] + '\n');
-		}
-		*/
-			
-		List<String> set_patterns = new ArrayList<String>();
 		if (sourcePOS.length==sourceTokens.length) {					
 			for ( int i = 0 ; i < sourceTokens.length; i++ ) {		
-				if ( sourcePOS[i].startsWith("VERB") || sourcePOS[i].startsWith("pp") ) { //verb pode estar também no partícpio passado
-					boolean pp_verb  = false;
-					if (sourcePOS[i].startsWith("pp")) pp_verb = true;
-					String pattern = null;
-					pattern = sourceTokens[i].toLowerCase();
+				if ( sourcePOS[i].startsWith("VERB")) {
 					
+					List<String> token_words = new ArrayList<String>();
+					List<String> token_universal_pos_tags = new ArrayList<String>();
+					List<String> token_ptb_pos_tags = new ArrayList<String>();
+					
+					token_words.add(sourceTokens[i].toLowerCase());
+					token_universal_pos_tags.add(sourcePOS[i]);
+					token_ptb_pos_tags.add(PTB_POS[i]);
+															
 					// Este primero if trata dos casos em que o verbo é um verbo auxilar: "ser", "estar", "ter", "ir", "haver", etc.
 					// Se o próximo token for um verbo também, ver se a sequência de tokens é um padrão ReVerb				
-					if (( i+1 < sourceTokens.length-1 ) && (sourcePOS[i+1].startsWith("VERB") || sourcePOS[i+1].startsWith("pp"))) {					
-						pattern += "_" + sourceTokens[i+1].toLowerCase();
+					
+					if (( i+1 < sourceTokens.length-1 ) && (sourcePOS[i+1].startsWith("VERB") || sourcePOS[i+1].startsWith("pp"))) {
+						token_words.add(sourceTokens[i+1].toLowerCase());
+						token_universal_pos_tags.add(sourcePOS[i]);
+						token_ptb_pos_tags.add(PTB_POS[i]);
+						
 						int j = i;
 						// ReVerb inspired: a VERB, followed by several NOUNS, ADJ or ADV, ending in a PREP					
 						if (i+2 < sourceTokens.length - 2) {	  			
@@ -90,13 +107,16 @@ public class EnglishPoSTagger {
 									sourcePOS[j].startsWith("ADV") || 
 									sourcePOS[j].startsWith("ADJ") || 
 									sourcePOS[j].startsWith("NOUN") ||
-									sourcePOS[j].startsWith("PRON") ))  {
-							pattern += "_" + sourceTokens[j].toLowerCase();
+									sourcePOS[j].startsWith("PRON") ))  {							
+							token_words.add(sourceTokens[i+1].toLowerCase());
+							token_universal_pos_tags.add(sourcePOS[i]);
+							token_ptb_pos_tags.add(PTB_POS[i]);
 							j++;
 							}
 						}
 						i=j;
-					}				
+					}
+					
 					else {
 						// ReVerb inspired: a VERB, followed by several NOUNS, ADJ or ADV, ending in a PREP					
 						if (i < sourceTokens.length - 2) {	  			
@@ -107,25 +127,33 @@ public class EnglishPoSTagger {
 									sourcePOS[j].startsWith("NOUN") ||
 									sourcePOS[j].startsWith("PRON") ||
 									sourcePOS[j].startsWith("DET")))  {
-							pattern += "_" + sourceTokens[j].toLowerCase();
+							//pattern += "_" + sourceTokens[j].toLowerCase();
+							//pos_pattern += "_" + sourcePOS[i];
+							token_words.add(sourceTokens[i].toLowerCase());
+							token_universal_pos_tags.add(sourcePOS[i]);
+							token_ptb_pos_tags.add(PTB_POS[i]);
 							j++;					
 							}
 							i=j;
 						}
 					}
 					if ( sourcePOS[i].startsWith("ADP") || sourcePOS[i].startsWith("DET")) {
-						pattern += "_" + sourceTokens[i].toLowerCase();
-					}				
-					//System.out.println("pattern: " + pattern);
-					if (pp_verb) pattern += "_PP";				
-					set_patterns.add(pattern);			
+						//pattern += "_" + sourceTokens[i].toLowerCase();
+						//pos_pattern += "_" + sourcePOS[i];
+						token_words.add(sourceTokens[i].toLowerCase());
+						token_universal_pos_tags.add(sourcePOS[i]);
+						token_ptb_pos_tags.add(PTB_POS[i]);
+					}
+					ReVerbPattern patternRVB = new ReVerbPattern(token_words,token_universal_pos_tags,token_ptb_pos_tags);
+					patterns.add(patternRVB);
 				}
 			}
 		}
 		else {
-			set_patterns.add("ERROR!");
-		}
-		return set_patterns;
+			System.out.println("Error: different number of tokens and PoS-tags");
+			System.exit(0);
+		}		
+		return patterns;
 	}
 
 	

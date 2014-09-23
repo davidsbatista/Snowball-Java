@@ -7,8 +7,6 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 
-import nlp.Stopwords;
-
 import org.jblas.FloatMatrix;
 
 import bin.Config;

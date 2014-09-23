@@ -35,7 +35,7 @@ public class Config {
 	public static Word2VEC word2vec = null;
 	public static int word2Vec_dim;	
 	
-	public static boolean REDS=true;
+	public static boolean REDS=false;
 	
 	public static boolean useWord2Vec = true;		
 	/* Represent tuples as sum of Word2Vec vectors
@@ -45,7 +45,7 @@ public class Config {
 	public static boolean useCentroid = true;
 
 	/* What will DBSCAN use to compare sentences */
-	public static boolean useDBSCAN = true;
+	//public static boolean useDBSCAN = true;
 	public static boolean extract_ReVerb = true;
 	public static boolean useReverb = true;
 	public static boolean useMiddleSum = false;
@@ -118,15 +118,16 @@ public class Config {
 		}
 		
 		// load word2vec model
-		if (useWord2Vec==true) {
+		if (Config.REDS==true) {
 			word2vec = new Word2VEC();
 			System.out.print("Loading word2vec model... ");
 			word2vec.loadGoogleModel(word2vecmodelPath);			
 			System.out.println(word2vec.getWords() + " words loaded");
 			word2Vec_dim = word2vec.getSize();
 		}
+		
 		// VSM, TF-IDF: calculate vocabulary term overall frequency
-		else if (useWord2Vec==false) {
+		else if (Config.REDS==false) {
 			try {
 				generateTF(sentencesFile);
 			} catch (ClassNotFoundException e) {

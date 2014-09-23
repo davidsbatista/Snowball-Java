@@ -1,12 +1,12 @@
 package clustering;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -21,7 +21,7 @@ public class SnowballPattern {
 	
 	public LinkedList<Tuple> tuples;
 	
-	public Set<String> patterns = new HashSet<String>();
+	public Set<List<String>> patterns = new HashSet<List<String>>();
 	
 	public Map<String,Double> left_centroid = new HashMap<String, Double>();
 	public Map<String,Double> middle_centroid = new HashMap<String, Double>();
@@ -56,7 +56,7 @@ public class SnowballPattern {
 	
 	public void mergUniquePatterns(){
 		for (Tuple t : this.tuples) {
-			patterns.add(t.ReVerbpatterns.get(0));			
+			patterns.add(t.ReVerbpatterns.get(0).token_words);
 		}
 		
 	}
@@ -75,7 +75,7 @@ public class SnowballPattern {
 		}		
 	}
 
-	public void updatePatternSelectivity(String e1, String e2) throws IOException {
+	public void updatePatternSelectivity(String e1, String e2) {
 		for (Seed s : Config.seedTuples) {
 			if (s.e1.equals(e1.trim()) || s.e1.trim().equals(e1.trim())) {
 				if (s.e2.equals(e2.trim()) || s.e2.trim().equals(e2.trim())) {

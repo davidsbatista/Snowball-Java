@@ -29,7 +29,6 @@ import tuples.Tuple;
 import utils.Pair;
 import utils.SortMaps;
 import vsm.TermsVector;
-import word2vec.com.ansj.vec.domain.WordEntry;
 import clustering.Singlepass;
 import clustering.SnowballPattern;
 import clustering.dbscan.CosineMeasure;
@@ -60,34 +59,38 @@ public class Main {
 		Config.readSeeds(seedsFile);			
 		if (Config.e1_type==null || Config.e2_type==null) {
 			System.out.println("No semantic types defined");
-			System.exit(0);
 		}
-		
 		Map<Tuple, List<Pair<SnowballPattern, Double>>> candidateTuples = new HashMap<Tuple, List<Pair<SnowballPattern,Double>>>();
 		LinkedList<SnowballPattern> patterns = new LinkedList<SnowballPattern>();
-		LinkedList<Tuple> tuples = null;
-		
-		if (Config.REDS==true) {
-			REDS.iteration(startTime, sentencesFile, candidateTuples, patterns, tuples);
-		}
-	
-		// Initialize Stemmer
-		// StemmerWrapper.initialize();
-		
-		// initialize VerbLexicon for normalization */
-		// PortugueseVerbNormalizer.initialize();
 				
-		// Print parameters values to screen
+		// Print configuration parameters values to screen
 		System.out.println();
 		for (String p : Config.parameters.keySet()) System.out.println(p + '\t' + Config.parameters.get(p));
 		
-		// start iterative process
-		iteration(startTime, sentencesFile,candidateTuples,patterns,tuples);
-	}
+		/* 
+		 * Starts REDS extraction process
+		 */ 
 		
-	/*
-	 *  Starts a Snowball extraction process
-	 */
+		if (Config.REDS==true) {
+			REDS.start(sentencesFile,seedsFile,candidateTuples,patterns);
+			outputToFiles(candidateTuples, patterns);
+			System.exit(0);
+		}
+		
+		/*
+		 *  Starts a Snowball extraction process
+		 */		
+		else if (Config.REDS==false) {
+			Snowball.start(sentencesFile,seedsFile,candidateTuples,patterns);
+			outputToFiles(candidateTuples, patterns);
+			System.exit(0);
+		}
+		
+		
+		// start iterative process		
+		//iteration(startTime, sentencesFile,candidateTuples,patterns,tuples);
+	}
+
 	static void iteration(long startTime, String sentencesFile, Map<Tuple, List<Pair<SnowballPattern, Double>>> candidateTuples, LinkedList<SnowballPattern> patterns, LinkedList<Tuple> tuples) throws IOException, Exception {					
 				
 		while (iter<=Config.parameters.get("number_iterations")) {
@@ -104,8 +107,7 @@ public class Main {
 			}			
 			else {
 				System.out.println("\nClustering tuples ...");
-				if (Config.useDBSCAN) DBSCAN(tuples,patterns);
-				else Singlepass.singlePass(tuples, patterns);				
+				Singlepass.singlePass(tuples, patterns);				
 				System.out.println("\n"+patterns.size() + " patterns generated");
 				
 				/*
@@ -207,33 +209,6 @@ public class Main {
 		outputToFiles(candidateTuples,patterns);
 	}
 	
-	
-	/*
-	 * Expands the relationship words of a pattern based on similarities
-	 * 	- For each word part of a pattern
-	 * 		- Construct a set with all the similar words according to Word2Vec given a threshold t    	 
-	 *  	- Calculate the intersection of all sets
-	 *
-	 */
-	private static void expandPatterns(LinkedList<SnowballPattern> patterns) {
-		for (SnowballPattern p : patterns) {			
-			for (Tuple t : p.tuples) {
-				for (String word : t.middle_words) {
-					Set<WordEntry> words = Config.word2vec.distance(word);
-					for (WordEntry wordEntry : words) {
-						System.out.println(wordEntry.name + '\t' + wordEntry.score);
-					}
-				}
-				/* TESTAR
-				List<String> pattern_words = new LinkedList<String>();
-				pattern_words.addAll(t.middle_words);
-				Set<WordEntry> words = Config.word2vec.distance(pattern_words);
-				*/				
-			}			
-		}		
-	}
-	
-	
 	/*
 	 * Clusters all the collected Tuples with DBSCAN
 	 *  - ReVerb patterns are extracted from the middle context
@@ -306,7 +281,7 @@ public class Main {
 	/*
 	 * Writes the extracted Tuples and the generated Extraction Patterns to files
 	 */ 
-	static void outputToFiles( Map<Tuple, List<Pair<SnowballPattern, Double>>> candidateTuples, LinkedList<SnowballPattern> patterns) throws IOException {
+	static void outputToFiles(Map<Tuple, List<Pair<SnowballPattern, Double>>> candidateTuples, LinkedList<SnowballPattern> patterns) throws IOException {
 		BufferedWriter f1 = new BufferedWriter(new FileWriter("tuples.txt"));
 		BufferedWriter f2 = new BufferedWriter(new FileWriter("patterns.txt"));
 		ArrayList<Tuple> tuplesOrdered  = new ArrayList<Tuple>(candidateTuples.keySet());				
@@ -323,20 +298,30 @@ public class Main {
 			f2.close();			
 		}
 		else {			
-			for (SnowballPattern p : patterns) {
-				f2.write("confidence	:" + p.confidence+'\n');
-				f2.write("#tuples		:" + p.tuples.size()+'\n');
-				for (Tuple tuple : p.tuples) {				
-					f2.write("\nleft: ");
-					for (String word : tuple.left_words) f2.write(word+',');
-					f2.write("\nmiddle: ");
-					for (String word : tuple.middle_words) f2.write(word+',');
-					f2.write("\nright: ");
-					for (String word : tuple.right_words) f2.write(word+',');
-					f2.write("\n");
-				}
-				f2.write("\n================================================\n");
+			if (Config.REDS==false) {
+				for (SnowballPattern p : patterns) {
+					f2.write("confidence	:" + p.confidence+'\n');
+					f2.write("#tuples		:" + p.tuples.size()+'\n');
+					for (Tuple tuple : p.tuples) {
+						f2.write("\nleft: ");
+						for (String word : tuple.left_words) f2.write(word+',');
+						f2.write("\nmiddle: ");
+						for (String word : tuple.middle_words) f2.write(word+',');
+						f2.write("\nright: ");
+						for (String word : tuple.right_words) f2.write(word+',');
+						f2.write("\n");
+					}
+					f2.write("\n================================================\n");
+				}				
 			}
+			else if (Config.REDS==true){
+				for (SnowballPattern p : patterns) {
+					f2.write("confidence	:" + p.confidence+'\n');
+					f2.write("#tuples		:" + p.tuples.size()+'\n');
+					f2.write("patterns		:" + p.patterns+'\n');
+					f2.write("\n================================================\n");				
+				}				
+			}			
 			f2.close();						
 		}		
 	}
