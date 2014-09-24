@@ -73,7 +73,17 @@ public class Main {
 		
 		if (Config.REDS==true) {
 			REDS.start(sentencesFile,seedsFile,candidateTuples,patterns);
-			outputToFiles(candidateTuples, patterns);
+			long stopTime = System.nanoTime();
+			long elapsedTime = stopTime - startTime;		
+			long elapsedTimeSeconds = TimeUnit.SECONDS.convert(elapsedTime, TimeUnit.NANOSECONDS);		
+			long hours = elapsedTimeSeconds / 3600;
+			long minutes = (elapsedTimeSeconds % 3600) / 60;
+			long seconds = elapsedTimeSeconds % 60;
+			String timeString = hours + ":" + minutes + ":" + seconds + " seconds";
+			System.out.println("Runtime: " + timeString);		
+			System.out.println();
+			System.out.println(candidateTuples.size() + " tuples extracted");
+			outputToFiles(candidateTuples,patterns);
 			System.exit(0);
 		}
 		
@@ -81,8 +91,18 @@ public class Main {
 		 *  Starts a Snowball extraction process
 		 */		
 		else if (Config.REDS==false) {
-			Snowball.start(sentencesFile,seedsFile,candidateTuples,patterns);
-			outputToFiles(candidateTuples, patterns);
+			Snowball.start(sentencesFile,seedsFile,candidateTuples,patterns);			
+			long stopTime = System.nanoTime();
+			long elapsedTime = stopTime - startTime;		
+			long elapsedTimeSeconds = TimeUnit.SECONDS.convert(elapsedTime, TimeUnit.NANOSECONDS);		
+			long hours = elapsedTimeSeconds / 3600;
+			long minutes = (elapsedTimeSeconds % 3600) / 60;
+			long seconds = elapsedTimeSeconds % 60;
+			String timeString = hours + ":" + minutes + ":" + seconds + " seconds";
+			System.out.println("Runtime: " + timeString);		
+			System.out.println();
+			System.out.println(candidateTuples.size() + " tuples extracted");
+			outputToFiles(candidateTuples,patterns);
 			System.exit(0);
 		}
 		

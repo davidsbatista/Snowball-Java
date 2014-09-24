@@ -37,7 +37,7 @@ public class Config {
 	
 	public static boolean REDS=false;
 	
-	public static boolean useWord2Vec = false;		
+	public static boolean useWord2Vec = false;	
 	/* Represent tuples as sum of Word2Vec vectors
 	 * or use the centroid of all vectors
 	 */
@@ -129,7 +129,7 @@ public class Config {
 		// VSM, TF-IDF: calculate vocabulary term overall frequency
 		else if (Config.REDS==false) {
 			try {
-				generateTF(sentencesFile);
+				calculateTF(sentencesFile);
 			} catch (ClassNotFoundException e) {
 				e.printStackTrace();
 				System.exit(0);
@@ -177,7 +177,7 @@ public class Config {
 	}
 
 	// Count individual terms frequency over whole document collection
-	static void generateTF(String sentencesFile) throws IOException, FileNotFoundException, ClassNotFoundException {
+	static void calculateTF(String sentencesFile) throws IOException, FileNotFoundException, ClassNotFoundException {
 		VectorSpaceModel vsm;
 		File f = new File("vsm.obj");
 		if (!f.exists()) {
@@ -185,7 +185,7 @@ public class Config {
 			System.out.println("Calculating TF for each term");			
 			vsm = new VectorSpaceModel(sentencesFile);
 			Config.vsm = vsm;
-			System.out.println("TF-IDF vocabulary size: " + Config.vsm.term_document_frequency.keySet().size());
+			System.out.println("\nTF-IDF vocabulary size: " + Config.vsm.term_document_frequency.keySet().size());
 			
 			try {
 				// save to disk
