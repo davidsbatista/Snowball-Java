@@ -111,7 +111,18 @@ public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable
 			 * Extract ReVerb patterns and construct Word2Vec representations 
 			 */			
 			if (Config.REDS==true) {								
-				this.ReVerbpatterns = EnglishPoSTagger.extractRVBPatterns(t_middle_txt);				
+				//this.ReVerbpatterns = EnglishPoSTagger.extractRVBPatterns(t_middle_txt);
+				
+				this.ReVerbpatterns = EnglishPoSTagger.extractRVB(t_middle_txt);
+				
+				if (this.ReVerbpatterns.size()>0) {
+					for (ReVerbPattern rvb : ReVerbpatterns) {
+						System.out.println(rvb.token_words);
+						System.out.println(rvb.token_ptb_pos_tags);
+						System.out.println(rvb.token_universal_pos_tags);						
+					}
+				}
+				
 				if (this.ReVerbpatterns.size()>0) {
 					hasReVerbPatterns = true;					
 					//TODO: using only the first pattern, are there really more than 1 pattern in a middle context ?

@@ -14,7 +14,6 @@ import opennlp.tools.tokenize.Tokenizer;
 import opennlp.tools.tokenize.TokenizerME;
 import opennlp.tools.tokenize.TokenizerModel;
 import opennlp.tools.util.InvalidFormatException;
-import utils.Pair;
 
 public class EnglishPoSTagger {
 	
@@ -23,7 +22,15 @@ public class EnglishPoSTagger {
 			
 	public static void main(String[] args) throws InvalidFormatException, FileNotFoundException, IOException {		
 		initialize();		
-		UniversalTagSet.init();		
+		UniversalTagSet.init();
+		List<ReVerbPattern> patterns = extractRVB("Element a has an atomic weight of 123 pounds.");
+
+		if (patterns.size()>0) {
+			for (ReVerbPattern rvb : patterns) {
+				System.out.println(rvb.token_words);				
+				System.out.println(rvb.token_universal_pos_tags);						
+			}
+		}
 	}
 	
 	public static void initialize() throws InvalidFormatException, FileNotFoundException, IOException {		
@@ -69,6 +76,70 @@ public class EnglishPoSTagger {
 	}
 	
 	
+	public static List<ReVerbPattern> extractRVB(String text) {
+		
+		String[] sourceTokens = _tokenizer.tokenize(text.replaceAll("<[^>]+>",""));
+		String[] PTB_POS = _posTagger.tag(sourceTokens);
+		String[] sourcePOS = new String[PTB_POS.length];
+		for (int i = 0; i < PTB_POS.length; i++) {
+			sourcePOS[i] = UniversalTagSet.convertTagsPTB.get(PTB_POS[i]);
+		}
+		List<ReVerbPattern> patterns = new LinkedList<>();		
+		
+		int limit = sourcePOS.length-1;
+		int i = 0;
+		System.out.println("limit :" + limit);
+		System.out.println(text);
+		for (int j = 0; j < sourcePOS.length; j++) {
+			System.out.print(sourcePOS[j] + ' ');			
+		}
+		System.out.println();
+		
+		while (i < limit) {
+			if ( sourcePOS[i].startsWith("VERB")) {				
+				List<String> token_words = new ArrayList<String>();
+				List<String> token_universal_pos_tags = new ArrayList<String>();
+				List<String> token_ptb_pos_tags = new ArrayList<String>();				
+				
+				token_words.add(sourceTokens[i].toLowerCase());
+				token_universal_pos_tags.add(sourcePOS[i]);
+				token_ptb_pos_tags.add(PTB_POS[i]);
+				i++;
+				
+				// V = verb particle? adv? (also capture auxiliary verbs)
+			    while (i <= limit && (sourcePOS[i]=="VERB" || sourcePOS[i]=="PRT" || sourcePOS[i]=="ADV")) {			    	
+			    	token_words.add(sourceTokens[i].toLowerCase());
+					token_universal_pos_tags.add(sourcePOS[i]);
+					token_ptb_pos_tags.add(PTB_POS[i]);
+					i++;
+			    }
+			    
+	            // W = (noun | adj | adv | pron | det)
+	            while (i <= limit && (sourcePOS[i]=="NOUN" || sourcePOS[i]=="ADJ" || sourcePOS[i]=="ADV" || sourcePOS[i]=="PRON" || sourcePOS[i]=="DET")) {
+	            	token_words.add(sourceTokens[i].toLowerCase());
+					token_universal_pos_tags.add(sourcePOS[i]);
+					token_ptb_pos_tags.add(PTB_POS[i]);
+					i++;
+	            }
+	            
+	            // P = (prep | particle | inf. marker)
+	            while (i <= limit && (sourcePOS[i]=="ADP" || sourcePOS[i]=="PRT")) {
+	            	token_words.add(sourceTokens[i].toLowerCase());
+					token_universal_pos_tags.add(sourcePOS[i]);
+					token_ptb_pos_tags.add(PTB_POS[i]);
+					i++;
+	            }
+	            
+	            // add the build pattern to the list collected patterns
+	            ReVerbPattern patternRVB = new ReVerbPattern(token_words,token_universal_pos_tags,token_ptb_pos_tags);
+				patterns.add(patternRVB);				
+			}
+	        i++;
+		}		
+		return patterns;
+	}
+	
+	
 	public static List<ReVerbPattern> extractRVBPatterns(String text) {
 		
 		String[] sourceTokens = _tokenizer.tokenize(text.replaceAll("<[^>]+>",""));
@@ -76,21 +147,27 @@ public class EnglishPoSTagger {
 		String[] sourcePOS = new String[PTB_POS.length];
 		for (int i = 0; i < PTB_POS.length; i++) {
 			sourcePOS[i] = UniversalTagSet.convertTagsPTB.get(PTB_POS[i]);
-		}				
+		}
+		
 		List<ReVerbPattern> patterns = new LinkedList<>();		
 		
 		if (sourcePOS.length==sourceTokens.length) {					
-			for ( int i = 0 ; i < sourceTokens.length; i++ ) {
-				
+			for ( int i = 0 ; i < sourceTokens.length; i++ ) {				
 				if ( sourcePOS[i].startsWith("VERB")) {
 					List<String> token_words = new ArrayList<String>();
 					List<String> token_universal_pos_tags = new ArrayList<String>();
 					List<String> token_ptb_pos_tags = new ArrayList<String>();
-					//TODO: ver se é um verbo auxiliar
 					
 					token_words.add(sourceTokens[i].toLowerCase());
 					token_universal_pos_tags.add(sourcePOS[i]);
 					token_ptb_pos_tags.add(PTB_POS[i]);
+										
+					if ( sourcePOS[i+1].startsWith("VERB")) {
+						token_words.add(sourceTokens[i+1].toLowerCase());
+						token_universal_pos_tags.add(sourcePOS[i+1]);
+						token_ptb_pos_tags.add(PTB_POS[i+1]);
+						i++;
+					}
 
 					// ReVerb inspired: a VERB, followed by several NOUNS, ADJ or ADV, ending in a PREP					
 					if (i < sourceTokens.length - 2) {	  			

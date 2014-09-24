@@ -172,10 +172,7 @@ public class EnglishPoSTaggerMorphAdoner {
             }
         return set;
      }
-			
-				
-	
-	
+
 	public static String[] tokenize(String text){
 		String whitespaceTokenizerLine[] = _tokenizer.tokenize(text);
 		return whitespaceTokenizerLine;		
