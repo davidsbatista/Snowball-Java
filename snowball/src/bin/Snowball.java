@@ -187,8 +187,8 @@ public class Snowball {
 						
     		for (SnowballPattern pattern : patterns) {    				
     			//Compare using the TF-IDF representations
-				double similarity = t.degreeMatchCosTFIDF(pattern.left_centroid, pattern.middle_centroid, pattern.right_centroid);					
-    				
+				double similarity = t.degreeMatchCosTFIDF(pattern.left_centroid, pattern.middle_centroid, pattern.right_centroid);
+				
 				// If the similarity between the sentence where the tuple was extracted and a 
     			// pattern is greater than a threshold update the pattern confidence					
 				if (similarity>=Config.min_degree_match) {

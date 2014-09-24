@@ -19,6 +19,8 @@
             <zipfileset excludes="META-INF/*.SF" src="/home/dsbatista/git/snowball/snowball/jars/PTStemmer_v2.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="/home/dsbatista/git/snowball/snowball/jars/tree_split-1.0.1.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="/home/dsbatista/git/snowball/snowball/jars/trove-3.0.3.jar"/>
+        	<zipfileset excludes="META-INF/*.SF" src="/home/dsbatista/git/snowball/snowball/jars/morphadorner.jar"/>
+        	<zipfileset excludes="META-INF/*.SF" src="/home/dsbatista/git/snowball/snowball/jars/icu4j.jar"/>
         </jar>
     </target>
 </project>

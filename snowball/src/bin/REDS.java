@@ -79,6 +79,16 @@ public class REDS {
 			System.out.println("Starting iteration " + iter);			
 			System.out.println("Seed matches:\n");			
 			LinkedList<Tuple> seedMatches = Snowball.matchSeedsTuples(processedTuples);
+			
+			for (Tuple tuple : seedMatches) {
+				System.out.println(tuple.sentence);
+				for (ReVerbPattern rvb : tuple.ReVerbpatterns) {
+					System.out.println(rvb.token_words);
+					System.out.println(rvb.token_universal_pos_tags);
+					System.out.println(rvb.token_ptb_pos_tags);
+				}
+			}
+			
 			if (seedMatches.size()==0) {
 				System.out.println("No tuples found");
 				System.exit(0);	
