@@ -1,9 +1,12 @@
 package nlp;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ReVerbPattern {
+public class ReVerbPattern implements Serializable {
+	
+	private static final long serialVersionUID = 7178641123389122206L;
 	
 	public List<String> token_words = new ArrayList<String>();
 	public List<String> token_universal_pos_tags = new ArrayList<String>();

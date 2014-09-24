@@ -57,8 +57,7 @@ public class SnowballPattern {
 	public void mergUniquePatterns(){
 		for (Tuple t : this.tuples) {
 			patterns.add(t.ReVerbpatterns.get(0).token_words);
-		}
-		
+		}		
 	}
 	
 	public SnowballPattern() {
@@ -67,11 +66,11 @@ public class SnowballPattern {
 	}
 
 	public void updateConfidencePattern(){
-		if (Config.parameters.get("use_RlogF")==1) {
-			confidence = this.RlogF * Config.parameters.get("wUpdt") + this.RlogF_old * (1 - Config.parameters.get("wUpdt"));
+		if (Config.use_RlogF) {
+			confidence = this.RlogF * Config.wUpdt + this.RlogF_old * (1 - Config.wUpdt);
 		}
 		else {
-			confidence = this.confidence * Config.parameters.get("wUpdt") + this.confidence_old * (1 - Config.parameters.get("wUpdt"));
+			confidence = this.confidence * Config.wUpdt + this.confidence_old * (1 - Config.wUpdt);
 		}		
 	}
 
@@ -85,7 +84,7 @@ public class SnowballPattern {
 			}
 		}
 	}
-		
+	
 	public String getWords(Map<String,Double> words) {
 		// put keys and values in to an arraylist using entryset
 		ArrayList myArrayList=new ArrayList(words.entrySet());

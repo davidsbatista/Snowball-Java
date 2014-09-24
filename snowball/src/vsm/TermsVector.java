@@ -7,6 +7,8 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 
+import nlp.Stopwords;
+
 import org.jblas.FloatMatrix;
 
 import bin.Config;
@@ -23,15 +25,6 @@ public abstract class TermsVector {
 		
 		/* Tokenize  */
 		terms = (List<String>) Arrays.asList(Config.PTtokenizer.tokenize(text));
-				
-		/* normalize verbs
-		List<String> new_terms = new LinkedList<String>();
-		for (String word : terms) {
-			String w = PortugueseVerbNormalizer.normalizeVerb(word);
-			new_terms.add(w);
-		}		
-		terms = new_terms;
-		*/
 		
 		/* remove ".", e.g : "afirmou."
 		for (int i = 0; i < terms.size(); i++) {
@@ -40,7 +33,7 @@ public abstract class TermsVector {
 		*/
 		
 		/* remove stopwords */
-		//terms = Stopwords.removeStopWords(terms);
+		terms = Stopwords.removeStopWords(terms);
 		
 		/* lowercase everything */
 	    ListIterator<String> iterator = terms.listIterator();

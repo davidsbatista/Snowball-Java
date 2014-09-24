@@ -1,5 +1,6 @@
 package tuples;
 
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -17,7 +18,9 @@ import vsm.CreateWord2VecVectors;
 import vsm.TermsVector;
 import bin.Config;
 
-public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable {
+public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable, Serializable {
+	
+	private static final long serialVersionUID = -6291870921472158824L;
 	
 	/* TF-IDF vectors */
 	public Map<String,Double> left;
@@ -107,7 +110,7 @@ public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable
 			/* 
 			 * Extract ReVerb patterns and construct Word2Vec representations 
 			 */			
-			if (Config.extract_ReVerb==true) {								
+			if (Config.REDS==true) {								
 				this.ReVerbpatterns = EnglishPoSTagger.extractRVBPatterns(t_middle_txt);								
 				if (this.ReVerbpatterns.size()>0) {
 					hasReVerbPatterns = true;					
@@ -167,30 +170,30 @@ public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable
 	
 	public static List<String> chopLeft(List<String> left){		
 		List<String> choped_left_terms = new LinkedList<String>();		
-		if ((left.size()>=Config.parameters.get("context_window_size"))) {
+		if (left.size()>=Config.context_window_size) {
 			//gather terms by the end of list
-			for (int i = left.size()-1; i > left.size()-1-Config.parameters.get("context_window_size"); i--) choped_left_terms.add(left.get(i));
+			for (int i = left.size()-1; i > left.size()-1-Config.context_window_size; i--) choped_left_terms.add(left.get(i));
 		} else choped_left_terms = left;		
 		return choped_left_terms;		
 	}
 	
 	public static List<String> chopRight(List<String> right){		
 		List<String> choped_right_terms = new LinkedList<String>();		
-		if (right.size()>=Config.parameters.get("context_window_size")) {
-			for (int i = 0; i < Config.parameters.get("context_window_size"); i++) choped_right_terms.add(right.get(i));
+		if (right.size()>=Config.context_window_size) {
+			for (int i = 0; i < Config.context_window_size; i++) choped_right_terms.add(right.get(i));
 		} else choped_right_terms = right;		
 		return choped_right_terms;
 	}
 	
 	public static List<String> chopMiddle(List<String> middle){		
 		List<String> choped_middle_terms = new LinkedList<String>();
-		if (middle.size() <= Config.parameters.get("context_window_size")) choped_middle_terms = middle;
+		if (middle.size() <= Config.context_window_size) choped_middle_terms = middle;
 		else {
 			//e1 + #window tokens at right
-			for (int i = 0; i <= Config.parameters.get("context_window_size"); i++) choped_middle_terms.add(middle.get(i));						
+			for (int i = 0; i <= Config.context_window_size; i++) choped_middle_terms.add(middle.get(i));						
 			//e2 + #window tokens at left
 			List<String> tmp = new LinkedList<String>();
-			for (int i = middle.size()-1; i >= middle.size()-1-Config.parameters.get("context_window_size"); i--) tmp.add(middle.get(i));						
+			for (int i = middle.size()-1; i >= middle.size()-1-Config.context_window_size; i--) tmp.add(middle.get(i));						
 			//reverse list
 			Collections.reverse(tmp);
 			choped_middle_terms.addAll(tmp);			
@@ -210,9 +213,9 @@ public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable
 	 * Computes the similarity using the sum of the words from each context  
 	 */	
 	public double degreeMatchWord2VecSum(FloatMatrix w2v_left_centroid, FloatMatrix w2v_middle_centroid, FloatMatrix w2v_right_centroid){	
-		double l_w = Config.parameters.get("weight_left_context");
-		double m_w = Config.parameters.get("weight_middle_context");
-		double r_w = Config.parameters.get("weight_right_context");
+		double l_w = Config.weight_left_context;
+		double m_w = Config.weight_middle_context;
+		double r_w = Config.weight_right_context;
 		double left_similarity;
 		double middle_similarity;
 		double right_similarity;
@@ -228,9 +231,9 @@ public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable
 	 * Computes the similarity using the centroid of the words from each context  
 	 */
 	public double degreeMatchWord2VecCentroid(FloatMatrix w2v_left_centroid, FloatMatrix w2v_middle_centroid, FloatMatrix w2v_right_centroid){	
-		double l_w = Config.parameters.get("weight_left_context");
-		double m_w = Config.parameters.get("weight_middle_context");
-		double r_w = Config.parameters.get("weight_right_context");
+		double l_w = Config.weight_left_context;
+		double m_w = Config.weight_middle_context;
+		double r_w = Config.weight_right_context;
 		double left_similarity;
 		double middle_similarity;
 		double right_similarity;
@@ -241,12 +244,11 @@ public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable
 		
 		return 	(left_similarity + middle_similarity + right_similarity);
 	}
-	
-	
+		
 	public double degreeMatchCosTFIDF(Map<String,Double> t_left_vector, Map<String,Double> t_middle_vector, Map<String,Double> t_right_vector){	
-		double l_w = Config.parameters.get("weight_left_context");
-		double m_w = Config.parameters.get("weight_middle_context");
-		double r_w = Config.parameters.get("weight_right_context");
+		double l_w = Config.weight_left_context;
+		double m_w = Config.weight_middle_context;
+		double r_w = Config.weight_right_context;
 		double left_similarity;
 		double middle_similarity;
 		double right_similarity;
@@ -307,7 +309,7 @@ public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable
 		return e1 + '\t' + e2;
 	}
 	
-
+	
 	/*
 	 * (non-Javadoc)
 	 * @see org.apache.commons.math3.ml.clustering.Clusterable#getPoint()
@@ -317,17 +319,10 @@ public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable
 	
 	@Override
 	public double[] getPoint() {
-		if (Config.useMiddleSum==true) {
-			return getPointMiddleSum();
-		}
-		else if (Config.useReverb==true) { 
+		if (Config.useReverb==true) {
 			return getPointReVerb();
 		}
-		else {
-			System.out.println("Error returning vector used by DBSCAN");
-			System.exit(0);
-		}
-		return null;		
+		else return getPointMiddleSum();
 	}
 
 	public double[] getPointReVerb() {
@@ -351,11 +346,4 @@ public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable
 		}
 		return vector;
 	}
-	
 }
-
-
-
-
-
-

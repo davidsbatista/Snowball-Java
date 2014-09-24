@@ -1,3 +1,0 @@
-# ignore all bin directories
-# matches "bin" in any subfolder
-bin/

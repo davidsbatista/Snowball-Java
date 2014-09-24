@@ -2,8 +2,12 @@ package bin;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -37,12 +41,36 @@ public class Snowball {
 	
 	static void iteration(long startTime, String sentencesFile, Map<Tuple, List<Pair<SnowballPattern, Double>>> candidateTuples, LinkedList<SnowballPattern> patterns) throws IOException, Exception {					
 
-		System.out.println("\nPre-processing data...");
-		Set<Tuple> processedTuples = new HashSet<Tuple>();
-		generateTuples(sentencesFile,processedTuples);		
-		System.out.println("\n"+processedTuples.size() + " tuples gathered");
+		Set<Tuple> processedTuples = new HashSet<Tuple>();		
+		File f = new File("Snowball_processed_tuples.obj");
 		
-		while (iter<=Config.parameters.get("number_iterations")) {			
+		if (!f.exists()) {
+			System.out.println("\nPre-processing data");
+			Snowball.generateTuples(sentencesFile,processedTuples);
+			System.out.println("\n"+processedTuples.size() + " tuples gathered");
+			
+			try {
+				// Save to disk
+				FileOutputStream out = new FileOutputStream("Snowball_processed_tuples.obj");
+				ObjectOutputStream oo = new ObjectOutputStream(out);
+				oo.writeObject(processedTuples);
+				oo.close();
+			} catch (Exception e) { 
+				e.printStackTrace();
+				System.exit(0);
+			}
+		}
+		else {
+			// Load
+			System.out.println("Loading pre-processed sentences");
+			FileInputStream in = new FileInputStream("Snowball_processed_tuples.obj");
+			ObjectInputStream objectInput = new ObjectInputStream(in);
+			processedTuples = (Set<Tuple>) objectInput.readObject();
+			System.out.println("\n"+processedTuples.size() + " tuples gathered");						
+			in.close();
+		}
+		
+		while (iter<=Config.number_iterations) {			
 			// Collect sentences where both entities occur
 			// Construct a Tuple object for each 
 			System.out.println("\n***************************");
@@ -84,10 +112,10 @@ public class Snowball {
 				Iterator<SnowballPattern> patternIter = patterns.iterator();
 				while (patternIter.hasNext()) {
 					SnowballPattern p = patternIter.next();
-					if ((p.tuples.size()<Config.parameters.get("min_pattern_support"))) patternIter.remove();
+					if (p.tuples.size()<Config.min_pattern_support) patternIter.remove();
 				}
 				patternIter = null;
-				System.out.println(patterns.size() + " patterns supported by at least " + Config.parameters.get("min_pattern_support") + " tuple(s)");
+				System.out.println(patterns.size() + " patterns supported by at least " + Config.min_pattern_support + " tuple(s)");
 
 				//TODO: Expand extraction patterns
 				//expandPatterns(patterns);				
@@ -131,16 +159,16 @@ public class Snowball {
 				
 				// Calculate a new seed set of tuples to use in next iteration, such that:
 				// seeds = { T | Conf(T) > min_tuple_confidence }
-				System.out.println("Adding tuples with confidence =>" + Config.parameters.get("min_tuple_confidence") + " as seed for next iteration");
+				System.out.println("Adding tuples with confidence =>" + Config.min_tuple_confidence + " as seed for next iteration");
 				int added = 0;
 				int removed = 0;				
 				for (Tuple t : candidateTuples.keySet()) {
-					if (t.confidence>=Config.parameters.get("min_tuple_confidence")) {
+					if (t.confidence>=Config.min_tuple_confidence) {
 						Config.seedTuples.add(new Seed(t.e1.trim(),t.e2.trim()));
 						added++;
 					} else removed++;
 				}
-				System.out.println(removed + " tuples removed due to confidence lower than " + Config.parameters.get("min_tuple_confidence"));				
+				System.out.println(removed + " tuples removed due to confidence lower than " + Config.min_tuple_confidence);				
 				System.out.println(added + " tuples added to seed set");
 				iter++;
 			}			
@@ -163,7 +191,7 @@ public class Snowball {
     				
 				// If the similarity between the sentence where the tuple was extracted and a 
     			// pattern is greater than a threshold update the pattern confidence					
-				if (similarity>=Config.parameters.get("min_degree_match")) {
+				if (similarity>=Config.min_degree_match) {
     				patternsMatched.add(patterns.indexOf(pattern));
     				pattern.updatePatternSelectivity(t.e1,t.e2);
     				if (iter>0) {
@@ -171,7 +199,7 @@ public class Snowball {
     					pattern.RlogF_old = pattern.RlogF;
     				}
     				pattern.confidence();        						
-    				if (Config.parameters.get("use_RlogF")==1) {	        						
+    				if (Config.use_RlogF=true) {	        						
     					pattern.ConfidencePatternRlogF();
     				}
     				if (similarity>=simBest) {
@@ -182,7 +210,7 @@ public class Snowball {
     		}
     				
 			// RlogF needs to be normalized: [0,1]
-			if (Config.parameters.get("use_RlogF")==1) {	        				
+			if (Config.use_RlogF=true) {	        				
 				// Find maximum confidence value
 				for (SnowballPattern p : patterns) {
 					if (p.RlogF>maxRlogF) maxRlogF=p.RlogF;
@@ -199,7 +227,7 @@ public class Snowball {
 			 * Associate highest scoring pattern with the Tuple
 			 * Create a Pair object with the Pattern and the similarity score to the tuple that it matched  
 			 */
-			if (simBest>=Config.parameters.get("min_degree_match")) {
+			if (simBest>=Config.min_degree_match) {
 				List<Pair<SnowballPattern, Double>> list = null;
 				Pair<SnowballPattern,Double> p = new Pair<SnowballPattern, Double>(patternBest, simBest);
 
@@ -257,7 +285,7 @@ public class Snowball {
 			t.confidence = 1 - confidence;
 			// If tuple was already seen use past confidence values to calculate new confidence 
 			if (iter>0) {
-				t.confidence = t.confidence * Config.parameters.get("wUpdt") + t.confidence_old * (1 - Config.parameters.get("wUpdt"));
+				t.confidence = t.confidence * Config.wUpdt + t.confidence_old * (1 - Config.wUpdt);
 			}
 		}
 	}
@@ -307,11 +335,11 @@ public class Snowball {
 	            	String middle_txt = sentence.substring(matcher1.end(),matcher2.start()).replaceAll("<[^>]+>[^<]+</[^>]+>","");
 	            	String right_txt = sentence.substring(matcher2.end()).replaceAll("<[^>]+>[^<]+</[^>]+>","");
 	            	
-	            	left_t = TermsVector.normalize(left_txt);				
+	            	left_t = TermsVector.normalize(left_txt);
 	        		middle_t = TermsVector.normalize(middle_txt);
 					right_t = TermsVector.normalize(right_txt);
 	                	
-	                if (middle_t.size()<=Config.parameters.get("max_tokens_away") && middle_t.size()>=Config.parameters.get("min_tokens_away") && middle_t.size()>0) {
+	                if (middle_t.size()<=Config.max_tokens_away && middle_t.size()>=Config.min_tokens_away && middle_t.size()>0) {
 	                	
 	                	// Create a Tuple for an occurrence found        				
 	        			Tuple t = new Tuple(left_t, middle_t, right_t, e1.trim(), e2.trim(), sentence, middle_txt);	        			

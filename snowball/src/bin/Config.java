@@ -9,9 +9,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 import nlp.EnglishPoSTagger;
@@ -28,76 +26,69 @@ public class Config {
 	public static PortuguesePoSTagger tagger;
 	public static VectorSpaceModel vsm = null;
 	public static String e1_type = null;
-	public static String e2_type = null;	
-	public static Map<String,Float> parameters = new HashMap<String,Float>();
-	public static Set<Seed> seedTuples = new HashSet<Seed>();
-	public static String clusterType = null;	
+	public static String e2_type = null;
+	public static Set<Seed> seedTuples = new HashSet<Seed>();	
 	public static Word2VEC word2vec = null;
 	public static int word2Vec_dim;	
 	
-	public static boolean REDS=false;
-	
-	public static boolean useWord2Vec = false;	
-	/* Represent tuples as sum of Word2Vec vectors
-	 * or use the centroid of all vectors
-	 */
+	public static boolean REDS = true;	
 	public static boolean useSum = false;
 	public static boolean useCentroid = false;
 
 	/* What will DBSCAN use to compare sentences */
-	//public static boolean useDBSCAN = true;
-	public static boolean extract_ReVerb = false;
-	public static boolean useReverb = false;
+	public static boolean useReverb = true;
 	public static boolean useMiddleSum = false;
+	 
+	/* Configuration parameters */
+	public static int max_tokens_away;
+	public static int min_tokens_away;
+	public static int context_window_size;
 		
-	public static void init(String configFile, String sentencesFile, String stopwords, String vectors, String word2vecmodelPath) throws IOException {		
+	public static double min_degree_match;
+	public static double min_tuple_confidence;
+	public static int min_pattern_support;
+	
+	public static double weight_left_context;
+	public static double weight_middle_context;
+	public static double weight_right_context;
+	
+	public static int	number_iterations;
+	public static double wUpdt;
+	public static boolean use_RlogF;
+	
+		
+	public static void init(String configFile, String sentencesFile, String stopwords, String word2vecmodelPath) throws IOException {		
 		BufferedReader f;
 		try {
 			f = new BufferedReader(new FileReader( new File(configFile)) );
 			String line = null;
-			Float value = null;
-			String parameter = null;
 			try {
-				while ( ( line = f.readLine() ) != null) {
-					if (line.isEmpty() || line.startsWith("#")) continue;
-					
-					parameter = line.split("=")[0];
-					try {
-						value = Float.parseFloat(line.split("=")[1]);
-					} catch (Exception e) {
-						System.out.println(line);
-						e.printStackTrace();
-						System.exit(0);
-					}
-					parameters.put(parameter, value);
-				}
-				
-			} catch (NumberFormatException e) {
-				System.out.println("Not a float");
-				e.printStackTrace();
-				System.exit(0);
-				
+				while ( ( line = f.readLine() ) != null) {					
+					if (line.isEmpty() || line.startsWith("#")) continue;					
+					if (line.startsWith("max_tokens_away")) max_tokens_away = Integer.parseInt(line.split("=")[1]);						
+					if (line.startsWith("min_tokens_away")) min_tokens_away = Integer.parseInt(line.split("=")[1]);						
+					if (line.startsWith("context_window_size")) context_window_size = Integer.parseInt(line.split("=")[1]);					
+					if (line.startsWith("weight_left_context")) weight_left_context = Double.parseDouble(line.split("=")[1]);
+					if (line.startsWith("weight_middle_context")) weight_middle_context = Double.parseDouble(line.split("=")[1]);
+					if (line.startsWith("weight_right_context")) weight_right_context = Double.parseDouble(line.split("=")[1]);					
+					if (line.startsWith("min_pattern_support")) min_pattern_support = Integer.parseInt(line.split("=")[1]);										
+					if (line.startsWith("min_degree_match")) min_degree_match = Double.parseDouble(line.split("=")[1]);					
+					if (line.startsWith("min_tuple_confidence")) min_tuple_confidence = Double.parseDouble(line.split("=")[1]);					
+					if (line.startsWith("wUpdt")) wUpdt = Double.parseDouble(line.split("=")[1]);
+					if (line.startsWith("number_iterations")) number_iterations = Integer.parseInt(line.split("=")[1]);
+					if (line.startsWith("use_RlogF")) use_RlogF = Boolean.parseBoolean(line.split("=")[1]);
+					if (line.startsWith("use_REDS")) Config.REDS = Boolean.parseBoolean(line.split("=")[1]);					
+				}				
 			} catch (IOException e) {
-				System.out.println("I/O error reading file");
+				System.out.println("I/O error reading paramters.cfg");
 				e.printStackTrace();
 				System.exit(0);
 			}
 		} catch (FileNotFoundException e1) {
 			System.out.println("paramters.cfg not found");
-			// Set default values
-			parameters.put("max_tokens_away",new Float(8));
-			parameters.put("min_tokens_away",new Float(1));
-			parameters.put("context_window_size",new Float(5));
-			parameters.put("number_iterations",new Float(3.0));	
-			parameters.put("min_degree_match",new Float(0.6));
-			parameters.put("min_tuple_confidence",new Float(0.8));
-			parameters.put("min_pattern_support",new Float(2));
-			parameters.put("weight_left_context",new Float(0.2));
-			parameters.put("weight_middle_context",new Float(0.6));
-			parameters.put("weight_right_context",new Float(0.2));	
-			parameters.put("wUpdt",new Float(0.5));
+			System.exit(0);
 		}
-		
+			
 		// Initialize a Tokenizer and load Stopwords		
 		PTtokenizer = new PortugueseTokenizer();		
 		System.out.print("Loading stopwords ...");
@@ -107,26 +98,21 @@ public class Config {
 			System.out.println("Stopwords file not found!");
 			e.printStackTrace();
 			System.exit(0);
-		}
-		
+		}		
 		System.out.println("done");
-		
-		
-		if (Config.extract_ReVerb==true) {
-			//PortuguesePoSTagger.initialize();
-			EnglishPoSTagger.initialize();
-		}
-		
-		// load word2vec model
+				
 		if (Config.REDS==true) {
+			// Load Word2vec model
 			word2vec = new Word2VEC();
 			System.out.print("Loading word2vec model... ");
 			word2vec.loadGoogleModel(word2vecmodelPath);			
 			System.out.println(word2vec.getWords() + " words loaded");
 			word2Vec_dim = word2vec.getSize();
+			// Load PoS-tagging model			
+			//PortuguesePoSTagger.initialize();
+			EnglishPoSTagger.initialize();
 		}
-		
-		// VSM, TF-IDF: calculate vocabulary term overall frequency
+		// Vector Space Model, TF-IDF: calculate vocabulary term overall frequency
 		else if (Config.REDS==false) {
 			try {
 				calculateTF(sentencesFile);
@@ -176,19 +162,18 @@ public class Config {
 		}
 	}
 
-	// Count individual terms frequency over whole document collection
+	// Calculate terms frequency over whole document collection
 	static void calculateTF(String sentencesFile) throws IOException, FileNotFoundException, ClassNotFoundException {
 		VectorSpaceModel vsm;
 		File f = new File("vsm.obj");
 		if (!f.exists()) {
-			// scan all sentences, tokenize, and calculate TF
 			System.out.println("Calculating TF for each term");			
 			vsm = new VectorSpaceModel(sentencesFile);
 			Config.vsm = vsm;
 			System.out.println("\nTF-IDF vocabulary size: " + Config.vsm.term_document_frequency.keySet().size());
 			
 			try {
-				// save to disk
+				// Save to disk
 				FileOutputStream out = new FileOutputStream("vsm.obj");
 				ObjectOutputStream oo = new ObjectOutputStream(out);
 				oo.writeObject(vsm);
@@ -198,15 +183,14 @@ public class Config {
 			}
 		}
 		else {
-			// load already calculated TF
+			// Load an already calculated Term Frequency
 			System.out.println("Loading already calculated TF from disk");
 			FileInputStream in = new FileInputStream("vsm.obj");
 			ObjectInputStream objectInput = new ObjectInputStream(in);
 			vsm = (VectorSpaceModel) objectInput.readObject();
 			Config.vsm = vsm;
 			System.out.println("TF-IDF vocabulary size: " + Config.vsm.term_document_frequency.keySet().size());						
-			in.close();
-			
+			in.close();			
 		}
 	}
 }

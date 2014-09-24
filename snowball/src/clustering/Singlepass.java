@@ -14,13 +14,14 @@ public class Singlepass {
 	 * or Word2Vec vector representation
 	 */ 
 	public static void singlePass(LinkedList<Tuple> tuples, LinkedList<SnowballPattern> patterns) throws IOException {
+		/*
 		if (Config.useWord2Vec==true) {
 			Singlepass.singlePassWord2Vec(tuples, patterns);
 		}		
 		else {
-			Singlepass.singlePassTFIDF(tuples, patterns);			
-		}			
-	}
+		*/
+		Singlepass.singlePassTFIDF(tuples, patterns);			
+	}			
 				
 	public static void singlePassTFIDF(LinkedList<Tuple> tuples, LinkedList<SnowballPattern> patterns) throws IOException {
 		System.out.println(tuples.size() + " tuples to process");		
@@ -49,7 +50,7 @@ public class Singlepass {
 			}
 			
 			// if max_similarity < min_degree_match create new cluster/patterns having this tuple as the centroid */			
-			if (max_similarity<Config.parameters.get("min_degree_match")) {
+			if ( max_similarity<Config.min_degree_match ) {
 				SnowballPattern c = new SnowballPattern(tuples.get(i));
 				patterns.add(c);
 			}
@@ -100,7 +101,7 @@ public class Singlepass {
 			}
 			
 			// If max_similarity < min_degree_match create a new cluster having this tuple as the Centroid */			
-			if ( max_similarity < Config.parameters.get("min_degree_match") ) {
+			if ( max_similarity < Config.min_degree_match ) {
 				SnowballPattern c = new SnowballPattern(tuples.get(i));
 				patterns.add(c);
 			}
