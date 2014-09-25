@@ -9,7 +9,9 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import nlp.EnglishPoSTagger;
@@ -19,12 +21,16 @@ import nlp.Stopwords;
 import tuples.Seed;
 import vsm.VectorSpaceModel;
 import word2vec.com.ansj.vec.Word2VEC;
+import edu.northwestern.at.utils.corpuslinguistics.lemmatizer.EnglishLemmatizer;
 
 public class Config {
 		
 	public static PortugueseTokenizer PTtokenizer;
 	public static PortuguesePoSTagger tagger;
+	public static EnglishLemmatizer EnglishLemm;
+	
 	public static VectorSpaceModel vsm = null;
+	
 	public static String e1_type = null;
 	public static String e2_type = null;
 	public static Set<Seed> seedTuples = new HashSet<Seed>();	
@@ -56,8 +62,10 @@ public class Config {
 	public static double wUpdt;
 	public static boolean use_RlogF;
 	
-		
-	public static void init(String configFile, String sentencesFile, String stopwords, String word2vecmodelPath) throws IOException {		
+	static String verbs[] = {"be","have"};
+	public static List<String> aux_verbs = Arrays.asList(verbs);
+			
+	public static void init(String configFile, String sentencesFile, String stopwords, String word2vecmodelPath) throws Exception {		
 		BufferedReader f;
 		try {
 			f = new BufferedReader(new FileReader( new File(configFile)) );
@@ -90,7 +98,10 @@ public class Config {
 		}
 			
 		// Initialize a Tokenizer and load Stopwords		
-		PTtokenizer = new PortugueseTokenizer();		
+		PTtokenizer = new PortugueseTokenizer();
+		
+		EnglishLemm = new EnglishLemmatizer();
+		
 		System.out.print("Loading stopwords ...");
 		try {
 			Stopwords.loadStopWords(stopwords);

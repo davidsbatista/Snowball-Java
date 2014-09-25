@@ -99,6 +99,8 @@ public class Main {
 		}
 		else if (Config.REDS==true){
 			for (SnowballPattern p : patterns) {
+				f2.write("positive		:" + p.positive+'\n');
+				f2.write("negative		:" + p.negative+'\n');
 				f2.write("confidence	:" + p.confidence+'\n');
 				f2.write("#tuples		:" + p.tuples.size()+'\n');
 				f2.write("patterns		:" + p.patterns+'\n');

@@ -5,8 +5,13 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+
+import edu.northwestern.at.utils.corpuslinguistics.lemmatizer.EnglishLemmatizer;
+
+import bin.Config;
 
 import opennlp.tools.postag.POSModel;
 import opennlp.tools.postag.POSTaggerME;
@@ -20,17 +25,37 @@ public class EnglishPoSTagger {
 	static POSTaggerME _posTagger = null;
 	static Tokenizer _tokenizer = null;
 			
-	public static void main(String[] args) throws InvalidFormatException, FileNotFoundException, IOException {		
+	public static void main(String[] args) throws Exception {		
 		initialize();		
 		UniversalTagSet.init();
-		List<ReVerbPattern> patterns = extractRVB("Element a has an atomic weight of 123 pounds.");
+		//List<ReVerbPattern> patterns = extractRVB("Element a has an atomic weight of 123 pounds.");
+		//List<ReVerbPattern> patterns = extractRVB("Today Jonh has been causing an atomic weight of 123 pounds.");
+		List<ReVerbPattern> patterns = extractRVB("Today Jonh could not be in Lisbon.");
 
+		Config.EnglishLemm = new EnglishLemmatizer();
+		String verbs[] = {"be","have"};
+		ArrayList<String> aux_verbs = (ArrayList<String>) Arrays.asList(verbs);
+		
 		if (patterns.size()>0) {
 			for (ReVerbPattern rvb : patterns) {
 				System.out.println(rvb.token_words);				
-				System.out.println(rvb.token_universal_pos_tags);						
+				System.out.println(rvb.token_universal_pos_tags);
+				System.out.println(rvb.token_ptb_pos_tags);
+				
+				// If contains only one VERB and its an auxiliary verb, discard:
+				// e.g.: is in, was out, is above
+				String verb = Config.EnglishLemm.lemmatize(rvb.token_words.get(0));				
+				if (aux_verbs.contains(verb) && !rvb.token_universal_pos_tags.get(1).equalsIgnoreCase("VERB")) {
+					
+				}
+				
+				System.out.println(verb);
+				System.out.println();
 			}
 		}
+		
+		
+		
 	}
 	
 	public static void initialize() throws InvalidFormatException, FileNotFoundException, IOException {		
@@ -88,15 +113,9 @@ public class EnglishPoSTagger {
 		
 		int limit = sourcePOS.length-1;
 		int i = 0;
-		System.out.println("limit :" + limit);
-		System.out.println(text);
-		for (int j = 0; j < sourcePOS.length; j++) {
-			System.out.print(sourcePOS[j] + ' ');			
-		}
-		System.out.println();
 		
 		while (i < limit) {
-			if ( sourcePOS[i].startsWith("VERB")) {				
+			if ( sourcePOS[i].startsWith("VERB")) {
 				List<String> token_words = new ArrayList<String>();
 				List<String> token_universal_pos_tags = new ArrayList<String>();
 				List<String> token_ptb_pos_tags = new ArrayList<String>();				
@@ -107,7 +126,7 @@ public class EnglishPoSTagger {
 				i++;
 				
 				// V = verb particle? adv? (also capture auxiliary verbs)
-			    while (i <= limit && (sourcePOS[i]=="VERB" || sourcePOS[i]=="PRT" || sourcePOS[i]=="ADV")) {			    	
+			    while (i <= limit && (sourcePOS[i].equalsIgnoreCase("VERB") || sourcePOS[i].equalsIgnoreCase("PRT") || sourcePOS[i].equalsIgnoreCase("ADV"))) {			    	
 			    	token_words.add(sourceTokens[i].toLowerCase());
 					token_universal_pos_tags.add(sourcePOS[i]);
 					token_ptb_pos_tags.add(PTB_POS[i]);
@@ -115,7 +134,7 @@ public class EnglishPoSTagger {
 			    }
 			    
 	            // W = (noun | adj | adv | pron | det)
-	            while (i <= limit && (sourcePOS[i]=="NOUN" || sourcePOS[i]=="ADJ" || sourcePOS[i]=="ADV" || sourcePOS[i]=="PRON" || sourcePOS[i]=="DET")) {
+	            while (i <= limit && (sourcePOS[i].equalsIgnoreCase("NOUN") || sourcePOS[i].equalsIgnoreCase("ADJ") || sourcePOS[i].equalsIgnoreCase("ADV") || sourcePOS[i].equalsIgnoreCase("PRON") || sourcePOS[i].equalsIgnoreCase("DET"))) {
 	            	token_words.add(sourceTokens[i].toLowerCase());
 					token_universal_pos_tags.add(sourcePOS[i]);
 					token_ptb_pos_tags.add(PTB_POS[i]);
@@ -123,7 +142,7 @@ public class EnglishPoSTagger {
 	            }
 	            
 	            // P = (prep | particle | inf. marker)
-	            while (i <= limit && (sourcePOS[i]=="ADP" || sourcePOS[i]=="PRT")) {
+	            while (i <= limit && (sourcePOS[i].equalsIgnoreCase("ADP") || sourcePOS[i].equalsIgnoreCase("PRT"))) {
 	            	token_words.add(sourceTokens[i].toLowerCase());
 					token_universal_pos_tags.add(sourcePOS[i]);
 					token_ptb_pos_tags.add(PTB_POS[i]);

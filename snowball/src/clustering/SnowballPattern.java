@@ -57,14 +57,18 @@ public class SnowballPattern {
 	}
 	
 	public void mergUniquePatterns(){
-		System.out.println("merging patterns");
-		System.out.println("#tuples " + this.tuples.size());
+		//System.out.println("merging patterns");
+		//System.out.println("#tuples " + this.tuples.size());
 		for (Tuple t : this.tuples) {
+			//System.out.println(t.sentence);
+			/*
 			for (ReVerbPattern rvb : t.ReVerbpatterns) {
 				System.out.println(rvb.token_words);
 				System.out.println(rvb.token_universal_pos_tags);
 				System.out.println(rvb.token_ptb_pos_tags);
+				System.out.println();
 			}
+			*/
 			patterns.add(t.ReVerbpatterns.get(0).token_words);
 		}
 	}

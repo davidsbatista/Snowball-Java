@@ -16,7 +16,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -24,7 +23,6 @@ import java.util.regex.Pattern;
 import tuples.Seed;
 import tuples.Tuple;
 import utils.Pair;
-import utils.SortMaps;
 import vsm.TermsVector;
 import clustering.Singlepass;
 import clustering.SnowballPattern;
@@ -86,28 +84,6 @@ public class Snowball {
 				Singlepass.singlePass(seedMatches, patterns);				
 				System.out.println("\n"+patterns.size() + " patterns generated");
 				
-				/*
-				for (SnowballPattern p : patterns) {
-					System.out.println("Confidence	:" + p.confidence);
-					System.out.println("#Tuples		:" + p.tuples.size());
-					for (Tuple tuple : p.tuples) {	
-						System.out.println("Left: ");
-						System.out.println(tuple.left_words);
-						System.out.println();
-						System.out.println("Middle: ");
-						System.out.println(tuple.middle_words);
-						System.out.println(tuple.patterns);
-						System.out.println();
-						System.out.println("Right: ");
-						System.out.println(tuple.right_words);
-						System.out.println();
-						System.out.println();
-					}
-					System.out.println("============================================");
-				}
-				System.out.println();
-				*/	
-				
 		        // Eliminate patterns supported by less than 'min_pattern_support' tuples			
 				Iterator<SnowballPattern> patternIter = patterns.iterator();
 				while (patternIter.hasNext()) {
@@ -117,19 +93,13 @@ public class Snowball {
 				patternIter = null;
 				System.out.println(patterns.size() + " patterns supported by at least " + Config.min_pattern_support + " tuple(s)");
 
-				//TODO: Expand extraction patterns
-				//expandPatterns(patterns);				
-				
-
 				// - Look for sentences with occurrence of seeds semantic type (e.g., ORG - LOC)
 				// - Measure the similarity of each sentence with each Pattern
 				// - Matching tuples are also used to score patterns confidence, based on being correct
-				//   or not according to the seed set
-				
-				System.out.println("Collecting " + Config.e1_type + " - " + Config.e2_type + " sentences and computing similarity with patterns");				
-				//generateTuples(candidateTuples,patterns,sentencesFile);
+				//   or not according to the seed set				
+				System.out.println("Collecting " + Config.e1_type + " - " + Config.e2_type + " sentences and computing similarity with patterns");
 				comparePatternsTuples(candidateTuples, patterns, processedTuples);
-				System.out.println("\n"+candidateTuples.size() + " tuples found");				
+				System.out.println("\n"+candidateTuples.size() + " tuples found");
 				
 				
 				System.out.println("Patterns " + patterns.size() + " generated");
@@ -374,7 +344,8 @@ public class Snowball {
 			}			
 		}
 		
-		/* Print number of seed matches sorted by descending order */		
+		/* Print number of seed matches sorted by descending order */
+		/*
 		ArrayList<Map.Entry<Seed,Integer>> myArrayList = new ArrayList<Map.Entry<Seed, Integer>>(counts.entrySet());		
 		Collections.sort(myArrayList, new SortMaps.StringIntegerComparator());		
 		Iterator<Entry<Seed, Integer>> itr=myArrayList.iterator();
@@ -387,7 +358,7 @@ public class Snowball {
 			System.out.println(key.e1 + '\t'+ key.e2 +"\t" + value);
 		}
 		for (Seed s : Config.seedTuples) if (counts.get(s) == null) System.out.println(s.e1 + '\t' + s.e2 + "\t 0 tuples");
-		
+		*/
 		return matchedTuples;
 	}
 }

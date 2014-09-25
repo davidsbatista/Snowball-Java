@@ -7,8 +7,6 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 
-import nlp.Stopwords;
-
 import org.jblas.FloatMatrix;
 
 import bin.Config;
@@ -33,7 +31,7 @@ public abstract class TermsVector {
 		*/
 		
 		/* remove stopwords */
-		terms = Stopwords.removeStopWords(terms);
+		//terms = Stopwords.removeStopWords(terms);
 		
 		/* lowercase everything */
 	    ListIterator<String> iterator = terms.listIterator();

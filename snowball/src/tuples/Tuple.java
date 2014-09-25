@@ -111,31 +111,43 @@ public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable
 			 * Extract ReVerb patterns and construct Word2Vec representations 
 			 */			
 			if (Config.REDS==true) {								
-				//this.ReVerbpatterns = EnglishPoSTagger.extractRVBPatterns(t_middle_txt);
-				
-				this.ReVerbpatterns = EnglishPoSTagger.extractRVB(t_middle_txt);
-				
-				if (this.ReVerbpatterns.size()>0) {
-					for (ReVerbPattern rvb : ReVerbpatterns) {
-						System.out.println(rvb.token_words);
-						System.out.println(rvb.token_ptb_pos_tags);
-						System.out.println(rvb.token_universal_pos_tags);						
+
+				List<ReVerbPattern> patterns = EnglishPoSTagger.extractRVB(t_middle_txt);
+				boolean discard = false;				
+				if (patterns.size()>0) {
+					//TODO: using only the first pattern, are there really more than 1 pattern in a middle context ?					
+					List<String> pattern_tokens = patterns.get(0).token_words;
+					List<String> pattern_ptb_pos = patterns.get(0).token_ptb_pos_tags;
+					List<String> pattern_universal_pos = patterns.get(0).token_universal_pos_tags;		
+					
+					// If contains only auxiliary VERB + IN discard
+					// e.g.: is in, was out
+					if (pattern_tokens.size()==2) {
+						String verb = Config.EnglishLemm.lemmatize(pattern_tokens.get(0));
+						if (Config.aux_verbs.contains(verb) && pattern_universal_pos.get(1).equalsIgnoreCase("ADP")) {
+							discard = true;
+						}
+					}					
+					if (!discard) {
+						hasReVerbPatterns = true;
+						this.ReVerbpatterns = patterns;
+						// Sum each word vector
+						FloatMatrix patternWord2Vec = CreateWord2VecVectors.createVecSum(pattern_tokens);
+						this.middleReverbPatternsWord2VecSum.add(patternWord2Vec);
 					}
+					//TODO: log discarded ReVerb patterns
+					/*
+					else {
+						System.out.println("discarded:");
+						System.out.println(pattern_tokens);
+						System.out.println(pattern_ptb_pos);
+						System.out.println(pattern_universal_pos);
+						System.out.println();
+					}
+					*/					
 				}
 				
-				if (this.ReVerbpatterns.size()>0) {
-					hasReVerbPatterns = true;					
-					//TODO: using only the first pattern, are there really more than 1 pattern in a middle context ?
-					List<String> patterns_tokens = ReVerbpatterns.get(0).token_words;
-					List<String> patterns_ptb_pos = ReVerbpatterns.get(0).token_ptb_pos_tags;
-					List<String> patterns_universal_pos = ReVerbpatterns.get(0).token_universal_pos_tags;					
-					// Sum each word vector
-					//TODO: if pattern contains only one verb and is an auxiliary verb						
-					FloatMatrix patternWord2Vec = CreateWord2VecVectors.createVecSum(patterns_tokens);
-					this.middleReverbPatternsWord2VecSum.add(patternWord2Vec);
-				}
-				
-				else {
+				else if (patterns.size()==0 || discard) {
 					hasReVerbPatterns = false;
 					// If no ReVerb patterns are found
 					// add middle words as if it was a pattern
