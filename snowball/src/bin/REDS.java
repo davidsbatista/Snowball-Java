@@ -166,26 +166,13 @@ public class REDS {
 					}
 					
 					// For tuples that don't belong to any existing cluster
-					// discard					
+					//TODO: primeiro group patterns by similarity before clustering
+					//TODO: fazer clustering
 					System.out.println("\nTuples added to clusters:");
 					System.out.println(added);
 					System.out.println("\nTuples with low similarity with clusters (discarded)");
 					System.out.println(seedMatches.size());
 					
-					/*
-					for (Tuple tuple : seedMatches) {
-						System.out.println(tuple.sentence);
-						if (tuple.hasReVerbPatterns==false) {
-							String[] tokens = tuple.tagged_middle_text.getFirst();
-							String[] pos = tuple.tagged_middle_text.getSecond();
-							System.out.println(Arrays.asList(tokens));  
-							System.out.println(Arrays.asList(pos));	
-						}
-						else {
-							System.out.println(tuple.ReVerbpatterns);	
-						}						
-						System.out.println();
-					}
 					LinkedList<SnowballPattern> newPatterns = new LinkedList<SnowballPattern>(); 
 					DBSCAN(seedMatches,newPatterns);
 					
@@ -195,8 +182,7 @@ public class REDS {
 						System.out.println("#tuples		:" + p.tuples.size());
 						System.out.println(p.patterns);						
 						System.out.println("====================================\n");
-					}
-					*/
+					}					
 				}
 
 				System.out.println();
@@ -349,10 +335,23 @@ public class REDS {
     				// If the similarity with the majority is > threshold, add it
     				int good = 0;
     				int bad = 0;
+    				
+    				/*
+    				System.out.println(tuple.sentence);
+					System.out.println(tuple.ReVerbpatterns.get(0).token_words);
+					*/
+    				
     				for (List<String> patternTokens : p.patterns) {
 						FloatMatrix a = CreateWord2VecVectors.createVecSum(patternTokens);																		
 						FloatMatrix b = tuple.middleReverbPatternsWord2VecSum.get(0);
 						double score = TermsVector.cosSimilarity(a, b);
+						
+						/*
+						System.out.println(patternTokens);
+						System.out.println(score);
+						System.out.println();
+						*/
+						
 						if (score>=Config.min_degree_match) {
 							good++;
 							if (score>bestScore) {

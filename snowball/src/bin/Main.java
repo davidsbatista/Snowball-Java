@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import tests.TestWord2Vec;
 import tuples.Tuple;
 import utils.Pair;
 import clustering.SnowballPattern;
@@ -44,6 +45,11 @@ public class Main {
 		Map<Tuple, List<Pair<SnowballPattern, Double>>> candidateTuples = new HashMap<Tuple, List<Pair<SnowballPattern,Double>>>();
 		LinkedList<SnowballPattern> patterns = new LinkedList<SnowballPattern>();
 
+		/*
+		TestWord2Vec.main();
+		System.exit(0);
+		*/
+		
 		System.out.println();
 		
 		// Starts REDS extraction process

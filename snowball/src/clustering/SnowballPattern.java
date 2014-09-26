@@ -5,12 +5,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import nlp.ReVerbPattern;
 
 import org.jblas.FloatMatrix;
 
@@ -21,7 +18,7 @@ import bin.Config;
 
 public class SnowballPattern {
 	
-	public LinkedList<Tuple> tuples;
+	public Set<Tuple> tuples;
 	
 	public Set<List<String>> patterns = new HashSet<List<String>>();
 	
@@ -42,7 +39,7 @@ public class SnowballPattern {
 	
 	// Create a new cluster with just one tuple, which will be the centroid
 	public SnowballPattern(Tuple tuple){ 
-		tuples = new LinkedList<Tuple>();	
+		tuples = new HashSet<Tuple>();	
 		
 		this.tuples.add(tuple);
 		
@@ -75,7 +72,7 @@ public class SnowballPattern {
 	
 	public SnowballPattern() {
 		super();
-		tuples = new LinkedList<Tuple>();
+		tuples = new HashSet<Tuple>();
 	}
 
 	public void updateConfidencePattern(){
