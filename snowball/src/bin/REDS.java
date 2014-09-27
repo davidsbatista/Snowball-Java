@@ -168,6 +168,7 @@ public class REDS {
 					// For tuples that don't belong to any existing cluster
 					//TODO: primeiro group patterns by similarity before clustering
 					//TODO: fazer clustering
+					/*
 					System.out.println("\nTuples added to clusters:");
 					System.out.println(added);
 					System.out.println("\nTuples with low similarity with clusters (discarded)");
@@ -182,7 +183,8 @@ public class REDS {
 						System.out.println("#tuples		:" + p.tuples.size());
 						System.out.println(p.patterns);						
 						System.out.println("====================================\n");
-					}					
+					}
+					*/					
 				}
 
 				System.out.println();
@@ -277,7 +279,7 @@ public class REDS {
 	private static void DBSCAN(LinkedList<Tuple> tuples, LinkedList<SnowballPattern> patterns) {
 		DistanceMeasure measure = new CosineMeasure();
 		double eps = 1-Config.min_degree_match;
-		int minPts = 2;
+		int minPts = 3;
 		DBSCANClusterer<Clusterable> dbscan = new DBSCANClusterer<>(eps, minPts, measure);
 
 		// Tuples implement the Clusterable Interface to allow clustering
@@ -304,18 +306,22 @@ public class REDS {
 		int c = 1;
 		for (Cluster<Clusterable> cluster : clusters) {
 			List<Clusterable> objects = cluster.getPoints();
-			SnowballPattern pattern = new SnowballPattern();
-			System.out.println("Cluster " + c);
+			SnowballPattern pattern = new SnowballPattern();			
 			for (Clusterable object : objects) {
 				Tuple t = (Tuple) object;
 				pattern.tuples.add(t);
 			}			
-			patterns.add(pattern);
-			pattern.mergUniquePatterns();
-			System.out.println(pattern.patterns);
-			System.out.println();
-			c++;
+			pattern.mergUniquePatterns();			
+			if (pattern.patterns.size()>=2) {
+				patterns.add(pattern);
+				System.out.println("Cluster " + c );
+				System.out.println(pattern.patterns.size() + " relational phrases");
+				System.out.println(pattern.patterns);
+				System.out.println();
+				c++;
+			}	
 		}
+		System.out.println("\nClusters discarded: " + String.valueOf(clusters.size()-c+1));
 	}
 	
 	

@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import tests.TestWord2Vec;
 import tuples.Tuple;
 import utils.Pair;
 import clustering.SnowballPattern;
@@ -26,18 +25,17 @@ public class Main {
 		long startTime = System.nanoTime();
 
 		if (args.length==0) {
-			System.out.println("java -jar snowbal.jar sentencesFile stopwords parameters.cfg seedsFile word2vecmodelpath");
+			System.out.println("java -jar snowbal.jar sentencesFile parameters.cfg seedsFile word2vecmodelpath");
 			System.out.println();
 			System.exit(0);
 		}
 		
 		/* Read configuration files, sentence files, initial seeds files */
 		String sentencesFile = args[0];
-		String stopwords = args[1];
-		String parameters = args[2];
-		String seedsFile = args[3];
-		String word2vecmodelPath = args[4];
-		Config.init(parameters, sentencesFile, stopwords, word2vecmodelPath);
+		String parameters = args[1];
+		String seedsFile = args[2];
+		String word2vecmodelPath = args[3];
+		Config.init(parameters, sentencesFile, word2vecmodelPath);
 		Config.readSeeds(seedsFile);			
 		if (Config.e1_type==null || Config.e2_type==null) {
 			System.out.println("No semantic types defined");

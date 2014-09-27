@@ -131,7 +131,8 @@ public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable
 					if (!discard) {
 						hasReVerbPatterns = true;
 						this.ReVerbpatterns = patterns;
-						// Sum each word vector
+						
+						// Sum each word vector						
 						FloatMatrix patternWord2Vec = CreateWord2VecVectors.createVecSum(pattern_tokens);
 						this.middleReverbPatternsWord2VecSum.add(patternWord2Vec);
 					}

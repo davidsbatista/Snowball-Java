@@ -61,14 +61,15 @@ public class Config {
 	public static int	number_iterations;
 	public static double wUpdt;
 	public static boolean use_RlogF;
+	public static String stopwords;
 	
 	static String verbs[] = {"be","have"};
 	public static List<String> aux_verbs = Arrays.asList(verbs);
 			
-	public static void init(String configFile, String sentencesFile, String stopwords, String word2vecmodelPath) throws Exception {		
+	public static void init(String parameters, String sentencesFile, String word2vecmodelPath) throws Exception {		
 		BufferedReader f;
 		try {
-			f = new BufferedReader(new FileReader( new File(configFile)) );
+			f = new BufferedReader(new FileReader( new File(parameters)) );
 			String line = null;
 			try {
 				while ( ( line = f.readLine() ) != null) {					
@@ -86,6 +87,7 @@ public class Config {
 					if (line.startsWith("number_iterations")) number_iterations = Integer.parseInt(line.split("=")[1]);
 					if (line.startsWith("use_RlogF")) use_RlogF = Boolean.parseBoolean(line.split("=")[1]);
 					if (line.startsWith("use_REDS")) Config.REDS = Boolean.parseBoolean(line.split("=")[1]);					
+					if (line.startsWith("stopwords")) Config.stopwords = line.split("=")[1];
 				}				
 			} catch (IOException e) {
 				System.out.println("I/O error reading paramters.cfg");
@@ -98,13 +100,11 @@ public class Config {
 		}
 			
 		// Initialize a Tokenizer and load Stopwords		
-		PTtokenizer = new PortugueseTokenizer();
-		
-		EnglishLemm = new EnglishLemmatizer();
-		
+		PTtokenizer = new PortugueseTokenizer();		
+		EnglishLemm = new EnglishLemmatizer();		
 		System.out.print("Loading stopwords ...");
 		try {
-			Stopwords.loadStopWords(stopwords);
+			Stopwords.loadStopWords(Config.stopwords);
 		} catch (IOException e) {
 			System.out.println("Stopwords file not found!");
 			e.printStackTrace();
