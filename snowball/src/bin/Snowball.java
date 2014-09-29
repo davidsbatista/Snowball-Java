@@ -338,7 +338,7 @@ public class Snowball {
 		for (Tuple tuple : processedTuples) {
 			for (Seed seed : Config.seedTuples) {
 				if (tuple.e1.equalsIgnoreCase(seed.e1) && tuple.e2.equalsIgnoreCase(seed.e2)) {
-					matchedTuples.add(tuple);
+					matchedTuples.add(tuple);					
 					Integer count = counts.get(seed);
 					if (count==null) counts.put(seed, 1);
 					else counts.put(seed, ++count);
