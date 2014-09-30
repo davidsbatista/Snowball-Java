@@ -132,7 +132,11 @@ public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable
 						hasReVerbPatterns = true;
 						this.ReVerbpatterns = patterns;
 						
-						// Sum each word vector						
+						// Sum each word vector
+						/*
+						System.out.println(sentence);
+						System.out.println("no ReVerb patterns");
+						*/
 						FloatMatrix patternWord2Vec = CreateWord2VecVectors.createVecSum(pattern_tokens);
 						this.middleReverbPatternsWord2VecSum.add(patternWord2Vec);
 					}
@@ -165,6 +169,7 @@ public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable
 					List<String> patterns_tokens = tagged_middle_text.get(0).token_words;
 					
 					this.ReVerbpatterns = tagged_middle_text;
+					//System.out.println(sentence);
 					FloatMatrix patternWord2Vec = CreateWord2VecVectors.createVecSum(patterns_tokens);
 					this.middleReverbPatternsWord2VecSum.add(patternWord2Vec);					
 				}

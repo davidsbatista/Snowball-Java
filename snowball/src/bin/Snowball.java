@@ -334,8 +334,9 @@ public class Snowball {
 		
 		Map<Seed,Integer> counts = new HashMap<Seed, Integer>();
 		LinkedList<Tuple> matchedTuples = new LinkedList<>();
-		
+		int processed = 0;
 		for (Tuple tuple : processedTuples) {
+			if (processed % 10000==0) System.out.println(processed + "/" + processedTuples.size());
 			for (Seed seed : Config.seedTuples) {
 				if (tuple.e1.equalsIgnoreCase(seed.e1) && tuple.e2.equalsIgnoreCase(seed.e2)) {
 					matchedTuples.add(tuple);					
@@ -343,7 +344,8 @@ public class Snowball {
 					if (count==null) counts.put(seed, 1);
 					else counts.put(seed, ++count);
 				}
-			}			
+			}
+			processed++;
 		}
 		
 		/* Print number of seed matches sorted by descending order */

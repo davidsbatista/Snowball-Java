@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
@@ -15,6 +16,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import nlp.ReVerbPattern;
+import nlp.Stopwords;
 
 import org.apache.commons.math3.ml.clustering.Cluster;
 import org.apache.commons.math3.ml.clustering.Clusterable;
@@ -85,8 +87,10 @@ public class REDS {
 				System.exit(0);	
 			}
 			else {
+				//TODO: melhorar o algoritm de clustering: fazer single-pass, ou usar sempre o DBSCAN em tudo				
 				if (iter==0) {
 					DBSCAN(seedMatches,patterns);
+					//SinglepassREDS(seedMatches,patterns)
 					System.out.println("\n"+patterns.size() + " patterns generated");					
 					if (patterns.size()==0) {
 						System.out.println("No patterns generated");
@@ -190,7 +194,7 @@ public class REDS {
 				System.out.println();
 				
 				//Expand extraction patterns with similar words
-				//expandPatterns(patterns);				
+				Set<WordEntry> similar_words = expandPatterns(patterns);
 				
 				// - Look for sentences with occurrence of seeds semantic type (e.g., ORG - LOC)
 				// - Measure the similarity of each sentence(Tuple) with each Pattern
@@ -331,9 +335,10 @@ public class REDS {
 		// Compare the ReVerb patterns/middle words from the sentence/Tuple 
 		// with every extraction pattern from the clusters/SnowballPattern
 		
-		System.out.println("Evaluating " + patterns.size() + " patterns");
-
+		System.out.println("Evaluating " + patterns.size() + " patterns");		
+		int count = 0;
 		for (Tuple tuple : processedTuples) {
+			if (count % 10000==0) System.out.println(count + "/" + processedTuples.size());
 			if (tuple.ReVerbpatterns.size()>0) { 
     			for (SnowballPattern p : patterns) {
     				double bestScore = 0;
@@ -427,6 +432,7 @@ public class REDS {
     				*/
     			}
 			}
+		count++;
 		}
 	}
 	
@@ -437,43 +443,55 @@ public class REDS {
 	 * 		- Construct a set with all the similar words according to Word2Vec given a threshold t    	 
 	 *  	- Calculate the intersection of all sets
 	 */
-	private static void expandPatterns(LinkedList<SnowballPattern> patterns) {
+	private static Set<WordEntry> expandPatterns(LinkedList<SnowballPattern> patterns) {
 		Set<String> words = new HashSet<String>();
 		for (SnowballPattern p : patterns) {			
 			for (Tuple tuple : p.tuples) {
 				ReVerbPattern reverb = tuple.ReVerbpatterns.get(0);
-				// System.out.println(reverb.token_words);
-				// System.out.println(reverb.token_ptb_pos_tags);
+				/*
+				System.out.println(reverb.token_words);
+				System.out.println(reverb.token_ptb_pos_tags);
+				System.out.println(reverb.token_universal_pos_tags);
+				*/
 				for (int i = 0; i < reverb.token_ptb_pos_tags.size(); i++) {
 					if ( reverb.token_ptb_pos_tags.get(i).equalsIgnoreCase("NN") || reverb.token_ptb_pos_tags.get(i).equalsIgnoreCase("VBN")) {
 						words.add(reverb.token_words.get(i));
 					}
 				}
+				/*
+				for (Iterator<String> iterator = words.iterator(); iterator.hasNext();) {
+					String w = (String) iterator.next();
+					if (Stopwords.stopwords.contains(w)) {
+						iterator.remove();
+					}
+				} 
+				*/
 			}
 		}
 		//TODO: normalize with Morphadoner
-		
 		/*
 		System.out.println();
-		System.out.println("words: " + words);					
-		
+		System.out.println("words: " + words);
 		for (String word : words) {
-			System.out.println("Similar to: " + word);
+			System.out.println("Top similar words for: " + word);
 			Set<WordEntry> similar_words = Config.word2vec.distance(word);
 			for (WordEntry wordEntry : similar_words) {
 				System.out.println(wordEntry.name + '\t' + wordEntry.score);				
 			}
 			System.out.println();
 		}		
-		*/
 		System.out.println();
+		*/
 		
 		// Generate a vector by summing each relational word, get the closest word to that vector  
 		System.out.println(words);
 		Set<WordEntry> similar_words = Config.word2vec.distance(new LinkedList<String>(words));
+		/*
 		for (WordEntry wordEntry : similar_words) {
 			System.out.println(wordEntry.name + '\t' + wordEntry.score);				
 		}
+		*/
+		return similar_words;
 	}
 }
 
