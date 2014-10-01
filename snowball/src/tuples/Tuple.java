@@ -58,6 +58,9 @@ public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable
 	
 	public Tuple() {
 		super();
+		this.middle_words = new HashSet<String>();
+		this.middleReverbPatternsWord2VecSum = new LinkedList<FloatMatrix>();
+		this.ReVerbpatterns = new LinkedList<ReVerbPattern>();
 	}
 	
 	public Tuple(List<String> left, List<String> middle, List<String> right, String e1, String e2, String t_sentence, String t_middle_txt) {

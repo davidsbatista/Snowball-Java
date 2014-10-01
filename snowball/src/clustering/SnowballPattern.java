@@ -9,8 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import nlp.ReVerbPattern;
-
 import org.jblas.FloatMatrix;
 
 import tuples.Seed;
@@ -21,13 +19,17 @@ import bin.Config;
 public class SnowballPattern {
 	
 	public Set<Tuple> tuples;
-	
 	public Set<List<String>> patterns = new HashSet<List<String>>();
 	
+	// Expanded pattern
+	public boolean expanded = false;
+	
+	// TF-IDF representations
 	public Map<String,Double> left_centroid = new HashMap<String, Double>();
 	public Map<String,Double> middle_centroid = new HashMap<String, Double>();
 	public Map<String,Double> right_centroid = new HashMap<String, Double>();
 	
+	// Word2Vec representations
 	public FloatMatrix w2v_left_centroid;
 	public FloatMatrix w2v_middle_centroid;
 	public FloatMatrix w2v_right_centroid;	

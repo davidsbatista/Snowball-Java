@@ -65,6 +65,7 @@ public class Config {
 	
 	static String verbs[] = {"be","have"};
 	public static List<String> aux_verbs = Arrays.asList(verbs);
+	public static boolean expand_patterns;
 			
 	public static void init(String parameters, String sentencesFile, String word2vecmodelPath) throws Exception {		
 		BufferedReader f;
@@ -88,6 +89,7 @@ public class Config {
 					if (line.startsWith("use_RlogF")) use_RlogF = Boolean.parseBoolean(line.split("=")[1]);
 					if (line.startsWith("use_REDS")) Config.REDS = Boolean.parseBoolean(line.split("=")[1]);					
 					if (line.startsWith("stopwords")) Config.stopwords = line.split("=")[1];
+					if (line.startsWith("expand_patterns")) Config.expand_patterns = Boolean.parseBoolean(line.split("=")[1]);
 				}				
 			} catch (IOException e) {
 				System.out.println("I/O error reading paramters.cfg");

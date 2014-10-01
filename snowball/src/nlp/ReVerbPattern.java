@@ -18,4 +18,8 @@ public class ReVerbPattern implements Serializable {
 		this.token_universal_pos_tags = token_universal_pos_tags;
 		this.token_ptb_pos_tags = token_ptb_pos_tags;
 	}
+
+	public ReVerbPattern() {
+		super();
+	}
 }

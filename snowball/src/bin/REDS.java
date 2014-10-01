@@ -6,8 +6,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
@@ -16,7 +16,6 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import nlp.ReVerbPattern;
-import nlp.Stopwords;
 
 import org.apache.commons.math3.ml.clustering.Cluster;
 import org.apache.commons.math3.ml.clustering.Clusterable;
@@ -37,15 +36,15 @@ public class REDS {
 
 	public static int iter = 0;
 	
-	public static void start(String sentencesFile, String seedsFile,Map<Tuple, List<Pair<SnowballPattern, Double>>> candidateTuples, LinkedList<SnowballPattern> patterns) throws IOException, Exception {		
+	public static void start(String sentencesFile, String seedsFile,Map<Tuple, List<Pair<SnowballPattern, Double>>> candidateTuples, List<SnowballPattern> patterns) throws IOException, Exception {		
 		long startTime = System.nanoTime();
 		Config.readSeeds(seedsFile);
 		iteration(startTime, sentencesFile, candidateTuples, patterns);		
 	}
 	
-	static void iteration(long startTime, String sentencesFile, Map<Tuple, List<Pair<SnowballPattern, Double>>> candidateTuples, LinkedList<SnowballPattern> patterns) throws IOException, Exception {					
+	static void iteration(long startTime, String sentencesFile, Map<Tuple, List<Pair<SnowballPattern, Double>>> candidateTuples, List<SnowballPattern> patterns) throws IOException, Exception {					
 		
-		Set<Tuple> processedTuples = new HashSet<Tuple>();
+		List<Tuple> processedTuples = new LinkedList<Tuple>();
 		File f = new File("REDS_processed_tuples.obj");
 		
 		if (!f.exists()) {
@@ -70,7 +69,7 @@ public class REDS {
 			System.out.println("Loading pre-processed sentences");
 			FileInputStream in = new FileInputStream("REDS_processed_tuples.obj");
 			ObjectInputStream objectInput = new ObjectInputStream(in);
-			processedTuples = (Set<Tuple>) objectInput.readObject();
+			processedTuples = (List<Tuple>) objectInput.readObject();
 			System.out.println("\n"+processedTuples.size() + " tuples gathered");						
 			in.close();
 		}
@@ -190,16 +189,54 @@ public class REDS {
 					}
 					*/					
 				}
-
 				System.out.println();
 				
-				//Expand extraction patterns with similar words
-				Set<WordEntry> similar_words = expandPatterns(patterns);
+				// Expand extraction patterns with semantic similar words
+				if (Config.expand_patterns==true) {
+					Pair<Set<String>, Set<WordEntry>> similar_words = expandPatterns(patterns);
+					List<WordEntry> list_similar_words = new LinkedList<WordEntry>(similar_words.getSecond());				
+					Collections.sort(list_similar_words);
+					LinkedList<WordEntry> top_similar = new LinkedList<WordEntry>(list_similar_words.subList(0, 2));
+					
+					for (WordEntry wordEntry : top_similar) {						 						
+						if (!similar_words.getFirst().contains(wordEntry.name)) {
+							SnowballPattern p = new SnowballPattern();
+							System.out.println(wordEntry.name + '\t' + wordEntry.score);
+							// create a (virtual) tuple (i.e., no sentence associated) with the word2vec representation
+							Tuple t = new Tuple();
+							t.middle_words.add(wordEntry.name);
+							List<String> words = new LinkedList<String>();
+							words.add(wordEntry.name);
+							FloatMatrix patternWord2Vec = CreateWord2VecVectors.createVecSum(words);
+							t.middleReverbPatternsWord2VecSum.add(patternWord2Vec);
+							p.addTuple(t);
+							p.expanded=true;
+							ReVerbPattern rvb = new ReVerbPattern();
+							rvb.token_words = words;
+							t.ReVerbpatterns.add(rvb);
+							p.mergUniquePatterns();
+							
+							if (!patterns.contains(p)) {
+								patterns.add(p);
+							}
+						}						
+					}
+
+					System.out.println("\nPatterns and Expanded Patterns");
+					for (SnowballPattern pattern : patterns) {
+						System.out.println(pattern.patterns);
+						System.out.println();
+					}					
+				}
+				
+				
+				
 				
 				// - Look for sentences with occurrence of seeds semantic type (e.g., ORG - LOC)
 				// - Measure the similarity of each sentence(Tuple) with each Pattern
 				// - Matching Tuple objects are used to score a Pattern confidence, based 
 				// 	 on having extracted a relationship which part of the seed set
+				
 				System.out.println(Config.seedTuples.size() + " tuples in the Seed set");
 				System.out.println("Computing similarity of " + Config.e1_type + " - " + Config.e2_type + " tuples with patterns");								
 				comparePatternsTuples(candidateTuples, patterns, processedTuples);				
@@ -220,7 +257,7 @@ public class REDS {
 				}
 				*/
 				
-				System.out.println("\nPatterns confidence updated");
+				System.out.println("\nPatterns confidence updated\n");
 				for (SnowballPattern p: patterns) {
 					p.confidence();
 					System.out.println("confidence	:" + p.confidence);
@@ -259,17 +296,6 @@ public class REDS {
 				iter++;
 			}			
 		}
-		
-		long stopTime = System.nanoTime();
-		long elapsedTime = stopTime - startTime;		
-		long elapsedTimeSeconds = TimeUnit.SECONDS.convert(elapsedTime, TimeUnit.NANOSECONDS);		
-		long hours = elapsedTimeSeconds / 3600;
-		long minutes = (elapsedTimeSeconds % 3600) / 60;
-		long seconds = elapsedTimeSeconds % 60;
-		String timeString = hours + ":" + minutes + ":" + seconds + " seconds";
-		System.out.println("Runtime: " + timeString);		
-		System.out.println();			
-		System.out.println(candidateTuples.size() + " tuples extracted");			
 	}
 	
 	
@@ -280,7 +306,7 @@ public class REDS {
 	 *  - Word2Vec vectors from the ReVerb patterns/middle words are summed
 	 *  - Tuples are clustered according to: 1-cos(a,b) where 'a' and' b' are Word2Vec vectors
 	 */  
-	private static void DBSCAN(LinkedList<Tuple> tuples, LinkedList<SnowballPattern> patterns) {
+	private static void DBSCAN(LinkedList<Tuple> tuples, List<SnowballPattern> patterns) {
 		DistanceMeasure measure = new CosineMeasure();
 		double eps = 1-Config.min_degree_match;
 		int minPts = 3;
@@ -329,7 +355,7 @@ public class REDS {
 	}
 	
 	
-	static void comparePatternsTuples(Map<Tuple, List<Pair<SnowballPattern, Double>>> candidateTuples, LinkedList<SnowballPattern> patterns, Set<Tuple> processedTuples) {
+	static void comparePatternsTuples(Map<Tuple, List<Pair<SnowballPattern, Double>>> candidateTuples, List<SnowballPattern> patterns, List<Tuple> processedTuples) {
 
 		// Compute similarity of a tuple with all the extraction patterns
 		// Compare the ReVerb patterns/middle words from the sentence/Tuple 
@@ -338,7 +364,7 @@ public class REDS {
 		System.out.println("Evaluating " + patterns.size() + " patterns");		
 		int count = 0;
 		for (Tuple tuple : processedTuples) {
-			if (count % 10000==0) System.out.println(count + "/" + processedTuples.size());
+			if (count % 50000==0) System.out.println(count + "/" + processedTuples.size());
 			if (tuple.ReVerbpatterns.size()>0) { 
     			for (SnowballPattern p : patterns) {
     				double bestScore = 0;
@@ -443,9 +469,10 @@ public class REDS {
 	 * 		- Construct a set with all the similar words according to Word2Vec given a threshold t    	 
 	 *  	- Calculate the intersection of all sets
 	 */
-	private static Set<WordEntry> expandPatterns(LinkedList<SnowballPattern> patterns) {
+	private static Pair<Set<String>, Set<WordEntry>> expandPatterns(List<SnowballPattern> patterns) {
 		Set<String> words = new HashSet<String>();
-		for (SnowballPattern p : patterns) {			
+		System.out.println(patterns.size());
+		for (SnowballPattern p : patterns) {
 			for (Tuple tuple : p.tuples) {
 				ReVerbPattern reverb = tuple.ReVerbpatterns.get(0);
 				/*
@@ -453,11 +480,18 @@ public class REDS {
 				System.out.println(reverb.token_ptb_pos_tags);
 				System.out.println(reverb.token_universal_pos_tags);
 				*/
-				for (int i = 0; i < reverb.token_ptb_pos_tags.size(); i++) {
-					if ( reverb.token_ptb_pos_tags.get(i).equalsIgnoreCase("NN") || reverb.token_ptb_pos_tags.get(i).equalsIgnoreCase("VBN")) {
-						words.add(reverb.token_words.get(i));
-					}
+				if (p.expanded!=true) {
+					for (int i = 0; i < reverb.token_ptb_pos_tags.size(); i++) {
+						if ( reverb.token_ptb_pos_tags.get(i).equalsIgnoreCase("NN") || reverb.token_ptb_pos_tags.get(i).equalsIgnoreCase("VBN")) {
+							words.add(reverb.token_words.get(i));
+						}
+					}	
 				}
+				// If its an expanded pattern there are no PoS tags associated just words
+				else {
+					words.addAll(reverb.token_words);
+				}
+				
 				/*
 				for (Iterator<String> iterator = words.iterator(); iterator.hasNext();) {
 					String w = (String) iterator.next();
@@ -491,7 +525,8 @@ public class REDS {
 			System.out.println(wordEntry.name + '\t' + wordEntry.score);				
 		}
 		*/
-		return similar_words;
+		Pair<Set<String>, Set<WordEntry>> p = new Pair<Set<String>, Set<WordEntry>>(words, similar_words);
+		return p;
 	}
 }
 

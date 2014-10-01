@@ -33,15 +33,15 @@ public class Snowball {
 	
 	public static int iter = 0;
 
-	public static void start(String sentencesFile, String seedsFile,Map<Tuple, List<Pair<SnowballPattern, Double>>> candidateTuples, LinkedList<SnowballPattern> patterns) throws IOException, Exception {		
+	public static void start(String sentencesFile, String seedsFile,Map<Tuple, List<Pair<SnowballPattern, Double>>> candidateTuples, List<SnowballPattern> patterns) throws IOException, Exception {		
 		long startTime = System.nanoTime();
 		Config.readSeeds(seedsFile);
 		iteration(startTime, sentencesFile, candidateTuples, patterns);		
 	}
 	
-	static void iteration(long startTime, String sentencesFile, Map<Tuple, List<Pair<SnowballPattern, Double>>> candidateTuples, LinkedList<SnowballPattern> patterns) throws IOException, Exception {					
+	static void iteration(long startTime, String sentencesFile, Map<Tuple, List<Pair<SnowballPattern, Double>>> candidateTuples, List<SnowballPattern> patterns) throws IOException, Exception {					
 
-		Set<Tuple> processedTuples = new HashSet<Tuple>();		
+		List<Tuple> processedTuples = new LinkedList<Tuple>();		
 		File f = new File("Snowball_processed_tuples.obj");
 		
 		if (!f.exists()) {
@@ -65,7 +65,7 @@ public class Snowball {
 			System.out.println("Loading pre-processed sentences");
 			FileInputStream in = new FileInputStream("Snowball_processed_tuples.obj");
 			ObjectInputStream objectInput = new ObjectInputStream(in);
-			processedTuples = (Set<Tuple>) objectInput.readObject();
+			processedTuples = (List<Tuple>) objectInput.readObject();
 			System.out.println("\n"+processedTuples.size() + " tuples gathered");						
 			in.close();
 		}
@@ -147,7 +147,7 @@ public class Snowball {
 		}		
 	}
 
-	static void comparePatternsTuples(Map<Tuple, List<Pair<SnowballPattern, Double>>> candidateTuples, LinkedList<SnowballPattern> patterns, Set<Tuple> processedTuples) {
+	static void comparePatternsTuples(Map<Tuple, List<Pair<SnowballPattern, Double>>> candidateTuples, List<SnowballPattern> patterns, List<Tuple> processedTuples) {
 		
 		for (Tuple t : processedTuples) {
 			// Compute similarity with all the extraction patterns
@@ -262,7 +262,7 @@ public class Snowball {
 		}
 	}
 	
-	static void generateTuples(String file, Set<Tuple> processedTuples) throws Exception {
+	static void generateTuples(String file, List<Tuple> processedTuples) throws Exception {
 		String sentence = null;
 		String e1_begin = "<"+Config.e1_type+">";
 		String e1_end = "</"+Config.e1_type+">";
@@ -330,7 +330,7 @@ public class Snowball {
 		f1.close();
 	}
 
-	static LinkedList<Tuple> matchSeedsTuples(Set<Tuple> processedTuples) {
+	static LinkedList<Tuple> matchSeedsTuples(List<Tuple> processedTuples) {
 		
 		Map<Seed,Integer> counts = new HashMap<Seed, Integer>();
 		LinkedList<Tuple> matchedTuples = new LinkedList<>();

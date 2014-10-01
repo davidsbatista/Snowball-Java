@@ -2,6 +2,7 @@ package clustering;
 
 import java.io.IOException;
 import java.util.LinkedList;
+import java.util.List;
 
 import tuples.Tuple;
 import bin.Config;
@@ -13,7 +14,7 @@ public class Singlepass {
 	 * to TF-IDF representations
 	 * or Word2Vec vector representation
 	 */ 
-	public static void singlePass(LinkedList<Tuple> tuples, LinkedList<SnowballPattern> patterns) throws IOException {
+	public static void singlePass(LinkedList<Tuple> tuples, List<SnowballPattern> patterns) throws IOException {
 		/*
 		if (Config.useWord2Vec==true) {
 			Singlepass.singlePassWord2Vec(tuples, patterns);
@@ -23,7 +24,7 @@ public class Singlepass {
 		Singlepass.singlePassTFIDF(tuples, patterns);			
 	}			
 				
-	public static void singlePassTFIDF(LinkedList<Tuple> tuples, LinkedList<SnowballPattern> patterns) throws IOException {
+	public static void singlePassTFIDF(LinkedList<Tuple> tuples, List<SnowballPattern> patterns) throws IOException {
 		System.out.println(tuples.size() + " tuples to process");		
 		int count = 0;
 				

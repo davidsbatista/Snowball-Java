@@ -6,9 +6,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import tuples.Tuple;
@@ -41,7 +43,7 @@ public class Main {
 			System.out.println("No semantic types defined");
 		}
 		Map<Tuple, List<Pair<SnowballPattern, Double>>> candidateTuples = new HashMap<Tuple, List<Pair<SnowballPattern,Double>>>();
-		LinkedList<SnowballPattern> patterns = new LinkedList<SnowballPattern>();
+		List<SnowballPattern> patterns = new ArrayList<SnowballPattern>();
 
 		/*
 		TestWord2Vec.main();
@@ -74,7 +76,7 @@ public class Main {
 	/*
 	 * Writes the extracted Tuples and the generated Extraction Patterns to files
 	 */ 
-	static void outputToFiles(Map<Tuple, List<Pair<SnowballPattern, Double>>> candidateTuples, LinkedList<SnowballPattern> patterns) throws IOException {
+	static void outputToFiles(Map<Tuple, List<Pair<SnowballPattern, Double>>> candidateTuples, List<SnowballPattern> patterns) throws IOException {
 		BufferedWriter f1 = new BufferedWriter(new FileWriter("tuples.txt"));
 		BufferedWriter f2 = new BufferedWriter(new FileWriter("patterns.txt"));
 		ArrayList<Tuple> tuplesOrdered  = new ArrayList<Tuple>(candidateTuples.keySet());				
