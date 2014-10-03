@@ -6,11 +6,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import tuples.Tuple;
@@ -56,7 +53,7 @@ public class Main {
 		if (Config.REDS==true) REDS.start(sentencesFile,seedsFile,candidateTuples,patterns);			
 		
 		// Starts Snowball extraction process		
-		else if (Config.REDS==false) Snowball.start(sentencesFile,seedsFile,candidateTuples,patterns);
+		else if (Config.REDS==false) Snowball.start(sentencesFile,seedsFile,candidateTuples,patterns);			 
 		
 		// Calculates running time and writes Patterns and Tuple to file
 		long stopTime = System.nanoTime();

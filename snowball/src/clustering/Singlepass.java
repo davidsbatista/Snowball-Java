@@ -117,7 +117,7 @@ public class Singlepass {
 	}
 
 
-
+	//TODO: complete, rewrite using only ReVerb patterns and no centroids
 	public static void singlePassREDS(LinkedList<Tuple> seedMatches,LinkedList<SnowballPattern> patterns) {
 		
 		System.out.println(seedMatches.size() + " tuples to process");		

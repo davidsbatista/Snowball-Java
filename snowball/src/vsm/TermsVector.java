@@ -7,40 +7,34 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 
+import nlp.Stopwords;
+
 import org.jblas.FloatMatrix;
 
 import bin.Config;
 
 public abstract class TermsVector {
 		
-	// normalize a string of text: remove "odd" characters, tokenize, remove stopwords, lowercase*/
+	// Normalize a string of text: remove "odd" characters, tokenize, remove stopwords, lowercase*/
 	public static List<String> normalize(String text) {
 
 		List<String> terms = new LinkedList<String>();
 		
-		/* clean tags and numbers, constructs vectors considering only tokens outside tags */		
+		// Remove tags, numbers, constructs vectors considering only tokens outside tags		
 		text  = text.replaceAll("<[^>]+>[^<]+</?[^>]+>"," ").replaceAll("[0-9]+?(,|\\.|/)?([0-9]+)?.?(º|ª|%)?", "");
 		
-		/* Tokenize  */
+		// Tokenize
 		terms = (List<String>) Arrays.asList(Config.PTtokenizer.tokenize(text));
-		
-		/* remove ".", e.g : "afirmou."
-		for (int i = 0; i < terms.size(); i++) {
-			if (terms.get(i).endsWith(".")) terms.set(i, terms.get(i).replace(".", ""));
+
+		// Remove stop-words
+		if (Config.REDS==false) {
+			terms = Stopwords.removeStopWords(terms);
 		}
-		*/
 		
-		/* remove stopwords */
-		//terms = Stopwords.removeStopWords(terms);
-		
-		/* lowercase everything */
+		// Convert terms to lower case representation
 	    ListIterator<String> iterator = terms.listIterator();
 	    while (iterator.hasNext()) iterator.set(iterator.next().toLowerCase());
-	    
-	    /* Stemme words */
-	    //iterator = terms.listIterator();
-	    //while (iterator.hasNext()) iterator.set(StemmerWrapper.stem(iterator.next()));
-		
+	    		
 		return terms;		
 	}
 	

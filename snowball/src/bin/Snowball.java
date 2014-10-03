@@ -11,13 +11,11 @@ import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -76,11 +74,25 @@ public class Snowball {
 			System.out.println("\n***************************");
 			System.out.println("Starting iteration " + iter);			
 			System.out.println("Collecting tuples acording to " +  Config.seedTuples.size() + " seeds ");			
-			LinkedList<Tuple> seedMatches = matchSeedsTuples(processedTuples);			
+			LinkedList<Tuple> seedMatches = matchSeedsTuples(processedTuples);
+			
+			for (Tuple tuple : seedMatches) {
+				System.out.println(tuple.sentence);
+				System.out.println("\nleft: ");
+				for (String word : tuple.left_words) System.out.println(word+',');
+				System.out.println("\nmiddle: ");
+				for (String word : tuple.middle_words) System.out.println(word+',');
+				System.out.println("\nright: ");
+				for (String word : tuple.right_words) System.out.println(word+',');
+				System.out.println("\n");
+				System.out.println("==================================");
+			}
+			
 			if (seedMatches.size()==0) {
 				System.out.println("No tuples found");
 				System.exit(0);	
 			}
+			
 			else {
 				System.out.println("\nClustering tuples ...");
 				Singlepass.singlePass(seedMatches, patterns);				
@@ -93,6 +105,19 @@ public class Snowball {
 					if (p.tuples.size()<Config.min_pattern_support) patternIter.remove();
 				}
 				patternIter = null;
+				
+				for (SnowballPattern p : patterns) {
+					for (Tuple tuple : p.tuples) {
+						System.out.println("\nleft: ");
+						for (String word : tuple.left_words) System.out.println(word+',');
+						System.out.println("\nmiddle: ");
+						for (String word : tuple.middle_words) System.out.println(word+',');
+						System.out.println("\nright: ");
+						for (String word : tuple.right_words) System.out.println(word+',');
+						System.out.println("\n");
+					}
+				}
+				
 				System.out.println(patterns.size() + " patterns supported by at least " + Config.min_pattern_support + " tuple(s)");
 
 				// - Look for sentences with occurrence of seeds semantic type (e.g., ORG - LOC)
@@ -104,6 +129,7 @@ public class Snowball {
 				System.out.println("\n"+candidateTuples.size() + " tuples found");
 				
 				
+				/*
 				System.out.println("Patterns " + patterns.size() + " generated");
 				for (SnowballPattern p: patterns) {
 					System.out.println("confidence	:" + p.confidence);
@@ -116,6 +142,7 @@ public class Snowball {
 					}
 					System.out.println("====================================\n");
 				}
+				*/
 				
 				// Update Tuple confidence based on patterns confidence
 				System.out.println("Calculating tuples confidence");
@@ -149,7 +176,9 @@ public class Snowball {
 
 	static void comparePatternsTuples(Map<Tuple, List<Pair<SnowballPattern, Double>>> candidateTuples, List<SnowballPattern> patterns, List<Tuple> processedTuples) {
 		
+		int count = 0;		
 		for (Tuple t : processedTuples) {
+			if (count % 50000==0) System.out.println(count + "/" + processedTuples.size());
 			// Compute similarity with all the extraction patterns
 			List<Integer> patternsMatched = new LinkedList<Integer>();
 			double simBest = 0;
@@ -238,6 +267,7 @@ public class Snowball {
 					p.RlogF_old = p.RlogF;
 				}							
 			}
+			count++;
 		}
 	}
 	
@@ -306,15 +336,13 @@ public class Snowball {
 	            	String left_txt = sentence.substring(0,matcher1.start()).replaceAll("<[^>]+>[^<]+</[^>]+>","");
 	            	String middle_txt = sentence.substring(matcher1.end(),matcher2.start()).replaceAll("<[^>]+>[^<]+</[^>]+>","");
 	            	String right_txt = sentence.substring(matcher2.end()).replaceAll("<[^>]+>[^<]+</[^>]+>","");
-	            	
-	            	left_t = TermsVector.normalize(left_txt);
-	        		middle_t = TermsVector.normalize(middle_txt);
-					right_t = TermsVector.normalize(right_txt);
+	            		            	
+	        		String[] middle_tokens = middle_txt.split("\\s"); 					
 	                	
-	                if (middle_t.size()<=Config.max_tokens_away && middle_t.size()>=Config.min_tokens_away && middle_t.size()>0) {
+	                if (middle_tokens.length<=Config.max_tokens_away && middle_tokens.length>=Config.min_tokens_away) {
 	                	
 	                	// Create a Tuple for an occurrence found        				
-	        			Tuple t = new Tuple(left_t, middle_t, right_t, e1.trim(), e2.trim(), sentence, middle_txt);	        			
+	        			Tuple t = new Tuple(left_txt, middle_txt, right_txt, e1.trim(), e2.trim(), sentence, middle_txt);	        			
 	        			processedTuples.add(t);
 	                }
 				}

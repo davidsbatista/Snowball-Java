@@ -1,6 +1,7 @@
 package tuples;
 
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -11,6 +12,7 @@ import java.util.Set;
 import nlp.EnglishPoSTagger;
 import nlp.ReVerbPattern;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.ml.clustering.Clusterable;
 import org.jblas.FloatMatrix;
 
@@ -63,7 +65,7 @@ public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable
 		this.ReVerbpatterns = new LinkedList<ReVerbPattern>();
 	}
 	
-	public Tuple(List<String> left, List<String> middle, List<String> right, String e1, String e2, String t_sentence, String t_middle_txt) {
+	public Tuple(String left, String middle, String right, String e1, String e2, String t_sentence, String t_middle_txt) {
 		super();		
 		this.e1 = e1;
 		this.e2 = e2;
@@ -78,10 +80,10 @@ public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable
 		
 		try {
 			
-			// keep words
-			left_words.addAll(chopLeft(left));
-			middle_words.addAll(middle);
-			right_words.addAll(chopLeft(left));				
+			// Keep words
+			left_words.addAll( Arrays.asList(getLeftContext(left).split("\\s") ));
+			middle_words.addAll(Arrays.asList(middle.split("\\s")));
+			right_words.addAll( Arrays.asList(getLeftContext(left)));				
 			this.middle_text = t_middle_txt;
 			
 			/* 
@@ -99,20 +101,17 @@ public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable
 				left_centroid = CreateWord2VecVectors.createVecCentroid(chopLeft(left));
 				middle_centroid = CreateWord2VecVectors.createVecCentroid(middle);
 				right_centroid = CreateWord2VecVectors.createVecCentroid(chopRight(right));				
-			}
+			}			
 			*/
-			if (Config.REDS==false) {			
-			/* 
-			 * Create TF-IDF representations 
-			 */
-				if (left!=null) this.left = Config.vsm.tfidf(chopLeft(left));			
-				if (middle!=null) this.middle = Config.vsm.tfidf(middle);			
-				if (right!=null) this.right = Config.vsm.tfidf(chopRight(right));				
+			
+			// Create TF-IDF representations
+			if ( Config.REDS==false ) {														
+				if (left!=null) this.left = Config.vsm.tfidf(TermsVector.normalize(getLeftContext(left)));				
+				if (middle!=null) this.middle = Config.vsm.tfidf(TermsVector.normalize(middle));				
+				if (right!=null) this.right = Config.vsm.tfidf(TermsVector.normalize(getRightContext(right)));
 			}
 			
-			/* 
-			 * Extract ReVerb patterns and construct Word2Vec representations 
-			 */			
+			// Extract ReVerb patterns and construct Word2Vec representations 			
 			if (Config.REDS==true) {								
 
 				List<ReVerbPattern> patterns = EnglishPoSTagger.extractRVB(t_middle_txt);
@@ -200,37 +199,25 @@ public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable
 		}
 	}
 	
-	public static List<String> chopLeft(List<String> left){		
-		List<String> choped_left_terms = new LinkedList<String>();		
-		if (left.size()>=Config.context_window_size) {
-			//gather terms by the end of list
-			for (int i = left.size()-1; i > left.size()-1-Config.context_window_size; i--) choped_left_terms.add(left.get(i));
-		} else choped_left_terms = left;		
-		return choped_left_terms;		
+	public static String getLeftContext(String left){		
+		String[] left_tokens = left.split("\\s");
+		List<String> tokens = new LinkedList<String>();
+		if (left_tokens.length>=Config.context_window_size) {
+			for (int i = left_tokens.length-1; i > left_tokens.length-1-Config.context_window_size; i--) tokens.add(left_tokens[i]);
+		} else return left;
+		String left_context = StringUtils.join(tokens," ");
+		return left_context;
+		
 	}
 	
-	public static List<String> chopRight(List<String> right){		
-		List<String> choped_right_terms = new LinkedList<String>();		
-		if (right.size()>=Config.context_window_size) {
-			for (int i = 0; i < Config.context_window_size; i++) choped_right_terms.add(right.get(i));
-		} else choped_right_terms = right;		
-		return choped_right_terms;
-	}
-	
-	public static List<String> chopMiddle(List<String> middle){		
-		List<String> choped_middle_terms = new LinkedList<String>();
-		if (middle.size() <= Config.context_window_size) choped_middle_terms = middle;
-		else {
-			//e1 + #window tokens at right
-			for (int i = 0; i <= Config.context_window_size; i++) choped_middle_terms.add(middle.get(i));						
-			//e2 + #window tokens at left
-			List<String> tmp = new LinkedList<String>();
-			for (int i = middle.size()-1; i >= middle.size()-1-Config.context_window_size; i--) tmp.add(middle.get(i));						
-			//reverse list
-			Collections.reverse(tmp);
-			choped_middle_terms.addAll(tmp);			
-		}		
-		return choped_middle_terms;
+	public static String getRightContext(String right){
+		String[] right_tokens = right.split("\\s");
+		List<String> tokens = new LinkedList<String>();		
+		if (right_tokens.length>=Config.context_window_size) {
+			for (int i = 0; i < Config.context_window_size; i++) tokens.add(right_tokens[i]);
+		} else return right;
+		String right_context = StringUtils.join(tokens," ");
+		return right_context;
 	}
 	
 	public double[] convertFloatDouble(float[] v) {
