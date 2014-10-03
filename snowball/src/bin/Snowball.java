@@ -23,7 +23,6 @@ import tuples.Seed;
 import tuples.Tuple;
 import utils.Pair;
 import utils.SortMaps;
-import vsm.TermsVector;
 import clustering.Singlepass;
 import clustering.SnowballPattern;
 
@@ -297,10 +296,7 @@ public class Snowball {
 		String e1_begin = "<"+Config.e1_type+">";
 		String e1_end = "</"+Config.e1_type+">";
 		String e2_begin = "<"+Config.e2_type+">";
-		String e2_end = "</"+Config.e2_type+">";
-		List<String> left_t = null;
-		List<String> middle_t = null;
-		List<String> right_t = null;		
+		String e2_end = "</"+Config.e2_type+">";		
 		Pattern pattern1 = Pattern.compile(e1_begin+"[^<]+"+e1_end);
 		Pattern pattern2 = Pattern.compile(e2_begin+"[^<]+"+e2_end);		
 		BufferedReader f1 = new BufferedReader(new FileReader(new File(file)));
@@ -335,15 +331,15 @@ public class Snowball {
 					// Constructs vectors considering only tokens, name-entities are not part of the vectors               		
 	            	String left_txt = sentence.substring(0,matcher1.start()).replaceAll("<[^>]+>[^<]+</[^>]+>","");
 	            	String middle_txt = sentence.substring(matcher1.end(),matcher2.start()).replaceAll("<[^>]+>[^<]+</[^>]+>","");
-	            	String right_txt = sentence.substring(matcher2.end()).replaceAll("<[^>]+>[^<]+</[^>]+>","");
+	            	String right_txt = sentence.substring(matcher2.end()+1).replaceAll("<[^>]+>[^<]+</[^>]+>","");
 	            		            	
-	        		String[] middle_tokens = middle_txt.split("\\s"); 					
+	        		String[] middle_tokens = middle_txt.split("\\s");
 	                	
 	                if (middle_tokens.length<=Config.max_tokens_away && middle_tokens.length>=Config.min_tokens_away) {
 	                	
 	                	// Create a Tuple for an occurrence found        				
 	        			Tuple t = new Tuple(left_txt, middle_txt, right_txt, e1.trim(), e2.trim(), sentence, middle_txt);	        			
-	        			processedTuples.add(t);
+	        			processedTuples.add(t);        			
 	                }
 				}
 				

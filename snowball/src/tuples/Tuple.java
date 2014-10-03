@@ -83,7 +83,7 @@ public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable
 			// Keep words
 			left_words.addAll( Arrays.asList(getLeftContext(left).split("\\s") ));
 			middle_words.addAll(Arrays.asList(middle.split("\\s")));
-			right_words.addAll( Arrays.asList(getLeftContext(left)));				
+			right_words.addAll( Arrays.asList(getRightContext(right).split("\\s") ));				
 			this.middle_text = t_middle_txt;
 			
 			/* 
@@ -214,7 +214,9 @@ public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable
 		String[] right_tokens = right.split("\\s");
 		List<String> tokens = new LinkedList<String>();		
 		if (right_tokens.length>=Config.context_window_size) {
-			for (int i = 0; i < Config.context_window_size; i++) tokens.add(right_tokens[i]);
+			for (int i = 0; i < Config.context_window_size; i++) {
+				tokens.add(right_tokens[i]);
+			}
 		} else return right;
 		String right_context = StringUtils.join(tokens," ");
 		return right_context;

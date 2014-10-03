@@ -24,7 +24,7 @@ public abstract class TermsVector {
 		text  = text.replaceAll("<[^>]+>[^<]+</?[^>]+>"," ").replaceAll("[0-9]+?(,|\\.|/)?([0-9]+)?.?(º|ª|%)?", "");
 		
 		// Tokenize
-		terms = (List<String>) Arrays.asList(Config.PTtokenizer.tokenize(text));
+		terms = (List<String>) Arrays.asList(text.split("\\s"));
 
 		// Remove stop-words
 		if (Config.REDS==false) {
