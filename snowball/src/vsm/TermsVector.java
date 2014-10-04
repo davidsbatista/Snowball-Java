@@ -7,25 +7,26 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 
+import nlp.EnglishPoSTagger;
 import nlp.Stopwords;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.jblas.FloatMatrix;
 
 import bin.Config;
 
 public abstract class TermsVector {
 		
-	// Normalize a string of text: remove "odd" characters, tokenize, remove stopwords, lowercase*/
 	public static List<String> normalize(String text) {
-
+		
 		List<String> terms = new LinkedList<String>();
 		
-		// Remove tags, numbers, constructs vectors considering only tokens outside tags		
-		text  = text.replaceAll("<[^>]+>[^<]+</?[^>]+>"," ").replaceAll("[0-9]+?(,|\\.|/)?([0-9]+)?.?(º|ª|%)?", "");
+		// Remove text between tags and numbers
+		for (String term : Arrays.asList(text.split("\\s"))) {
+			term = term.replaceAll("<[^>]+>[^<]+</?[^>]+>"," ").replaceAll("^[0-9]+?(,|\\.|/)?([0-9]+)?.?(º|ª|%)?", "");			
+			terms.add(term);
+		}
 		
-		// Tokenize
-		terms = (List<String>) Arrays.asList(text.split("\\s"));
-
 		// Remove stop-words
 		if (Config.REDS==false) {
 			terms = Stopwords.removeStopWords(terms);

@@ -58,7 +58,7 @@ public class Snowball {
 			}
 		}
 		else {
-			// Load
+			// Load from disk
 			System.out.println("Loading pre-processed sentences");
 			FileInputStream in = new FileInputStream("Snowball_processed_tuples.obj");
 			ObjectInputStream objectInput = new ObjectInputStream(in);
@@ -74,18 +74,6 @@ public class Snowball {
 			System.out.println("Starting iteration " + iter);			
 			System.out.println("Collecting tuples acording to " +  Config.seedTuples.size() + " seeds ");			
 			LinkedList<Tuple> seedMatches = matchSeedsTuples(processedTuples);
-			
-			for (Tuple tuple : seedMatches) {
-				System.out.println(tuple.sentence);
-				System.out.println("\nleft: ");
-				for (String word : tuple.left_words) System.out.println(word+',');
-				System.out.println("\nmiddle: ");
-				for (String word : tuple.middle_words) System.out.println(word+',');
-				System.out.println("\nright: ");
-				for (String word : tuple.right_words) System.out.println(word+',');
-				System.out.println("\n");
-				System.out.println("==================================");
-			}
 			
 			if (seedMatches.size()==0) {
 				System.out.println("No tuples found");
@@ -104,18 +92,6 @@ public class Snowball {
 					if (p.tuples.size()<Config.min_pattern_support) patternIter.remove();
 				}
 				patternIter = null;
-				
-				for (SnowballPattern p : patterns) {
-					for (Tuple tuple : p.tuples) {
-						System.out.println("\nleft: ");
-						for (String word : tuple.left_words) System.out.println(word+',');
-						System.out.println("\nmiddle: ");
-						for (String word : tuple.middle_words) System.out.println(word+',');
-						System.out.println("\nright: ");
-						for (String word : tuple.right_words) System.out.println(word+',');
-						System.out.println("\n");
-					}
-				}
 				
 				System.out.println(patterns.size() + " patterns supported by at least " + Config.min_pattern_support + " tuple(s)");
 
@@ -318,25 +294,21 @@ public class Snowball {
 			try {
 				String e1 = (sentence.substring(matcher1.start(),matcher1.end())).replaceAll("<[^>]+>"," ");
 				String e2 = (sentence.substring(matcher2.start(),matcher2.end())).replaceAll("<[^>]+>"," ");
-				if ( (!Config.e1_type.equals(Config.e2_type) && matcher2.end()<matcher1.end() || matcher2.start()<matcher1.end())) continue;
-								
-				if ( (found1 && found2) && matcher1.end()<matcher2.end()) {
-					
+				if ( (!Config.e1_type.equals(Config.e2_type) && matcher2.end()<matcher1.end() || matcher2.start()<matcher1.end())) continue;								
+				if ( (found1 && found2) && matcher1.end()<matcher2.end()) {					
 					// Ignore contexts where another entity occur between the two entities
 					String middleText = sentence.substring(matcher1.end(),matcher2.start());
             		Pattern ptr = Pattern.compile("<[^>]+>[^<]+</[^>]+>");            		
             		Matcher matcher = ptr.matcher(middleText);            		
 	            	if (matcher.find()) continue;
 	            	
-					// Constructs vectors considering only tokens, name-entities are not part of the vectors               		
+					// Consider only tokens, name-entities are not part of the TF-IDF vectors               		
 	            	String left_txt = sentence.substring(0,matcher1.start()).replaceAll("<[^>]+>[^<]+</[^>]+>","");
 	            	String middle_txt = sentence.substring(matcher1.end(),matcher2.start()).replaceAll("<[^>]+>[^<]+</[^>]+>","");
 	            	String right_txt = sentence.substring(matcher2.end()+1).replaceAll("<[^>]+>[^<]+</[^>]+>","");
 	            		            	
-	        		String[] middle_tokens = middle_txt.split("\\s");
-	                	
-	                if (middle_tokens.length<=Config.max_tokens_away && middle_tokens.length>=Config.min_tokens_away) {
-	                	
+	        		String[] middle_tokens = middle_txt.split("\\s");	                	
+	                if (middle_tokens.length<=Config.max_tokens_away && middle_tokens.length>=Config.min_tokens_away) {	                	
 	                	// Create a Tuple for an occurrence found        				
 	        			Tuple t = new Tuple(left_txt, middle_txt, right_txt, e1.trim(), e2.trim(), sentence, middle_txt);	        			
 	        			processedTuples.add(t);        			

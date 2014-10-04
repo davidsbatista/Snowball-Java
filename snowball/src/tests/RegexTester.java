@@ -12,13 +12,19 @@ public class RegexTester {
 	static String e = "Mas a questão permaneceu adormecida até ao concurso da <PESSOA>Miguel Prudêncio</PESSOA> e <PESSOA>Miguel Soares</PESSOA> que conquistaram os júris da <ORGANIZACAO>Fundação Bill</ORGANIZACAO> & <PESSOA>Melinda Gates</PESSOA>.";
 	static String f = "Desta vez, as freguesias contempladas serão cinco: <LOCAL>São Sebastião da Pedreira</LOCAL> (onde o <PESSOA>Presidente da República</PESSOA> tem residência), <LOCAL>Santos-o-Velho</LOCAL> (do primeiro-ministro e de <PESSOA>Paulo Portas</PESSOA>) e Coração de Jesus (de <PESSOA>Francisco Louçã</PESSOA>), as três<LOCAL> Lisboa</LOCAL>, <PESSOA>Conceição</PESSOA>, na <LOCAL>Covilhã</LOCAL> (de <PESSOA>José Sócrates</PESSOA>) e <LOCAL>Santa Iria da Azóia</LOCAL>, em <LOCAL>Loures</LOCAL> (<PESSOA>Jerónimo de Sousa</PESSOA>)";
 	
-	
-	
 	public static void main(String[] args) {
 		
+		/*
 		String a = "Setúbal-FC Porto</PER> ( II ) 7-01943-44 <ORG>FC Porto-Estoril</ORG>";
 		String b = ", coordenadora da parte norte-americana do programa, e <PER>Charles L. Cooney</PER>, do <LOC>Centro Deshpande para a Inovação Tecnológica</LOC> -- e de docentes e empresas portuguesas que trabalham em articulação com a investigação universitária.";
 		cleanBegin(b);
+		*/
+
+		String text = "and PC-3 for GE-90 engines";		
+		text  = text.replaceAll("<[^>]+>[^<]+</?[^>]+>"," ").replaceAll("^[0-9]+?(,|\\.|/)?([0-9]+)?.?(º|ª|%)?", "");		
+		System.out.println(text);
+				
+				
 		
 		/*
 		//String t = "Do fim do crédito bonificado à habitação - \" medida socialmente errada e economicamente absurda \" - ao novo Código do Trabalho e ao desafio a <PESSOA>Durão Barroso</PESSOA> para que desça o IVA novamente para 17 por cento no Orçamento de Estado para 2003, passando pelo \" discurso pessimista \" sobre a situação económica do país, <PESSOA>Ferro Rodrigues</PESSOA> apontou baterias à governação do Executivo PSD-CDS/PP.";	

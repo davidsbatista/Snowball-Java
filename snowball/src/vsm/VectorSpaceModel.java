@@ -35,7 +35,7 @@ public class VectorSpaceModel implements Serializable {
 	    	try {
 				sentence = sentence.trim();
 				// normalize sentence and removed repeated
-				// even if a term occurs more than once in a document just count it once
+				// even if a term occurs more than once in a document just count it once				
 				Set<String> terms = new HashSet<String>(TermsVector.normalize(sentence));					
 				for (String t : terms) {
 					count = term_document_frequency.get(t);	    			
@@ -85,6 +85,7 @@ public class VectorSpaceModel implements Serializable {
 			try {
 				idf = Math.log( (float) n_docs / (double) (term_document_frequency.get(term)) );				
 			} catch (Exception e) {
+				System.out.println("");
 				System.out.println("term: " + term);
 				System.out.println("tf: " + doc_tf.get(term));
 				System.out.println("idf: " + term_document_frequency.get(term));

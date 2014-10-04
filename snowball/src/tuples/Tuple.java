@@ -2,7 +2,6 @@ package tuples;
 
 import java.io.Serializable;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -35,8 +34,6 @@ public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable
 	public Set<String> right_words;
 	
 	public String middle_text;
-	public List<ReVerbPattern> tagged_middle_text;
-	
 	public List<FloatMatrix> middleReverbPatternsWord2VecSum;
 	public List<FloatMatrix> middleReverbPatternsWord2VecCentroid;
 	
@@ -79,13 +76,6 @@ public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable
 		this.ReVerbpatterns = new LinkedList<ReVerbPattern>();
 		
 		try {
-			
-			// Keep words
-			left_words.addAll( Arrays.asList(getLeftContext(left).split("\\s") ));
-			middle_words.addAll(Arrays.asList(middle.split("\\s")));
-			right_words.addAll( Arrays.asList(getRightContext(right).split("\\s") ));				
-			this.middle_text = t_middle_txt;
-			
 			/* 
 			 * Create Word2vec representations 
 			 */				
@@ -105,15 +95,23 @@ public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable
 			*/
 			
 			// Create TF-IDF representations
-			if ( Config.REDS==false ) {														
+			if ( Config.REDS==false ) {
+				System.out.println("sentence:	" + sentence);				
 				if (left!=null) this.left = Config.vsm.tfidf(TermsVector.normalize(getLeftContext(left)));				
 				if (middle!=null) this.middle = Config.vsm.tfidf(TermsVector.normalize(middle));				
-				if (right!=null) this.right = Config.vsm.tfidf(TermsVector.normalize(getRightContext(right)));
+				if (right!=null) this.right = Config.vsm.tfidf(TermsVector.normalize(getRightContext(right)));				
+				System.out.println();
+				System.out.println();
+				
+				// Save words
+				left_words.addAll(TermsVector.normalize(getLeftContext(left)));
+				middle_words.addAll(TermsVector.normalize(middle) );
+				right_words.addAll(TermsVector.normalize(getRightContext(right)));		
+				this.middle_text = t_middle_txt;
 			}
 			
 			// Extract ReVerb patterns and construct Word2Vec representations 			
 			if (Config.REDS==true) {								
-
 				List<ReVerbPattern> patterns = EnglishPoSTagger.extractRVB(t_middle_txt);
 				boolean discard = false;				
 				if (patterns.size()>0) {
@@ -122,7 +120,7 @@ public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable
 					List<String> pattern_ptb_pos = patterns.get(0).token_ptb_pos_tags;
 					List<String> pattern_universal_pos = patterns.get(0).token_universal_pos_tags;		
 					
-					// If contains only auxiliary VERB + IN discard
+					// If contains only an auxiliary VERB + IN discard
 					// e.g.: is in, was out
 					if (pattern_tokens.size()==2) {
 						String verb = Config.EnglishLemm.lemmatize(pattern_tokens.get(0));
@@ -132,13 +130,8 @@ public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable
 					}					
 					if (!discard) {
 						hasReVerbPatterns = true;
-						this.ReVerbpatterns = patterns;
-						
+						this.ReVerbpatterns = patterns;						
 						// Sum each word vector
-						/*
-						System.out.println(sentence);
-						System.out.println("no ReVerb patterns");
-						*/
 						FloatMatrix patternWord2Vec = CreateWord2VecVectors.createVecSum(pattern_tokens);
 						this.middleReverbPatternsWord2VecSum.add(patternWord2Vec);
 					}
@@ -153,27 +146,12 @@ public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable
 					}
 					*/					
 				}
-				
+				// If no ReVerb patterns are found
+				// add middle words and associated PoS-tags 
+				// stored in ReVerbPattern object
 				else if (patterns.size()==0 || discard) {
 					hasReVerbPatterns = false;
-					// If no ReVerb patterns are found
-					// add middle words as if it was a pattern
-					// TODO: discard ADV and ADJ		
-					tagged_middle_text = EnglishPoSTagger.tagSentence(middle_text);					
-					/*
-					System.out.println(this.sentence);
-					String[] tokens = tagged.getFirst();
-					String[] tags = tagged.getSecond();
-					for (int i = 0; i < tagged.getFirst().length; i++) {
-						System.out.println(tokens[i] + ' ' + tags[i]);
-					}
-					*/
-					List<String> patterns_tokens = tagged_middle_text.get(0).token_words;
-					
-					this.ReVerbpatterns = tagged_middle_text;
-					//System.out.println(sentence);
-					FloatMatrix patternWord2Vec = CreateWord2VecVectors.createVecSum(patterns_tokens);
-					this.middleReverbPatternsWord2VecSum.add(patternWord2Vec);					
+					ReVerbpatterns = EnglishPoSTagger.tagSentence(middle_text);
 				}
 			}
 			

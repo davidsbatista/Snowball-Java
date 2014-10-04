@@ -53,7 +53,7 @@ public class Main {
 		if (Config.REDS==true) REDS.start(sentencesFile,seedsFile,candidateTuples,patterns);			
 		
 		// Starts Snowball extraction process		
-		else if (Config.REDS==false) Snowball.start(sentencesFile,seedsFile,candidateTuples,patterns);			 
+		else if (Config.REDS==false) Snowball.start(sentencesFile,seedsFile,candidateTuples,patterns);
 		
 		// Calculates running time and writes Patterns and Tuple to file
 		long stopTime = System.nanoTime();

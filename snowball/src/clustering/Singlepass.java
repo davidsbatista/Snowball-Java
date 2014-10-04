@@ -118,7 +118,10 @@ public class Singlepass {
 
 
 	//TODO: complete, rewrite using only ReVerb patterns and no centroids
-	public static void singlePassREDS(LinkedList<Tuple> seedMatches,LinkedList<SnowballPattern> patterns) {
+	public static void singlePassREDS(LinkedList<Tuple> seedMatches, LinkedList<SnowballPattern> patterns) {
+		
+		/* Merge seed matches based on ReVerb patterns, relational words */
+		//mergUniquePatterns
 		
 		System.out.println(seedMatches.size() + " tuples to process");		
 		int count = 0;
@@ -131,7 +134,7 @@ public class Singlepass {
 			start = 1;
 		}
 		
-		// Compute the similarity with each cluster centroid*/
+		// Compute the similarity with each other cluster centroid*/
 		for (int i = start; i < seedMatches.size(); i++) {
 			double max_similarity = 0;
 			int max_similarity_cluster_index = 0;
