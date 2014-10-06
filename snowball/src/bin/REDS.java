@@ -208,7 +208,18 @@ public class REDS {
 				}
 				System.out.println();
 				
+				// - Look for sentences with occurrence of seeds semantic type (e.g., ORG - LOC)
+				// - Measure the similarity of each sentence(Tuple) with each Pattern
+				// - Matching Tuple objects are used to score a Pattern confidence, based 
+				// 	 on having extracted a relationship which part of the seed set
+				
+				System.out.println(Config.seedTuples.size() + " tuples in the Seed set");
+				System.out.println("Computing similarity of " + Config.e1_type + " - " + Config.e2_type + " tuples with patterns");								
+				comparePatternsTuples(candidateTuples, patterns, processedTuples);				
+				System.out.println("\n"+candidateTuples.size() + " tuples found");
+				
 				// Expand extraction patterns with semantic similar words
+				// TODO: only expand confident patterns
 				if (Config.expand_patterns==true) {
 					Pair<Set<String>, Set<WordEntry>> similar_words = expandPatterns(patterns);
 					List<WordEntry> list_similar_words = new LinkedList<WordEntry>(similar_words.getSecond());				
@@ -251,15 +262,10 @@ public class REDS {
 					}					
 				}
 				
-				// - Look for sentences with occurrence of seeds semantic type (e.g., ORG - LOC)
-				// - Measure the similarity of each sentence(Tuple) with each Pattern
-				// - Matching Tuple objects are used to score a Pattern confidence, based 
-				// 	 on having extracted a relationship which part of the seed set
 				
-				System.out.println(Config.seedTuples.size() + " tuples in the Seed set");
-				System.out.println("Computing similarity of " + Config.e1_type + " - " + Config.e2_type + " tuples with patterns");								
-				comparePatternsTuples(candidateTuples, patterns, processedTuples);				
-				System.out.println("\n"+candidateTuples.size() + " tuples found");				
+				
+				
+				
 				
 				/*
 				for (Tuple tuple : candidateTuples.keySet()) {

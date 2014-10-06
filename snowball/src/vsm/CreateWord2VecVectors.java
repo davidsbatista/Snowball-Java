@@ -11,7 +11,7 @@ import bin.Config;
 
 public class CreateWord2VecVectors {
 	
-	public static FloatMatrix createVecSum(List<String> text){		
+	public static FloatMatrix createVecSum(List<String> text) {
 		FloatMatrix sum = new FloatMatrix(Config.word2Vec_dim);
 		List<String> words_vector = new LinkedList<String>();
 		for (String w : text) {
