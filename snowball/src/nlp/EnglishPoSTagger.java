@@ -26,10 +26,17 @@ public class EnglishPoSTagger {
 	static Tokenizer _tokenizer = null;
 			
 	public static void main(String[] args) throws Exception {		
-		initialize();		
+		initialize();
+		List<ReVerbPattern> out = tagSentence("Element a has an atomic weight of 123 pounds.");
+		for (ReVerbPattern rvb : out) {
+			System.out.println(rvb.token_words);				
+			System.out.println(rvb.token_universal_pos_tags);
+			System.out.println(rvb.token_ptb_pos_tags);
+		}
+		
+		/*
 		UniversalTagSet.init();
 		//List<ReVerbPattern> patterns = extractRVB("Element a has an atomic weight of 123 pounds.");
-		//List<ReVerbPattern> patterns = extractRVB("Today Jonh has been causing an atomic weight of 123 pounds.");
 		List<ReVerbPattern> patterns = extractRVB("Today Jonh could not be in Lisbon.");
 
 		Config.EnglishLemm = new EnglishLemmatizer();
@@ -53,6 +60,7 @@ public class EnglishPoSTagger {
 				System.out.println();
 			}
 		}
+		*/
 		
 		
 		

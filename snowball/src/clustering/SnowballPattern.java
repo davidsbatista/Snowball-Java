@@ -56,31 +56,38 @@ public class SnowballPattern {
 		this.w2v_right_centroid = tuple.right_sum;
 
 	}
-	
-	public void mergUniquePatterns(){
-		/*
-		System.out.println("merging patterns");
-		System.out.println("#tuples " + this.tuples.size());
-		*/
-		for (Tuple t : this.tuples) {
-			/*
-			System.out.println(t.sentence);
-			for (ReVerbPattern rvb : t.ReVerbpatterns) {
-				System.out.println(rvb.token_words);
-				System.out.println(rvb.token_universal_pos_tags);
-				System.out.println(rvb.token_ptb_pos_tags);
-				System.out.println();
-			}
-			*/
-			patterns.add(t.ReVerbpatterns.get(0).token_words);
-		}
-	}
-	
+		
 	public SnowballPattern() {
 		super();
 		tuples = new HashSet<Tuple>();
 	}
 
+	public void mergUniquePatterns(){
+		/*
+		System.out.println("merging patterns");
+		System.out.println("#tuples " + this.tuples.size());
+		*/
+		
+		if (Config.algorihtm.equalsIgnoreCase("REDS")) {
+			for (Tuple t : this.tuples) {
+				/*
+				System.out.println(t.sentence);
+				for (ReVerbPattern rvb : t.ReVerbpatterns) {
+					System.out.println(rvb.token_words);
+					System.out.println(rvb.token_universal_pos_tags);
+					System.out.println(rvb.token_ptb_pos_tags);
+					System.out.println();
+				}
+				*/
+				patterns.add(t.ReVerbpatterns.get(0).token_words);
+			}
+		}
+		//TODO: merge TF-ID patterns, unique
+		else if (Config.algorihtm.equalsIgnoreCase("Snowball_Classic")) {			
+		}		
+	}
+	
+	
 	public void updateConfidencePattern(){
 		if (Config.use_RlogF) {
 			confidence = this.RlogF * Config.wUpdt + this.RlogF_old * (1 - Config.wUpdt);

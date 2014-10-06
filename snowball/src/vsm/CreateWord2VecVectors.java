@@ -25,16 +25,10 @@ public class CreateWord2VecVectors {
 						sum.addi(v);
 					}			
 				} catch (Exception e) {
-					e.printStackTrace();
-					System.out.println(e);
-					System.out.println(w);
+					//TODO:log words not_found
+					//System.out.println(w);
 				}
 			}
-			/*
-			else {
-				System.out.println("discarded: " + w);
-			}
-			*/			
 		}
 		//TODO:log
 		/*
@@ -57,10 +51,11 @@ public class CreateWord2VecVectors {
 						centroid.addi(v);
 					}		 		
 				} catch (Exception e) {
-					// TODO Auto-generated catch block
+					/*
 					e.printStackTrace();
 					System.out.println(e);
 					System.out.println(word);
+					*/
 				}
 			}
 		}

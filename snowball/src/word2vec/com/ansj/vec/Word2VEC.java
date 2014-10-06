@@ -275,7 +275,6 @@ public class Word2VEC {
 	}
 
 	private float[] sum(float[] center, float[] fs) {
-		// TODO Auto-generated method stub
 
 		if (center == null && fs == null) {
 			return null;
@@ -335,7 +334,6 @@ public class Word2VEC {
 	 * @throws IOException
 	 */
 	private static String readString(DataInputStream dis) throws IOException {
-		// TODO Auto-generated method stub
 		byte[] bytes = new byte[MAX_SIZE];
 		byte b = dis.readByte();
 		int i = -1;

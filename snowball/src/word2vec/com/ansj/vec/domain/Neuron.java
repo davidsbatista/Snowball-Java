@@ -7,7 +7,6 @@ public abstract class Neuron implements Comparable<Neuron> {
     
     @Override
     public int compareTo(Neuron o) {
-        // TODO Auto-generated method stub
         if (this.freq > o.freq) {
             return 1;
         } else {

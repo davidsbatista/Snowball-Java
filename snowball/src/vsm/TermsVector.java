@@ -7,10 +7,8 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 
-import nlp.EnglishPoSTagger;
 import nlp.Stopwords;
 
-import org.apache.commons.lang3.ArrayUtils;
 import org.jblas.FloatMatrix;
 
 import bin.Config;
@@ -28,7 +26,7 @@ public abstract class TermsVector {
 		}
 		
 		// Remove stop-words
-		if (Config.REDS==false) {
+		if (Config.algorihtm.startsWith("Snowball")) {
 			terms = Stopwords.removeStopWords(terms);
 		}
 		
@@ -62,7 +60,7 @@ public abstract class TermsVector {
 	}
 	
 	
-	// for TF-IDF vectors
+	// For TF-IDF vectors
 	public static double cosSimilarity(Map<String,Double> a, Map<String,Double> b){
 		double normA = norm(a);
 		double normB = norm(b); 		
@@ -70,7 +68,7 @@ public abstract class TermsVector {
 		return (double) innerProduct(a,b) / (normA*normB);
 	}
 	
-	// for TF-IDF vectors
+	// For TF-IDF vectors
 	public static double innerProduct(Map<String,Double> v1, Map<String,Double> v2) {		
 		Double sum = 0.0;
 		Set<String> smaller;
@@ -82,7 +80,7 @@ public abstract class TermsVector {
 		return sum;
 	} 
 	
-	// for TF-IDF vectors
+	// For TF-IDF vectors
 	public static double norm(Map<String,Double> v){
 		double norm = 0;
 		for (String w : v.keySet()) 			

@@ -24,6 +24,7 @@ public class VectorSpaceModel implements Serializable {
 
 	public TObjectIntMap<String> term_document_frequency;	/* hash table, where key is a term 't' and value is the number of documents where it occurs */	
 	int n_docs = 0;											/* number of documents in the collection */
+
 	
 	public VectorSpaceModel(String sentencesFile) throws IOException {		
 		BufferedReader sentencesBuffer = new BufferedReader(new FileReader(new File(sentencesFile)));		
@@ -34,7 +35,7 @@ public class VectorSpaceModel implements Serializable {
 	    	if (n_docs % 10000 == 0) System.out.print(".");	    	
 	    	try {
 				sentence = sentence.trim();
-				// normalize sentence and removed repeated
+				// Normalize sentence and removed repeated
 				// even if a term occurs more than once in a document just count it once				
 				Set<String> terms = new HashSet<String>(TermsVector.normalize(sentence));					
 				for (String t : terms) {
@@ -44,13 +45,14 @@ public class VectorSpaceModel implements Serializable {
 				}
 				n_docs++;
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				// e.printStackTrace();
+				System.out.println("Error generating term-frequency");
+				e.printStackTrace();
+				System.exit(0);
 			}
 	    }
 	    sentencesBuffer.close();			
-		/* dimensionality of the vector is the number of words in the vocabulary (i.e., the number of distinct words in the corpus) */		
-		/* sort the vocabulary to keep the same dimension(terms/words) vectors */
+		/* Dimensionality of the vector is the number of words in the vocabulary (i.e., the number of distinct words in the corpus) */		
+		/* Sort the vocabulary to keep the same dimension(terms/words) vectors */
 		List<String> list = new LinkedList<String>(term_document_frequency.keySet());
 		Collections.sort(list);		
 		BufferedWriter f_terms = new BufferedWriter(new FileWriter(new File("terms.txt")));		
@@ -58,8 +60,9 @@ public class VectorSpaceModel implements Serializable {
 			f_terms.write(term+'\t'+String.valueOf(term_document_frequency.get(term))+"\n");		
 		f_terms.close();
 	}
-		
-	/* number of times that each term 't' occurs in document D */
+
+	
+	/* Number of times that each term 't' occurs in document D */
 	public TObjectIntMap<String> termsFrequency(List<String> context) {
 		TObjectIntMap<String> tf = new TObjectIntHashMap<String>(200);
 		Integer value;

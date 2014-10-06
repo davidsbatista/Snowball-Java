@@ -24,7 +24,7 @@ public class Main {
 		long startTime = System.nanoTime();
 
 		if (args.length==0) {
-			System.out.println("java -jar snowbal.jar sentencesFile parameters.cfg seedsFile word2vecmodelpath");
+			System.out.println("java -jar snowbal.jar sentencesFile parameters.cfg seedsFile");
 			System.out.println();
 			System.exit(0);
 		}
@@ -33,8 +33,7 @@ public class Main {
 		String sentencesFile = args[0];
 		String parameters = args[1];
 		String seedsFile = args[2];
-		String word2vecmodelPath = args[3];
-		Config.init(parameters, sentencesFile, word2vecmodelPath);
+		Config.init(parameters, sentencesFile);
 		Config.readSeeds(seedsFile);			
 		if (Config.e1_type==null || Config.e2_type==null) {
 			System.out.println("No semantic types defined");
@@ -50,10 +49,20 @@ public class Main {
 		System.out.println();
 		
 		// Starts REDS extraction process
-		if (Config.REDS==true) REDS.start(sentencesFile,seedsFile,candidateTuples,patterns);			
+		if (Config.algorihtm.equalsIgnoreCase("REDS")) REDS.start(sentencesFile,seedsFile,candidateTuples,patterns);			
 		
-		// Starts Snowball extraction process		
-		else if (Config.REDS==false) Snowball.start(sentencesFile,seedsFile,candidateTuples,patterns);
+		// Starts Snowball extraction process
+		else if (Config.algorihtm.equalsIgnoreCase("Snowball_Classic")) Snowball.start(sentencesFile,seedsFile,candidateTuples,patterns);		
+		else if (Config.algorihtm.equalsIgnoreCase("Snowball_Word2Vec")) SnowballWord2Vec.start(sentencesFile,seedsFile,candidateTuples,patterns);
+		
+		else {
+			System.out.println(Config.algorihtm);
+			System.out.println("no valid algorithm defined: ");
+			System.out.println("REDS");
+			System.out.println("Snowball_Classic");
+			System.out.println("Snowball_Word2Vec");
+			System.exit(0);
+		}
 		
 		// Calculates running time and writes Patterns and Tuple to file
 		long stopTime = System.nanoTime();
@@ -84,7 +93,7 @@ public class Main {
 			f1.write(t.sentence + "\n\n");
 		}
 		f1.close();
-		if (Config.REDS==false) {
+		if (Config.algorihtm.equalsIgnoreCase("Snowball_classic") || Config.algorihtm.equalsIgnoreCase("Snowball_word2vec")) {
 			for (SnowballPattern p : patterns) {
 				f2.write("confidence	:" + p.confidence+'\n');
 				f2.write("#tuples		:" + p.tuples.size()+'\n');
@@ -100,7 +109,7 @@ public class Main {
 				f2.write("\n================================================\n");
 			}				
 		}
-		else if (Config.REDS==true){
+		else if (Config.algorihtm.equalsIgnoreCase("REDS")) {
 			for (SnowballPattern p : patterns) {
 				f2.write("positive		:" + p.positive+'\n');
 				f2.write("negative		:" + p.negative+'\n');

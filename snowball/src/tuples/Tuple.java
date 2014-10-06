@@ -1,7 +1,6 @@
 package tuples;
 
 import java.io.Serializable;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -32,8 +31,7 @@ public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable
 	public Set<String> left_words;
 	public Set<String> middle_words;
 	public Set<String> right_words;
-	
-	public String middle_text;
+		
 	public List<FloatMatrix> middleReverbPatternsWord2VecSum;
 	public List<FloatMatrix> middleReverbPatternsWord2VecCentroid;
 	
@@ -62,7 +60,7 @@ public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable
 		this.ReVerbpatterns = new LinkedList<ReVerbPattern>();
 	}
 	
-	public Tuple(String left, String middle, String right, String e1, String e2, String t_sentence, String t_middle_txt) {
+	public Tuple(String left, String middle, String right, String e1, String e2, String t_sentence) {
 		super();		
 		this.e1 = e1;
 		this.e2 = e2;
@@ -76,45 +74,52 @@ public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable
 		this.ReVerbpatterns = new LinkedList<ReVerbPattern>();
 		
 		try {
-			/* 
-			 * Create Word2vec representations 
-			 */				
-			/*
-			if (Config.useWord2Vec==true) {
+			// Use the same approach as Snowball but use Word2Vec to represent sentence 
+			if ( Config.algorihtm.equalsIgnoreCase("Snowball_Word2vec")) {
+								
+				// For each context sum the vectors of the words vectors representations
+				left_sum = CreateWord2VecVectors.createVecSum(TermsVector.normalize(getLeftContext(left)));
+				middle_sum = CreateWord2VecVectors.createVecSum(TermsVector.normalize(middle));
+				right_sum = CreateWord2VecVectors.createVecSum(TermsVector.normalize(getRightContext(right)));
 				
-				// for each context sum the words vectors representations
-				left_sum = CreateWord2VecVectors.createVecSum(chopLeft(left));
-				middle_sum = CreateWord2VecVectors.createVecSum(middle);
-				right_sum = CreateWord2VecVectors.createVecSum(chopRight(right));
-				
-				// for each context calculate the centroid of the words vectors representations
-				left_centroid = CreateWord2VecVectors.createVecCentroid(chopLeft(left));
-				middle_centroid = CreateWord2VecVectors.createVecCentroid(middle);
-				right_centroid = CreateWord2VecVectors.createVecCentroid(chopRight(right));				
-			}			
-			*/
-			
-			// Create TF-IDF representations
-			if ( Config.REDS==false ) {
-				System.out.println("sentence:	" + sentence);				
-				if (left!=null) this.left = Config.vsm.tfidf(TermsVector.normalize(getLeftContext(left)));				
-				if (middle!=null) this.middle = Config.vsm.tfidf(TermsVector.normalize(middle));				
-				if (right!=null) this.right = Config.vsm.tfidf(TermsVector.normalize(getRightContext(right)));				
-				System.out.println();
-				System.out.println();
+				// For each context calculate the centroid of the words vectors representations
+				left_centroid = CreateWord2VecVectors.createVecCentroid(TermsVector.normalize(getLeftContext(left)));
+				middle_centroid = CreateWord2VecVectors.createVecCentroid(TermsVector.normalize(middle));
+				right_centroid = CreateWord2VecVectors.createVecCentroid(TermsVector.normalize(getRightContext(right)));
 				
 				// Save words
 				left_words.addAll(TermsVector.normalize(getLeftContext(left)));
 				middle_words.addAll(TermsVector.normalize(middle) );
-				right_words.addAll(TermsVector.normalize(getRightContext(right)));		
-				this.middle_text = t_middle_txt;
+				right_words.addAll(TermsVector.normalize(getRightContext(right)));
+				
+				/*
+				System.out.println(sentence);
+				System.out.println(left_words);
+				System.out.println(middle_words);
+				System.out.println(right_words);
+				System.out.println();
+				*/
+				
+			}			
+			
+			// Create TF-IDF representations
+			if ( Config.algorihtm.equalsIgnoreCase("Snowball_Classic")) {				
+				if (left!=null) this.left = Config.vsm.tfidf(TermsVector.normalize(getLeftContext(left)));				
+				if (middle!=null) this.middle = Config.vsm.tfidf(TermsVector.normalize(middle));
+				if (right!=null) this.right = Config.vsm.tfidf(TermsVector.normalize(getRightContext(right)));
+				
+				// Save words
+				left_words.addAll(TermsVector.normalize(getLeftContext(left)));
+				middle_words.addAll(TermsVector.normalize(middle) );
+				right_words.addAll(TermsVector.normalize(getRightContext(right)));				
 			}
 			
 			// Extract ReVerb patterns and construct Word2Vec representations 			
-			if (Config.REDS==true) {								
-				List<ReVerbPattern> patterns = EnglishPoSTagger.extractRVB(t_middle_txt);
+			if ( Config.algorihtm.equalsIgnoreCase("REDS")) {
+				List<ReVerbPattern> patterns = EnglishPoSTagger.extractRVB(middle);
 				boolean discard = false;				
 				if (patterns.size()>0) {
+					
 					//TODO: using only the first pattern, are there really more than 1 pattern in a middle context ?					
 					List<String> pattern_tokens = patterns.get(0).token_words;
 					List<String> pattern_ptb_pos = patterns.get(0).token_ptb_pos_tags;
@@ -135,6 +140,7 @@ public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable
 						FloatMatrix patternWord2Vec = CreateWord2VecVectors.createVecSum(pattern_tokens);
 						this.middleReverbPatternsWord2VecSum.add(patternWord2Vec);
 					}
+					
 					//TODO: log discarded ReVerb patterns
 					/*
 					else {
@@ -146,12 +152,16 @@ public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable
 					}
 					*/					
 				}
+				
 				// If no ReVerb patterns are found
 				// add middle words and associated PoS-tags 
 				// stored in ReVerbPattern object
+				
 				else if (patterns.size()==0 || discard) {
 					hasReVerbPatterns = false;
-					ReVerbpatterns = EnglishPoSTagger.tagSentence(middle_text);
+					ReVerbpatterns = EnglishPoSTagger.tagSentence(middle);
+					FloatMatrix patternWord2Vec = CreateWord2VecVectors.createVecSum(ReVerbpatterns.get(0).token_words);
+					this.middleReverbPatternsWord2VecSum.add(patternWord2Vec);
 				}
 			}
 			
@@ -218,10 +228,18 @@ public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable
 		double left_similarity;
 		double middle_similarity;
 		double right_similarity;
-				
+		
 		left_similarity = cosSimilarity(this.left_sum,w2v_left_centroid)*l_w;
 		middle_similarity = cosSimilarity(this.middle_sum,w2v_middle_centroid)*m_w;
 		right_similarity = cosSimilarity(this.right_sum,w2v_right_centroid)*r_w;
+		
+		/*
+		System.out.println("left_similarity 	:" + cosSimilarity(this.left_sum,w2v_left_centroid));
+		System.out.println("middle_similarity 	:" + cosSimilarity(this.middle_sum,w2v_middle_centroid));
+		System.out.println("right_similarity 	:" + cosSimilarity(this.right_sum,w2v_right_centroid));
+		System.out.println("similarity 			:" + String.valueOf(left_similarity + middle_similarity + right_similarity));
+		System.out.println();
+		*/
 		
 		return 	(left_similarity + middle_similarity + right_similarity);
 	}
@@ -251,22 +269,19 @@ public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable
 		double left_similarity;
 		double middle_similarity;
 		double right_similarity;
-		
-		//TODO: corrigir, apenas se ambos têm os contextos BEF,AFT vazios		
+				
 		if (t_left_vector.size()==0 && t_right_vector.size()==0) {			
 			left_similarity = 0;
 			middle_similarity = cosSimilarity(this.middle,t_middle_vector)*(m_w+l_w+r_w);
 			right_similarity = 0;
 		}
-		
-		//TODO: corrigir, apenas se ambos têm o contextos BEF vazio
+				
 		else if (t_left_vector.size()==0) {
 			left_similarity = 0;
 			middle_similarity = cosSimilarity(this.middle,t_middle_vector)*(m_w+l_w);
 			right_similarity = cosSimilarity(this.right,t_right_vector)*r_w;
 		}
-		
-		//TODO: corrigir, apenas se ambos têm o contexto AFT vazio
+				
 		else if (t_right_vector.size()==0) {
 			left_similarity = cosSimilarity(this.left,t_left_vector)*l_w;
 			middle_similarity = cosSimilarity(this.middle,t_middle_vector)*(m_w+r_w);
