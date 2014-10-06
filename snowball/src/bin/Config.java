@@ -34,18 +34,21 @@ public class Config {
 	public static String e1_type = null;
 	public static String e2_type = null;
 	public static Set<Seed> seedTuples = new HashSet<Seed>();	
+
+	/* Algorithm type: Snowball Classic, Snowball Word2Vec, REDS */
+	public static String algorihtm;
+		
+	/* Word2Vec related stuff */
 	public static Word2VEC word2vec = null;
-	public static int word2Vec_dim;	
-	
-	public static boolean REDS = true;	
-	public static boolean useSum = false;
+	public static int word2Vec_dim;
+	public static String Word2VecModelPath;
+	public static boolean useSum = true;
 	public static boolean useCentroid = false;
 
 	/* What will DBSCAN use to compare sentences */
-	public static boolean useReverb = true;
-	public static boolean useMiddleSum = false;
-	 
-	/* Configuration parameters */
+	public static boolean useReverb = true;	
+	
+	/* General configuration parameters */
 	public static int max_tokens_away;
 	public static int min_tokens_away;
 	public static int context_window_size;
@@ -67,7 +70,7 @@ public class Config {
 	public static List<String> aux_verbs = Arrays.asList(verbs);
 	public static boolean expand_patterns;
 			
-	public static void init(String parameters, String sentencesFile, String word2vecmodelPath) throws Exception {		
+	public static void init(String parameters, String sentencesFile) throws Exception {		
 		BufferedReader f;
 		try {
 			f = new BufferedReader(new FileReader( new File(parameters)) );
@@ -87,9 +90,10 @@ public class Config {
 					if (line.startsWith("wUpdt")) wUpdt = Double.parseDouble(line.split("=")[1]);
 					if (line.startsWith("number_iterations")) number_iterations = Integer.parseInt(line.split("=")[1]);
 					if (line.startsWith("use_RlogF")) use_RlogF = Boolean.parseBoolean(line.split("=")[1]);
-					if (line.startsWith("use_REDS")) Config.REDS = Boolean.parseBoolean(line.split("=")[1]);					
+					if (line.startsWith("algorithm")) Config.algorihtm = line.split("=")[1];					
 					if (line.startsWith("stopwords")) Config.stopwords = line.split("=")[1];
 					if (line.startsWith("expand_patterns")) Config.expand_patterns = Boolean.parseBoolean(line.split("=")[1]);
+					if (line.startsWith("word2vec_path")) Config.Word2VecModelPath = line.split("=")[1];
 				}				
 			} catch (IOException e) {
 				System.out.println("I/O error reading paramters.cfg");
@@ -113,20 +117,25 @@ public class Config {
 			System.exit(0);
 		}		
 		System.out.println("done");
-				
-		if (Config.REDS==true) {
+		
+		if ( Config.algorihtm.equalsIgnoreCase("REDS") || Config.algorihtm.equalsIgnoreCase("Snowball_Word2Vec")) {
 			// Load Word2vec model
 			word2vec = new Word2VEC();
 			System.out.print("Loading word2vec model... ");
-			word2vec.loadGoogleModel(word2vecmodelPath);			
+			word2vec.loadGoogleModel(Config.Word2VecModelPath);			
 			System.out.println(word2vec.getWords() + " words loaded");
 			word2Vec_dim = word2vec.getSize();
-			// Load PoS-tagging model			
-			//PortuguesePoSTagger.initialize();
-			EnglishPoSTagger.initialize();
+			System.out.println("Vectors dimension: " + word2Vec_dim);
+			
+			// Load PoS-tagging models			
+			if (Config.algorihtm.equalsIgnoreCase("REDS")) {
+				//PortuguesePoSTagger.initialize();
+				EnglishPoSTagger.initialize();
+			}
 		}
+		
 		// Vector Space Model, TF-IDF: calculate vocabulary term overall frequency
-		else if (Config.REDS==false) {
+		else if ( Config.algorihtm=="Snowball_Classic" ) {
 			try {
 				calculateTF(sentencesFile);
 			} catch (ClassNotFoundException e) {

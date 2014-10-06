@@ -11,7 +11,7 @@ import bin.Config;
 
 public class CreateWord2VecVectors {
 	
-	public static FloatMatrix createVecSum(List<String> text){		
+	public static FloatMatrix createVecSum(List<String> text) {
 		FloatMatrix sum = new FloatMatrix(Config.word2Vec_dim);
 		List<String> words_vector = new LinkedList<String>();
 		for (String w : text) {
@@ -25,16 +25,10 @@ public class CreateWord2VecVectors {
 						sum.addi(v);
 					}			
 				} catch (Exception e) {
-					e.printStackTrace();
-					System.out.println(e);
-					System.out.println(w);
+					//TODO:log words not_found
+					//System.out.println(w);
 				}
 			}
-			/*
-			else {
-				System.out.println("discarded: " + w);
-			}
-			*/			
 		}
 		//TODO:log
 		/*
@@ -57,10 +51,11 @@ public class CreateWord2VecVectors {
 						centroid.addi(v);
 					}		 		
 				} catch (Exception e) {
-					// TODO Auto-generated catch block
+					/*
 					e.printStackTrace();
 					System.out.println(e);
 					System.out.println(word);
+					*/
 				}
 			}
 		}

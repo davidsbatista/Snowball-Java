@@ -133,7 +133,6 @@ public class WordKmeans {
          * 清空历史结果
          */
         public void clean() {
-            // TODO Auto-generated method stub
             values.clear();
         }
 
