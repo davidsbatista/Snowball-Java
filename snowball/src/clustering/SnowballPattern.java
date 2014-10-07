@@ -9,11 +9,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import nlp.ReVerbPattern;
+
 import org.jblas.FloatMatrix;
 
 import tuples.Seed;
 import tuples.Tuple;
 import utils.SortMaps;
+import vsm.CreateWord2VecVectors;
 import bin.Config;
 
 public class SnowballPattern {
@@ -32,7 +35,9 @@ public class SnowballPattern {
 	// Word2Vec representations
 	public FloatMatrix w2v_left_centroid;
 	public FloatMatrix w2v_middle_centroid;
-	public FloatMatrix w2v_right_centroid;	
+	public FloatMatrix w2v_right_centroid;
+	
+	public FloatMatrix w2v_centroid = new FloatMatrix();
 	
 	public int positive = 0;
 	public int negative = 0;	
@@ -47,9 +52,11 @@ public class SnowballPattern {
 		
 		this.tuples.add(tuple);
 		
-		left_centroid = tuple.left;
-		middle_centroid = tuple.middle;
-		right_centroid = tuple.right;
+		if (Config.algorihtm.equalsIgnoreCase("Snowball_Classic")) {
+			left_centroid = tuple.left;
+			middle_centroid = tuple.middle;
+			right_centroid = tuple.right;
+		}
 		
 		this.w2v_left_centroid = tuple.left_sum;
 		this.w2v_middle_centroid = tuple.middle_sum;
@@ -62,12 +69,7 @@ public class SnowballPattern {
 		tuples = new HashSet<Tuple>();
 	}
 
-	public void mergUniquePatterns(){
-		/*
-		System.out.println("merging patterns");
-		System.out.println("#tuples " + this.tuples.size());
-		*/
-		
+	public void mergeUniquePatterns(){
 		if (Config.algorihtm.equalsIgnoreCase("REDS")) {
 			for (Tuple t : this.tuples) {
 				/*
@@ -79,7 +81,9 @@ public class SnowballPattern {
 					System.out.println();
 				}
 				*/
-				patterns.add(t.ReVerbpatterns.get(0).token_words);
+				if (t.ReVerbpatterns.size()>0) {
+					patterns.add(t.ReVerbpatterns.get(0).token_words);
+				}				
 			}
 		}
 		//TODO: merge TF-ID patterns, unique
@@ -87,6 +91,19 @@ public class SnowballPattern {
 		}		
 	}
 	
+	public void SumUniquePatterns() {
+		mergeUniquePatterns();
+		FloatMatrix centroid = FloatMatrix.zeros(Config.word2Vec_dim);
+		for (List<String> pattern : this.patterns) {
+			FloatMatrix p = CreateWord2VecVectors.createVecSum(pattern);
+			centroid.addi(p);
+		}
+		this.w2v_centroid = centroid;
+	}
+	
+	public void CentroidUniquePatterns() {
+
+	}
 	
 	public void updateConfidencePattern(){
 		if (Config.use_RlogF) {

@@ -15,14 +15,12 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import tuples.Seed;
 import tuples.Tuple;
 import utils.Pair;
-import utils.SortMaps;
 import clustering.Singlepass;
 import clustering.SnowballPattern;
 
@@ -337,7 +335,7 @@ public class Snowball {
 		LinkedList<Tuple> matchedTuples = new LinkedList<>();
 		int processed = 0;
 		for (Tuple tuple : processedTuples) {
-			if (processed % 10000==0) System.out.println(processed + "/" + processedTuples.size());
+			if (processed % 10000==0) System.out.println(processed + " of " + processedTuples.size());
 			for (Seed seed : Config.seedTuples) {
 				if (tuple.e1.equalsIgnoreCase(seed.e1) && tuple.e2.equalsIgnoreCase(seed.e2)) {
 					matchedTuples.add(tuple);					

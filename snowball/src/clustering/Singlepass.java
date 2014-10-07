@@ -4,7 +4,11 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.jblas.FloatMatrix;
+
 import tuples.Tuple;
+import vsm.CreateWord2VecVectors;
+import vsm.TermsVector;
 import bin.Config;
 
 public class Singlepass {
@@ -60,7 +64,7 @@ public class Singlepass {
 		
 	public static void singlePassWord2Vec(LinkedList<Tuple> tuples, List<SnowballPattern> patterns) throws IOException {
 		
-		System.out.println(tuples.size() + " tuples to process");		
+		System.out.println(tuples.size() + " tuples to process");
 		int count = 0;
 		int start = 0;
 		
@@ -103,6 +107,55 @@ public class Singlepass {
 				patterns.get(max_similarity_cluster_index).calculateCentroidWord2Vec();
 			}
 		count++;
+		}		
+	}
+	
+	public static void SinglePassReVerb(LinkedList<Tuple> tuples, List<SnowballPattern> patterns) {
+		
+		System.out.println(tuples.size() + " tuples to process");
+		int count = 0;
+		int start = 0;
+		
+		// Initialize: first tuple goes to first cluster
+		if (patterns.size()==0) {
+			SnowballPattern c1 = new SnowballPattern(tuples.get(0));
+			patterns.add(c1);
+			c1.SumUniquePatterns();
+			start = 1;
+		}
+		
+		// Compute the similarity with each cluster centroid
+		for (int i = start; i < tuples.size(); i++) {
+			double max_similarity = 0;
+			int max_similarity_cluster_index = 0;
+			if (count % 100 == 0) System.out.print(".");			
+			for (int j = 0; j < patterns.size(); j++) {
+				SnowballPattern c = patterns.get(j);				
+				FloatMatrix a = c.w2v_centroid;
+				double similarity = 0;
+				if (tuples.get(i).ReVerbpatterns.size()>0) {
+					FloatMatrix b = CreateWord2VecVectors.createVecSum(tuples.get(i).ReVerbpatterns.get(0).token_words);
+					similarity = TermsVector.cosSimilarity(a, b);				
+					if (similarity > max_similarity) {					
+						max_similarity = similarity;
+						max_similarity_cluster_index = j;
+					}
+				}				
+			}
+				
+			// If max_similarity < min_degree_match create a new cluster having this tuple as the centroid */			
+			if ( max_similarity < Config.min_degree_match ) {
+				SnowballPattern c = new SnowballPattern(tuples.get(i));
+				patterns.add(c);
+				c.SumUniquePatterns();
+			}
+			
+			// If max_similarity >= min_degree_match add to the cluster and recalculate centroid */ 			
+			else {				
+				patterns.get(max_similarity_cluster_index).addTuple(tuples.get(i));
+				patterns.get(max_similarity_cluster_index).SumUniquePatterns();
+			}
+			count++;	
 		}		
 	}
 }
