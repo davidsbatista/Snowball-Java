@@ -148,6 +148,7 @@ public class Singlepass {
 							FloatMatrix patternVector = extractionPattern.centroid();
 							FloatMatrix sentence = CreateWord2VecVectors.createVecSum(relationalWords); 						
 							similarity = TermsVector.cosSimilarity(sentence, patternVector);
+							
 						}
 						// use the centroid of the relational words vectors of the instances in the pattern
 						else if (REDSConfig.single_vector.equalsIgnoreCase("centroid")) {												

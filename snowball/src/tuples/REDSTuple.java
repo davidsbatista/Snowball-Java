@@ -84,8 +84,8 @@ public class REDSTuple extends TermsVector implements Comparable<REDSTuple>, Ser
 			// If contains only an auxiliary VERB + IN discard
 			// e.g.: is in, was out
 			if (pattern_tokens.size()==2) {
-				String verb = SnowballConfig.EnglishLemm.lemmatize(pattern_tokens.get(0));
-				if (SnowballConfig.aux_verbs.contains(verb) && pattern_universal_pos.get(1).equalsIgnoreCase("ADP")) {
+				String verb = REDSConfig.EnglishLemm.lemmatize(pattern_tokens.get(0));
+				if (REDSConfig.aux_verbs.contains(verb) && pattern_universal_pos.get(1).equalsIgnoreCase("ADP")) {
 					discard = true;
 				}
 			}
@@ -138,7 +138,7 @@ public class REDSTuple extends TermsVector implements Comparable<REDSTuple>, Ser
 	public static String getLeftContext(String left){		
 		String[] left_tokens = left.split("\\s");
 		List<String> tokens = new LinkedList<String>();
-		if (left_tokens.length>=SnowballConfig.context_window_size) {
+		if (left_tokens.length>=REDSConfig.context_window_size) {
 			for (int i = left_tokens.length-1; i > left_tokens.length-1-SnowballConfig.context_window_size; i--) tokens.add(left_tokens[i]);
 		} else return left;
 		String left_context = StringUtils.join(tokens," ");
@@ -149,8 +149,8 @@ public class REDSTuple extends TermsVector implements Comparable<REDSTuple>, Ser
 	public static String getRightContext(String right){
 		String[] right_tokens = right.split("\\s");
 		List<String> tokens = new LinkedList<String>();		
-		if (right_tokens.length>=SnowballConfig.context_window_size) {
-			for (int i = 0; i < SnowballConfig.context_window_size; i++) {
+		if (right_tokens.length>=REDSConfig.context_window_size) {
+			for (int i = 0; i < REDSConfig.context_window_size; i++) {
 				tokens.add(right_tokens[i]);
 			}
 		} else return right;

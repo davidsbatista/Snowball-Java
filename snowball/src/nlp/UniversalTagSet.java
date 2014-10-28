@@ -5,13 +5,15 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashMap;
 
+import bin.REDSConfig;
+
 public class UniversalTagSet {
 	
 	static HashMap<String, String> convertTagsPTB = new HashMap<String,String>();
 	
 	public static void init() throws IOException {
 		
-		String file = "models/universal-tagset.txt";		
+		String file = REDSConfig.PoS_models_path+"/universal-tagset.txt";		
 		BufferedReader br = new BufferedReader(new FileReader(file));
 		String line;
 		while ((line = br.readLine()) != null) {			

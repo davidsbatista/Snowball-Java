@@ -7,11 +7,7 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 
-import nlp.Stopwords;
-
 import org.jblas.FloatMatrix;
-
-import bin.SnowballConfig;
 
 public abstract class TermsVector {
 		
@@ -24,12 +20,7 @@ public abstract class TermsVector {
 			term = term.replaceAll("<[^>]+>[^<]+</?[^>]+>"," ").replaceAll("^[0-9]+?(,|\\.|/)?([0-9]+)?.?(º|ª|%)?", "");			
 			terms.add(term);
 		}
-		
-		// Remove stop-words
-		if (SnowballConfig.algorihtm.startsWith("Snowball")) {
-			terms = Stopwords.removeStopWords(terms);
-		}
-		
+
 		// Convert terms to lower case representation
 	    ListIterator<String> iterator = terms.listIterator();
 	    while (iterator.hasNext()) iterator.set(iterator.next().toLowerCase());

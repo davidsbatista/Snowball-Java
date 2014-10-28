@@ -11,6 +11,7 @@ import java.util.List;
 
 import edu.northwestern.at.utils.corpuslinguistics.lemmatizer.EnglishLemmatizer;
 
+import bin.REDSConfig;
 import bin.SnowballConfig;
 
 import opennlp.tools.postag.POSModel;
@@ -71,11 +72,11 @@ public class EnglishPoSTagger {
 		
 		_tokenizer = null;	
 	   // Loading tokenizer model		   
-	   final TokenizerModel tokenModel = new TokenizerModel( new FileInputStream(new File("models/en-token.bin")));		 
+	   final TokenizerModel tokenModel = new TokenizerModel( new FileInputStream(new File(REDSConfig.PoS_models_path+"/en-token.bin")));		 
 	   _tokenizer = new TokenizerME(tokenModel);
 		 
        // Loading pos model
-       final POSModel posModel = new POSModel( new FileInputStream(new File("models/en-pos-maxent.bin")));         
+       final POSModel posModel = new POSModel( new FileInputStream(new File(REDSConfig.PoS_models_path+"/en-pos-maxent.bin")));         
        _posTagger = new POSTaggerME(posModel);
        
        UniversalTagSet.init();

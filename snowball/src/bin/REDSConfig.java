@@ -23,8 +23,12 @@ public class REDSConfig {
 	/* NLP related configuration */
 	public static PortugueseTokenizer PTtokenizer;
 	public static PortuguesePoSTagger tagger;
+	
 	public static EnglishLemmatizer EnglishLemm;
-	public static String stopwords;	
+	public static String stopwords;
+	
+	public static String PoS_models_path;
+	
 	static String verbs[] = {"be","have"};
 	public static List<String> aux_verbs = Arrays.asList(verbs);
 	
@@ -59,6 +63,10 @@ public class REDSConfig {
 	/* number of words considered for expansion */	
 	public static int top_k;
 	
+	public static int max_tokens_away;
+	public static int min_tokens_away;
+	public static int context_window_size;
+	
 	/* iteration control parameters */
 	public static int number_iterations;
 	public static double wUpdt;
@@ -74,7 +82,11 @@ public class REDSConfig {
 					if (line.isEmpty() || line.startsWith("#")) continue;					
 					if (line.startsWith("wUpdt")) wUpdt = Double.parseDouble(line.split("=")[1]);
 					if (line.startsWith("number_iterations")) number_iterations = Integer.parseInt(line.split("=")[1]);
-					if (line.startsWith("use_RlogF")) use_RlogF = Boolean.parseBoolean(line.split("=")[1]);					
+					if (line.startsWith("use_RlogF")) use_RlogF = Boolean.parseBoolean(line.split("=")[1]);
+					
+					if (line.startsWith("max_tokens_away")) max_tokens_away = Integer.parseInt(line.split("=")[1]);					
+					if (line.startsWith("min_tokens_away")) min_tokens_away = Integer.parseInt(line.split("=")[1]);
+					if (line.startsWith("context_window_size")) context_window_size = Integer.parseInt(line.split("=")[1]);
 					
 					if (line.startsWith("expand_patterns")) REDSConfig.expand_patterns = Boolean.parseBoolean(line.split("=")[1]);
 					if (line.startsWith("expansion")) REDSConfig.expansion = line.split("=")[1];
@@ -86,6 +98,7 @@ public class REDSConfig {
 					if (line.startsWith("instance_confidance")) REDSConfig.instance_confidance = Double.parseDouble(line.split("=")[1]);
 					
 					if (line.startsWith("stopwords")) REDSConfig.stopwords = line.split("=")[1];
+					if (line.startsWith("PoS_models_path")) REDSConfig.PoS_models_path = line.split("=")[1];
 					
 					if (line.startsWith("word2vec_path")) REDSConfig.Word2VecModelPath = line.split("=")[1];
 				}				

@@ -8,10 +8,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -20,7 +18,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import nlp.ReVerbPattern;
-import nlp.Stopwords;
 
 import org.apache.commons.math3.ml.clustering.Cluster;
 import org.apache.commons.math3.ml.clustering.Clusterable;
@@ -105,10 +102,9 @@ public class REDS {
 			System.out.println("Starting iteration " + iter);			
 			System.out.println("Seed matches:\n");			
 			LinkedList<REDSTuple> seedMatches = matchSeedsTuples(processedTuples);
-			
-			/*
+						
 			System.out.println("Seed matches: " + seedMatches.size());
-			for (Tuple tuple : seedMatches) {
+			for (REDSTuple tuple : seedMatches) {
 				System.out.println(tuple.sentence);
 				for (ReVerbPattern rvb : tuple.ReVerbpatterns) {
 					System.out.println(rvb.token_words);
@@ -116,7 +112,7 @@ public class REDS {
 				System.out.println();
 			}
 			System.out.println();
-			*/
+		
 						
 			if (seedMatches.size()==0) {
 				System.out.println("No tuples found");
@@ -200,13 +196,13 @@ public class REDS {
 							}
 						}						
 					}
-					*/
 
 					System.out.println("\nPatterns and Expanded Patterns");
 					for (REDSPattern pattern : patterns) {
 						System.out.println(pattern.patterns);
 						System.out.println();
-					}					
+					}
+					*/					
 				}
 				
 				
@@ -587,13 +583,20 @@ public class REDS {
 	
 	
 	static LinkedList<REDSTuple> matchSeedsTuples(List<REDSTuple> processedTuples) {
+
+		/*
+		for (REDSTuple redsTuple : processedTuples) {
+			System.out.println(redsTuple.e1 + '\t' + redsTuple.e2);
+			System.out.println(redsTuple.sentence);
+		}
+		*/
 		
 		Map<Seed,Integer> counts = new HashMap<Seed, Integer>();
 		LinkedList<REDSTuple> matchedTuples = new LinkedList<>();
 		int processed = 0;
 		for (REDSTuple tuple : processedTuples) {
 			if (processed % 10000==0) System.out.println(processed + " of " + processedTuples.size());
-			for (Seed seed : SnowballConfig.seedTuples) {
+			for (Seed seed : REDSConfig.seedTuples) {
 				if (tuple.e1.equalsIgnoreCase(seed.e1) && tuple.e2.equalsIgnoreCase(seed.e2)) {
 					matchedTuples.add(tuple);					
 					Integer count = counts.get(seed);
@@ -625,10 +628,10 @@ public class REDS {
 	
 	static void generateTuples(String file, List<REDSTuple> processedTuples) throws Exception {
 		String sentence = null;
-		String e1_begin = "<"+SnowballConfig.e1_type+">";
-		String e1_end = "</"+SnowballConfig.e1_type+">";
-		String e2_begin = "<"+SnowballConfig.e2_type+">";
-		String e2_end = "</"+SnowballConfig.e2_type+">";		
+		String e1_begin = "<"+REDSConfig.e1_type+">";
+		String e1_end = "</"+REDSConfig.e1_type+">";
+		String e2_begin = "<"+REDSConfig.e2_type+">";
+		String e2_end = "</"+REDSConfig.e2_type+">";		
 		Pattern pattern1 = Pattern.compile(e1_begin+"[^<]+"+e1_end);
 		Pattern pattern2 = Pattern.compile(e2_begin+"[^<]+"+e2_end);		
 		BufferedReader f1 = new BufferedReader(new FileReader(new File(file)));
@@ -643,14 +646,14 @@ public class REDS {
 			// Just run matcher2.find() to match the next occurrence
 			boolean found1 = matcher1.find();
 			boolean found2 = matcher2.find();
-			if (SnowballConfig.e1_type.equals(SnowballConfig.e2_type) && found1) {
+			if (REDSConfig.e1_type.equals(REDSConfig.e2_type) && found1) {
 				found2 = matcher2.find();
 			}		
 			
 			try {
 				String e1 = (sentence.substring(matcher1.start(),matcher1.end())).replaceAll("<[^>]+>"," ");
 				String e2 = (sentence.substring(matcher2.start(),matcher2.end())).replaceAll("<[^>]+>"," ");
-				if ( (!SnowballConfig.e1_type.equals(SnowballConfig.e2_type) && matcher2.end()<matcher1.end() || matcher2.start()<matcher1.end())) continue;								
+				if ( (!REDSConfig.e1_type.equals(REDSConfig.e2_type) && matcher2.end()<matcher1.end() || matcher2.start()<matcher1.end())) continue;								
 				if ( (found1 && found2) && matcher1.end()<matcher2.end()) {
 					
 					// Ignore contexts where another entity occur between the two entities
@@ -665,8 +668,8 @@ public class REDS {
 	            	String right_txt = sentence.substring(matcher2.end()+1).replaceAll("<[^>]+>[^<]+</[^>]+>","");
 	        		String[] middle_tokens = middle_txt.split("\\s");
 	        		
-	                if (middle_tokens.length<=SnowballConfig.max_tokens_away && middle_tokens.length>=SnowballConfig.min_tokens_away) {	                	
-	                	// Create a Tuple for an occurrence found        				
+	                if (middle_tokens.length<=REDSConfig.max_tokens_away && middle_tokens.length>=REDSConfig.min_tokens_away) {	                	
+	                	// Create a Tuple for an occurrence found
 	        			REDSTuple t = new REDSTuple(left_txt, middle_txt, right_txt, e1.trim(), e2.trim(), sentence);	        			
 	        			processedTuples.add(t);        			
 	                }
