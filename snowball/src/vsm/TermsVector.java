@@ -11,7 +11,7 @@ import nlp.Stopwords;
 
 import org.jblas.FloatMatrix;
 
-import bin.Config;
+import bin.SnowballConfig;
 
 public abstract class TermsVector {
 		
@@ -26,7 +26,7 @@ public abstract class TermsVector {
 		}
 		
 		// Remove stop-words
-		if (Config.algorihtm.startsWith("Snowball")) {
+		if (SnowballConfig.algorihtm.startsWith("Snowball")) {
 			terms = Stopwords.removeStopWords(terms);
 		}
 		

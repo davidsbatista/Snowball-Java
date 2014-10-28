@@ -11,7 +11,7 @@ import java.util.List;
 
 import edu.northwestern.at.utils.corpuslinguistics.lemmatizer.EnglishLemmatizer;
 
-import bin.Config;
+import bin.SnowballConfig;
 
 import opennlp.tools.postag.POSModel;
 import opennlp.tools.postag.POSTaggerME;

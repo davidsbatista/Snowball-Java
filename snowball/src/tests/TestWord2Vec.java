@@ -3,27 +3,27 @@ package tests;
 import org.jblas.FloatMatrix;
 
 import vsm.TermsVector;
-import bin.Config;
+import bin.SnowballConfig;
 
 public class TestWord2Vec {
 	
 	public static void main() {
 		
 		/* TEST WORD2VEC */ 
-		System.out.println("Size   			: " + Config.word2vec.getSize());
-		System.out.println("Analogy			: " + Config.word2vec.analogy("king", "man", "women"));
-		System.out.println("Word Vector		: " + Config.word2vec.getWordVector("king"));
-		System.out.println("TopNSize		: " + Config.word2vec.getTopNSize());		
-		System.out.println("Distance		: " + Config.word2vec.distance("charged"));		
+		System.out.println("Size   			: " + SnowballConfig.word2vec.getSize());
+		System.out.println("Analogy			: " + SnowballConfig.word2vec.analogy("king", "man", "women"));
+		System.out.println("Word Vector		: " + SnowballConfig.word2vec.getWordVector("king"));
+		System.out.println("TopNSize		: " + SnowballConfig.word2vec.getTopNSize());		
+		System.out.println("Distance		: " + SnowballConfig.word2vec.distance("charged"));		
 		System.out.println();
 
 		//cosine_similarity(model2['is']+model2['headquartered']+model2['in'],model2['is']+model2['based']+model2['in'])
 		
-		float[] v1 = Config.word2vec.getWordVector("headquartered");
-		float[] v2 = Config.word2vec.getWordVector("in");
+		float[] v1 = SnowballConfig.word2vec.getWordVector("headquartered");
+		float[] v2 = SnowballConfig.word2vec.getWordVector("in");
 		
-		float[] v3 = Config.word2vec.getWordVector("based");
-		float[] v4 = Config.word2vec.getWordVector("in");
+		float[] v3 = SnowballConfig.word2vec.getWordVector("based");
+		float[] v4 = SnowballConfig.word2vec.getWordVector("in");
 		
 		/*
 		float[] v3 = Config.word2vec.getWordVector("headquarters");

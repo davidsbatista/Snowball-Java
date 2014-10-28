@@ -16,7 +16,7 @@ import org.jblas.FloatMatrix;
 
 import vsm.CreateWord2VecVectors;
 import vsm.TermsVector;
-import bin.Config;
+import bin.SnowballConfig;
 
 public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable, Serializable {
 	
@@ -75,7 +75,7 @@ public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable
 		
 		try {
 			// Use the same approach as Snowball but use Word2Vec to represent sentence 
-			if ( Config.algorihtm.equalsIgnoreCase("Snowball_Word2vec")) {
+			if ( SnowballConfig.algorihtm.equalsIgnoreCase("Snowball_Word2vec")) {
 								
 				// For each context sum the vectors of the words vectors representations
 				left_sum = CreateWord2VecVectors.createVecSum(TermsVector.normalize(getLeftContext(left)));
@@ -103,10 +103,10 @@ public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable
 			}			
 			
 			// Create TF-IDF representations
-			if ( Config.algorihtm.equalsIgnoreCase("Snowball_Classic")) {				
-				if (left!=null) this.left = Config.vsm.tfidf(TermsVector.normalize(getLeftContext(left)));				
-				if (middle!=null) this.middle = Config.vsm.tfidf(TermsVector.normalize(middle));
-				if (right!=null) this.right = Config.vsm.tfidf(TermsVector.normalize(getRightContext(right)));
+			if ( SnowballConfig.algorihtm.equalsIgnoreCase("Snowball_Classic")) {				
+				if (left!=null) this.left = SnowballConfig.vsm.tfidf(TermsVector.normalize(getLeftContext(left)));				
+				if (middle!=null) this.middle = SnowballConfig.vsm.tfidf(TermsVector.normalize(middle));
+				if (right!=null) this.right = SnowballConfig.vsm.tfidf(TermsVector.normalize(getRightContext(right)));
 				
 				// Save words
 				left_words.addAll(TermsVector.normalize(getLeftContext(left)));
@@ -115,7 +115,7 @@ public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable
 			}
 			
 			// Extract ReVerb patterns and construct Word2Vec representations 			
-			if ( Config.algorihtm.equalsIgnoreCase("REDS")) {
+			if ( SnowballConfig.algorihtm.equalsIgnoreCase("REDS")) {
 				List<ReVerbPattern> patterns = EnglishPoSTagger.extractRVB(middle);
 				boolean discard = false;				
 				if (patterns.size()>0) {
@@ -128,8 +128,8 @@ public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable
 					// If contains only an auxiliary VERB + IN discard
 					// e.g.: is in, was out
 					if (pattern_tokens.size()==2) {
-						String verb = Config.EnglishLemm.lemmatize(pattern_tokens.get(0));
-						if (Config.aux_verbs.contains(verb) && pattern_universal_pos.get(1).equalsIgnoreCase("ADP")) {
+						String verb = SnowballConfig.EnglishLemm.lemmatize(pattern_tokens.get(0));
+						if (SnowballConfig.aux_verbs.contains(verb) && pattern_universal_pos.get(1).equalsIgnoreCase("ADP")) {
 							discard = true;
 						}
 					}					
@@ -190,8 +190,8 @@ public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable
 	public static String getLeftContext(String left){		
 		String[] left_tokens = left.split("\\s");
 		List<String> tokens = new LinkedList<String>();
-		if (left_tokens.length>=Config.context_window_size) {
-			for (int i = left_tokens.length-1; i > left_tokens.length-1-Config.context_window_size; i--) tokens.add(left_tokens[i]);
+		if (left_tokens.length>=SnowballConfig.context_window_size) {
+			for (int i = left_tokens.length-1; i > left_tokens.length-1-SnowballConfig.context_window_size; i--) tokens.add(left_tokens[i]);
 		} else return left;
 		String left_context = StringUtils.join(tokens," ");
 		return left_context;
@@ -201,8 +201,8 @@ public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable
 	public static String getRightContext(String right){
 		String[] right_tokens = right.split("\\s");
 		List<String> tokens = new LinkedList<String>();		
-		if (right_tokens.length>=Config.context_window_size) {
-			for (int i = 0; i < Config.context_window_size; i++) {
+		if (right_tokens.length>=SnowballConfig.context_window_size) {
+			for (int i = 0; i < SnowballConfig.context_window_size; i++) {
 				tokens.add(right_tokens[i]);
 			}
 		} else return right;
@@ -222,9 +222,9 @@ public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable
 	 * Computes the similarity using the sum of the words from each context  
 	 */	
 	public double degreeMatchWord2VecSum(FloatMatrix w2v_left_centroid, FloatMatrix w2v_middle_centroid, FloatMatrix w2v_right_centroid){	
-		double l_w = Config.weight_left_context;
-		double m_w = Config.weight_middle_context;
-		double r_w = Config.weight_right_context;
+		double l_w = SnowballConfig.weight_left_context;
+		double m_w = SnowballConfig.weight_middle_context;
+		double r_w = SnowballConfig.weight_right_context;
 		double left_similarity;
 		double middle_similarity;
 		double right_similarity;
@@ -248,9 +248,9 @@ public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable
 	 * Computes the similarity using the centroid of the words from each context  
 	 */
 	public double degreeMatchWord2VecCentroid(FloatMatrix w2v_left_centroid, FloatMatrix w2v_middle_centroid, FloatMatrix w2v_right_centroid){	
-		double l_w = Config.weight_left_context;
-		double m_w = Config.weight_middle_context;
-		double r_w = Config.weight_right_context;
+		double l_w = SnowballConfig.weight_left_context;
+		double m_w = SnowballConfig.weight_middle_context;
+		double r_w = SnowballConfig.weight_right_context;
 		double left_similarity;
 		double middle_similarity;
 		double right_similarity;
@@ -263,9 +263,9 @@ public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable
 	}
 		
 	public double degreeMatchCosTFIDF(Map<String,Double> t_left_vector, Map<String,Double> t_middle_vector, Map<String,Double> t_right_vector){	
-		double l_w = Config.weight_left_context;
-		double m_w = Config.weight_middle_context;
-		double r_w = Config.weight_right_context;
+		double l_w = SnowballConfig.weight_left_context;
+		double m_w = SnowballConfig.weight_middle_context;
+		double r_w = SnowballConfig.weight_right_context;
 		double left_similarity;
 		double middle_similarity;
 		double right_similarity;
@@ -333,7 +333,7 @@ public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable
 	
 	@Override
 	public double[] getPoint() {
-		if (Config.useReverb==true) {
+		if (SnowballConfig.useReverb==true) {
 			return getPointReVerb();
 		}
 		else return getPointMiddleSum();

@@ -32,7 +32,7 @@ public class SnowballWord2Vec {
 
 	public static void start(String sentencesFile, String seedsFile,Map<Tuple, List<Pair<SnowballPattern, Double>>> candidateTuples, List<SnowballPattern> patterns) throws IOException, Exception {		
 		long startTime = System.nanoTime();
-		Config.readSeeds(seedsFile);
+		SnowballConfig.readSeeds(seedsFile);
 		iteration(startTime, sentencesFile, candidateTuples, patterns);		
 	}
 	
@@ -67,12 +67,12 @@ public class SnowballWord2Vec {
 			in.close();
 		}
 		
-		while (iter<=Config.number_iterations) {			
+		while (iter<=SnowballConfig.number_iterations) {			
 			// Collect sentences where both entities occur
 			// Construct a Tuple object for each 
 			System.out.println("\n***************************");
 			System.out.println("Starting iteration " + iter);			
-			System.out.println("Collecting tuples acording to " +  Config.seedTuples.size() + " seeds ");			
+			System.out.println("Collecting tuples acording to " +  SnowballConfig.seedTuples.size() + " seeds ");			
 			LinkedList<Tuple> seedMatches = matchSeedsTuples(processedTuples);
 
 			/*
@@ -99,17 +99,17 @@ public class SnowballWord2Vec {
 				Iterator<SnowballPattern> patternIter = patterns.iterator();
 				while (patternIter.hasNext()) {
 					SnowballPattern p = patternIter.next();
-					if (p.tuples.size()<Config.min_pattern_support) patternIter.remove();
+					if (p.tuples.size()<SnowballConfig.min_pattern_support) patternIter.remove();
 				}
 				patternIter = null;
 				
-				System.out.println(patterns.size() + " patterns supported by at least " + Config.min_pattern_support + " tuple(s)");
+				System.out.println(patterns.size() + " patterns supported by at least " + SnowballConfig.min_pattern_support + " tuple(s)");
 
 				// - Look for sentences with occurrence of seeds semantic type (e.g., ORG - LOC)
 				// - Measure the similarity of each sentence with each Pattern
 				// - Matching tuples are also used to score patterns confidence, based on being correct
 				//   or not according to the seed set				
-				System.out.println("Collecting " + Config.e1_type + " - " + Config.e2_type + " sentences and computing similarity with patterns");
+				System.out.println("Collecting " + SnowballConfig.e1_type + " - " + SnowballConfig.e2_type + " sentences and computing similarity with patterns");
 				comparePatternsTuples(candidateTuples, patterns, processedTuples);
 				System.out.println("\n"+candidateTuples.size() + " tuples found");
 				
@@ -142,16 +142,16 @@ public class SnowballWord2Vec {
 				
 				// Calculate a new seed set of tuples to use in next iteration, such that:
 				// seeds = { T | Conf(T) > min_tuple_confidence }
-				System.out.println("Adding tuples with confidence =>" + Config.min_tuple_confidence + " as seed for next iteration");
+				System.out.println("Adding tuples with confidence =>" + SnowballConfig.min_tuple_confidence + " as seed for next iteration");
 				int added = 0;
 				int removed = 0;				
 				for (Tuple t : candidateTuples.keySet()) {
-					if (t.confidence>=Config.min_tuple_confidence) {
-						Config.seedTuples.add(new Seed(t.e1.trim(),t.e2.trim()));
+					if (t.confidence>=SnowballConfig.min_tuple_confidence) {
+						SnowballConfig.seedTuples.add(new Seed(t.e1.trim(),t.e2.trim()));
 						added++;
 					} else removed++;
 				}
-				System.out.println(removed + " tuples removed due to confidence lower than " + Config.min_tuple_confidence);				
+				System.out.println(removed + " tuples removed due to confidence lower than " + SnowballConfig.min_tuple_confidence);				
 				System.out.println(added + " tuples added to seed set");
 				iter++;
 			}			
@@ -193,8 +193,8 @@ public class SnowballWord2Vec {
     							
     			double similarity = 0;				
     			
-				if (Config.useSum) similarity = t.degreeMatchWord2VecSum(pattern.w2v_left_centroid, pattern.w2v_middle_centroid, pattern.w2v_right_centroid);
-    			else if (Config.useCentroid) {
+				if (SnowballConfig.useSum) similarity = t.degreeMatchWord2VecSum(pattern.w2v_left_centroid, pattern.w2v_middle_centroid, pattern.w2v_right_centroid);
+    			else if (SnowballConfig.useCentroid) {
     				similarity = t.degreeMatchWord2VecSum(pattern.w2v_left_centroid, pattern.w2v_middle_centroid, pattern.w2v_right_centroid);    			   			
     			}
     			else {
@@ -209,7 +209,7 @@ public class SnowballWord2Vec {
 				
 				// If the similarity between the sentence where the tuple was extracted and a 
     			// pattern is greater than a threshold update the pattern confidence					
-				if (similarity>=Config.min_degree_match) {
+				if (similarity>=SnowballConfig.min_degree_match) {
     				patternsMatched.add(patterns.indexOf(pattern));
     				pattern.updatePatternSelectivity(t.e1,t.e2);
     				if (iter>0) {
@@ -217,7 +217,7 @@ public class SnowballWord2Vec {
     					pattern.RlogF_old = pattern.RlogF;
     				}
     				pattern.confidence();        						
-    				if (Config.use_RlogF=true) {	        						
+    				if (SnowballConfig.use_RlogF=true) {	        						
     					pattern.ConfidencePatternRlogF();
     				}
     				if (similarity>=simBest) {
@@ -228,7 +228,7 @@ public class SnowballWord2Vec {
     		}
     				
 			// RlogF needs to be normalized: [0,1]
-			if (Config.use_RlogF=true) {	        				
+			if (SnowballConfig.use_RlogF=true) {	        				
 				// Find maximum confidence value
 				for (SnowballPattern p : patterns) {
 					if (p.RlogF>maxRlogF) maxRlogF=p.RlogF;
@@ -245,7 +245,7 @@ public class SnowballWord2Vec {
 			 * Associate highest scoring pattern with the Tuple
 			 * Create a Pair object with the Pattern and the similarity score to the tuple that it matched  
 			 */
-			if (simBest>=Config.min_degree_match) {
+			if (simBest>=SnowballConfig.min_degree_match) {
 				List<Pair<SnowballPattern, Double>> list = null;
 				Pair<SnowballPattern,Double> p = new Pair<SnowballPattern, Double>(patternBest, simBest);
 
@@ -304,17 +304,17 @@ public class SnowballWord2Vec {
 			t.confidence = 1 - confidence;
 			// If tuple was already seen use past confidence values to calculate new confidence 
 			if (iter>0) {
-				t.confidence = t.confidence * Config.wUpdt + t.confidence_old * (1 - Config.wUpdt);
+				t.confidence = t.confidence * SnowballConfig.wUpdt + t.confidence_old * (1 - SnowballConfig.wUpdt);
 			}
 		}
 	}
 	
 	static void generateTuples(String file, List<Tuple> processedTuples) throws Exception {
 		String sentence = null;
-		String e1_begin = "<"+Config.e1_type+">";
-		String e1_end = "</"+Config.e1_type+">";
-		String e2_begin = "<"+Config.e2_type+">";
-		String e2_end = "</"+Config.e2_type+">";		
+		String e1_begin = "<"+SnowballConfig.e1_type+">";
+		String e1_end = "</"+SnowballConfig.e1_type+">";
+		String e2_begin = "<"+SnowballConfig.e2_type+">";
+		String e2_end = "</"+SnowballConfig.e2_type+">";		
 		Pattern pattern1 = Pattern.compile(e1_begin+"[^<]+"+e1_end);
 		Pattern pattern2 = Pattern.compile(e2_begin+"[^<]+"+e2_end);		
 		BufferedReader f1 = new BufferedReader(new FileReader(new File(file)));
@@ -329,14 +329,14 @@ public class SnowballWord2Vec {
 			// Just run matcher2.find() to match the next occurrence
 			boolean found1 = matcher1.find();
 			boolean found2 = matcher2.find();
-			if (Config.e1_type.equals(Config.e2_type) && found1) {
+			if (SnowballConfig.e1_type.equals(SnowballConfig.e2_type) && found1) {
 				found2 = matcher2.find();
 			}		
 			
 			try {
 				String e1 = (sentence.substring(matcher1.start(),matcher1.end())).replaceAll("<[^>]+>"," ");
 				String e2 = (sentence.substring(matcher2.start(),matcher2.end())).replaceAll("<[^>]+>"," ");
-				if ( (!Config.e1_type.equals(Config.e2_type) && matcher2.end()<matcher1.end() || matcher2.start()<matcher1.end())) continue;								
+				if ( (!SnowballConfig.e1_type.equals(SnowballConfig.e2_type) && matcher2.end()<matcher1.end() || matcher2.start()<matcher1.end())) continue;								
 				if ( (found1 && found2) && matcher1.end()<matcher2.end()) {					
 					// Ignore contexts where another entity occur between the two entities
 					String middleText = sentence.substring(matcher1.end(),matcher2.start());
@@ -350,7 +350,7 @@ public class SnowballWord2Vec {
 	            	String right_txt = sentence.substring(matcher2.end()+1).replaceAll("<[^>]+>[^<]+</[^>]+>","");
 	        		String[] middle_tokens = middle_txt.split("\\s");
 	        		
-	                if (middle_tokens.length<=Config.max_tokens_away && middle_tokens.length>=Config.min_tokens_away) {	                	
+	                if (middle_tokens.length<=SnowballConfig.max_tokens_away && middle_tokens.length>=SnowballConfig.min_tokens_away) {	                	
 	                	// Create a Tuple for an occurrence found        				
 	        			Tuple t = new Tuple(left_txt, middle_txt, right_txt, e1.trim(), e2.trim(), sentence);	        			
 	        			processedTuples.add(t);        			
@@ -375,7 +375,7 @@ public class SnowballWord2Vec {
 		int processed = 0;
 		for (Tuple tuple : processedTuples) {
 			if (processed % 10000==0) System.out.println(processed + "/" + processedTuples.size());
-			for (Seed seed : Config.seedTuples) {
+			for (Seed seed : SnowballConfig.seedTuples) {
 				if (tuple.e1.equalsIgnoreCase(seed.e1) && tuple.e2.equalsIgnoreCase(seed.e2)) {
 					matchedTuples.add(tuple);					
 					Integer count = counts.get(seed);
@@ -399,7 +399,7 @@ public class SnowballWord2Vec {
 			value = e.getValue().intValue();		
 			System.out.println(key.e1 + '\t'+ key.e2 +"\t" + value);
 		}
-		for (Seed s : Config.seedTuples) if (counts.get(s) == null) System.out.println(s.e1 + '\t' + s.e2 + "\t 0 tuples");
+		for (Seed s : SnowballConfig.seedTuples) if (counts.get(s) == null) System.out.println(s.e1 + '\t' + s.e2 + "\t 0 tuples");
 		return matchedTuples;
 	}
 }

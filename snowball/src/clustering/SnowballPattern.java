@@ -17,7 +17,7 @@ import tuples.Seed;
 import tuples.Tuple;
 import utils.SortMaps;
 import vsm.CreateWord2VecVectors;
-import bin.Config;
+import bin.SnowballConfig;
 
 public class SnowballPattern {
 	
@@ -52,7 +52,7 @@ public class SnowballPattern {
 		
 		this.tuples.add(tuple);
 		
-		if (Config.algorihtm.equalsIgnoreCase("Snowball_Classic")) {
+		if (SnowballConfig.algorihtm.equalsIgnoreCase("Snowball_Classic")) {
 			left_centroid = tuple.left;
 			middle_centroid = tuple.middle;
 			right_centroid = tuple.right;
@@ -70,7 +70,7 @@ public class SnowballPattern {
 	}
 
 	public void mergeUniquePatterns(){
-		if (Config.algorihtm.equalsIgnoreCase("REDS")) {
+		if (SnowballConfig.algorihtm.equalsIgnoreCase("REDS")) {
 			for (Tuple t : this.tuples) {
 				/*
 				System.out.println(t.sentence);
@@ -87,13 +87,13 @@ public class SnowballPattern {
 			}
 		}
 		//TODO: merge TF-ID patterns, unique
-		else if (Config.algorihtm.equalsIgnoreCase("Snowball_Classic")) {			
+		else if (SnowballConfig.algorihtm.equalsIgnoreCase("Snowball_Classic")) {			
 		}		
 	}
 	
 	public void SumUniquePatterns() {
 		mergeUniquePatterns();
-		FloatMatrix centroid = FloatMatrix.zeros(Config.word2Vec_dim);
+		FloatMatrix centroid = FloatMatrix.zeros(SnowballConfig.word2Vec_dim);
 		for (List<String> pattern : this.patterns) {
 			FloatMatrix p = CreateWord2VecVectors.createVecSum(pattern);
 			centroid.addi(p);
@@ -106,16 +106,16 @@ public class SnowballPattern {
 	}
 	
 	public void updateConfidencePattern(){
-		if (Config.use_RlogF) {
-			confidence = this.RlogF * Config.wUpdt + this.RlogF_old * (1 - Config.wUpdt);
+		if (SnowballConfig.use_RlogF) {
+			confidence = this.RlogF * SnowballConfig.wUpdt + this.RlogF_old * (1 - SnowballConfig.wUpdt);
 		}
 		else {
-			confidence = this.confidence * Config.wUpdt + this.confidence_old * (1 - Config.wUpdt);
+			confidence = this.confidence * SnowballConfig.wUpdt + this.confidence_old * (1 - SnowballConfig.wUpdt);
 		}		
 	}
 
 	public void updatePatternSelectivity(String e1, String e2) {
-		for (Seed s : Config.seedTuples) {
+		for (Seed s : SnowballConfig.seedTuples) {
 			if (s.e1.equals(e1.trim()) || s.e1.trim().equals(e1.trim())) {
 				if (s.e2.equals(e2.trim()) || s.e2.trim().equals(e2.trim())) {
 					positive++;
@@ -167,9 +167,9 @@ public class SnowballPattern {
 	
 	public void calculateCentroidWord2Vec(){
 
-		FloatMatrix left_sum = new FloatMatrix(Config.word2Vec_dim);
-		FloatMatrix middle_sum = new FloatMatrix(Config.word2Vec_dim);
-		FloatMatrix right_sum = new FloatMatrix(Config.word2Vec_dim);
+		FloatMatrix left_sum = new FloatMatrix(SnowballConfig.word2Vec_dim);
+		FloatMatrix middle_sum = new FloatMatrix(SnowballConfig.word2Vec_dim);
+		FloatMatrix right_sum = new FloatMatrix(SnowballConfig.word2Vec_dim);
 		
 		for (Tuple t : tuples) {
 			left_sum = left_sum.addi(t.left_sum);
@@ -177,9 +177,9 @@ public class SnowballPattern {
 			right_sum = right_sum.addi(t.left_sum);
 		}
 		
-		w2v_left_centroid = left_sum.divi(Config.word2Vec_dim);
-		w2v_middle_centroid = middle_sum.divi(Config.word2Vec_dim);
-		w2v_right_centroid = right_sum.divi(Config.word2Vec_dim); 
+		w2v_left_centroid = left_sum.divi(SnowballConfig.word2Vec_dim);
+		w2v_middle_centroid = middle_sum.divi(SnowballConfig.word2Vec_dim);
+		w2v_right_centroid = right_sum.divi(SnowballConfig.word2Vec_dim); 
 	}
 	
 	public void calculateCentroidTFIDF(String vector) {

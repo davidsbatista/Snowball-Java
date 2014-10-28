@@ -14,7 +14,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
 
-import vsm.TermsVector;
 import word2vec.com.ansj.vec.domain.WordEntry;
 
 public class Word2VEC {
@@ -239,7 +238,7 @@ public class Word2VEC {
 			center = sum(center, wordMap.get(word));
 		}
 
-		//normalized center, sum of vectors
+		// normalized center, sum of vectors
 		double norm = 0;
 		for (int i = 0; i < center.length; i++) {
 			norm += Math.pow(center[i], 2);
@@ -274,6 +273,33 @@ public class Word2VEC {
 		return result;
 	}
 
+	public Set<WordEntry> distance(float[] center, int top_k) {
+		
+		int resultSize = wordMap.size() < top_k ? wordMap.size() : top_k;
+		TreeSet<WordEntry> result = new TreeSet<WordEntry>();
+		double min = Float.MIN_VALUE;
+		
+		for (Map.Entry<String, float[]> entry : wordMap.entrySet()) {
+			float[] wordVector = entry.getValue();
+			float dist = 0;
+			for (int i = 0; i < wordVector.length; i++) {
+				dist += center[i] * wordVector[i];				
+			}
+
+			if (dist > min) {
+				result.add(new WordEntry(entry.getKey(), dist));
+				if (resultSize < result.size()) {
+					result.pollLast();
+				}
+				min = result.last().score;
+			}
+		}
+		result.pollFirst();
+
+		return result;
+	}
+	
+	
 	private float[] sum(float[] center, float[] fs) {
 
 		if (center == null && fs == null) {

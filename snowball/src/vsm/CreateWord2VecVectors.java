@@ -7,18 +7,18 @@ import nlp.Stopwords;
 
 import org.jblas.FloatMatrix;
 
-import bin.Config;
+import bin.SnowballConfig;
 
 public class CreateWord2VecVectors {
 	
 	public static FloatMatrix createVecSum(List<String> text) {
-		FloatMatrix sum = new FloatMatrix(Config.word2Vec_dim);
+		FloatMatrix sum = new FloatMatrix(SnowballConfig.word2Vec_dim);
 		List<String> words_vector = new LinkedList<String>();
 		for (String w : text) {
 			if (!Stopwords.stopwords.contains(w)) {
 				words_vector.add(w);
 				try {
-					float[] vector = Config.word2vec.getWordVector(w);
+					float[] vector = SnowballConfig.word2vec.getWordVector(w);
 					if (vector == null) continue;
 					else {
 						FloatMatrix v = new FloatMatrix(vector);
@@ -40,11 +40,11 @@ public class CreateWord2VecVectors {
 	}
 		
 	public static FloatMatrix createVecCentroid(List<String> text){
-		FloatMatrix centroid = new FloatMatrix(Config.word2Vec_dim);
+		FloatMatrix centroid = new FloatMatrix(SnowballConfig.word2Vec_dim);
 		for (String word : text) {
 			if (!Stopwords.stopwords.contains(text)) {
 				try {
-					float[] vector = Config.word2vec.getWordVector(word);
+					float[] vector = SnowballConfig.word2vec.getWordVector(word);
 					if (vector == null) continue;
 					else {
 						FloatMatrix v = new FloatMatrix(vector);
@@ -59,7 +59,7 @@ public class CreateWord2VecVectors {
 				}
 			}
 		}
-		centroid = centroid.divi((float) Config.word2Vec_dim);		
+		centroid = centroid.divi((float) SnowballConfig.word2Vec_dim);		
 		return centroid;
 	}
 }

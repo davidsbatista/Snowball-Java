@@ -7,7 +7,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import nlp.PortugueseTokenizer;
-import bin.Config;
+import bin.SnowballConfig;
 
 public class Tokenization {
 		
@@ -28,7 +28,7 @@ public class Tokenization {
 		/* tokenize  */
 		
 		List<String> terms = new ArrayList<String>();
-		Config.PTtokenizer = new PortugueseTokenizer();
+		SnowballConfig.PTtokenizer = new PortugueseTokenizer();
 		
 		System.out.println(text);
 		terms = (List<String>) Arrays.asList(text.split("\\s+"));
