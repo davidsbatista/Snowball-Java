@@ -65,53 +65,7 @@ public class Singlepass {
 		System.out.println();		
 	}
 		
-	public static void singlePassWord2Vec(LinkedList<Tuple> tuples, List<SnowballPattern> patterns) throws IOException {
-		
-		System.out.println(tuples.size() + " tuples to process");
-		int count = 0;
-		int start = 0;
-		
-		// Initialize: first tuple is first cluster
-		if (patterns.size()==0) {
-			SnowballPattern c1 = new SnowballPattern(tuples.get(0));
-			patterns.add(c1);
-			start = 1;
-		}		
-		
-		// Compute the similarity with each cluster centroid*/
-		for (int i = start; i < tuples.size(); i++) {
-			double max_similarity = 0;
-			int max_similarity_cluster_index = 0;
-			if (count % 100 == 0) System.out.print(".");			
-			for (int j = 0; j < patterns.size(); j++) {				
-				SnowballPattern c = patterns.get(j);
-				double similarity = 0;
-				if (SnowballConfig.useSum==true) {
-					similarity = tuples.get(i).degreeMatchWord2VecSum(c.w2v_left_centroid, c.w2v_middle_centroid, c.w2v_right_centroid);
-				}
-				else if (SnowballConfig.useCentroid==true) {
-					similarity = tuples.get(i).degreeMatchWord2VecCentroid(c.w2v_left_centroid, c.w2v_middle_centroid, c.w2v_right_centroid);
-				}
-				if (similarity > max_similarity) {					
-					max_similarity = similarity;
-					max_similarity_cluster_index = j;
-				}
-			}
-		
-			// If max_similarity < min_degree_match create a new cluster having this tuple as the Centroid */			
-			if ( max_similarity < SnowballConfig.min_degree_match ) {
-				SnowballPattern c = new SnowballPattern(tuples.get(i));
-				patterns.add(c);
-			}
-			
-			// If max_similarity >= min_degree_match add to the cluster and recalculate centroid */ 			
-			else {				
-				patterns.get(max_similarity_cluster_index).addTuple(tuples.get(i));
-				patterns.get(max_similarity_cluster_index).calculateCentroidWord2Vec();
-			}
-		count++;
-		}		
-	}
+	
 	
 	public static void SinglePassREDS(LinkedList<REDSTuple> tuples, List<REDSPattern> patterns) {
 		
@@ -139,59 +93,67 @@ public class Singlepass {
 				double similarity = 0;
 				
 				if (tuples.get(i).ReVerbpatterns.size()>0) {
-					List<String> relationalWords = tuples.get(i).ReVerbpatterns.get(0).token_words;
 					
-					if (REDSConfig.single_vector.equalsIgnoreCase("sum") || REDSConfig.single_vector.equalsIgnoreCase("centroid")) {
-						
-						// use the sum of the relational words vectors of the instances in the pattern					
-						if (REDSConfig.single_vector.equalsIgnoreCase("sum")) {						
-							FloatMatrix patternVector = extractionPattern.centroid();
-							FloatMatrix sentence = CreateWord2VecVectors.createVecSum(relationalWords); 						
-							similarity = TermsVector.cosSimilarity(sentence, patternVector);
-							
-						}
-						// use the centroid of the relational words vectors of the instances in the pattern
-						else if (REDSConfig.single_vector.equalsIgnoreCase("centroid")) {												
-							FloatMatrix patternVector = extractionPattern.sum();
-							FloatMatrix sentence = CreateWord2VecVectors.createVecCentroid(relationalWords); 						
-							similarity = TermsVector.cosSimilarity(sentence, patternVector);
-						}
-						
-						if (similarity > max_similarity) {					
-							max_similarity = similarity;
-							max_similarity_cluster_index = j;
-						}
+					List<String> relationalWords = tuples.get(i).ReVerbpatterns.get(0).token_words;
+					FloatMatrix patternVector = null;
+					FloatMatrix sentence = null;
+					
+					// represent the sentence as the use the sum of the relational words vectors				
+					if (REDSConfig.single_vector.equalsIgnoreCase("sum")) {						
+						patternVector = extractionPattern.sum();
+						sentence = CreateWord2VecVectors.createVecSum(relationalWords);						
 					}
 					
-					// compare all vectors individually using REDSPattern.all()
-					// if the similarity with the majority is > threshold
-					// returns a Pair, with true, and max_similarity score
-					// otherwise returns False,0
-					else if (REDSConfig.single_vector.equalsIgnoreCase("all")) {
-						FloatMatrix sentence = null;
-						if (REDSConfig.single_vector.equalsIgnoreCase("sum")) {						
-							sentence = CreateWord2VecVectors.createVecSum(relationalWords); 						
-						}					
-						else if (REDSConfig.single_vector.equalsIgnoreCase("centroid")) {
-							sentence = CreateWord2VecVectors.createVecCentroid(relationalWords);
-						}
-						Pair<Boolean,Double> result = REDSPattern.all(sentence);
-												
-						if (result.getFirst()==true) {
-							max_similarity = result.getSecond();
-							max_similarity_cluster_index = j;
-						}
-						else {
-							max_similarity = result.getSecond();
-						}
+					// represent the sentence as the centroid of the relational words vectors
+					else if (REDSConfig.single_vector.equalsIgnoreCase("centroid")) {												
+						patternVector = extractionPattern.centroid();
+						sentence = CreateWord2VecVectors.createVecCentroid(relationalWords);						
+					}
+					
+					// case when then extraction pattern is represented as single vector
+					// similarity calculate with just one vector
+					if (REDSConfig.similarity.equalsIgnoreCase("single-vector")) {
+						similarity = TermsVector.cosSimilarity(sentence, patternVector);
+						/*
+						System.out.println("relational words		 : " + relationalWords);
+						System.out.println("pattern relational words : " + extractionPattern.patterns);						
+						System.out.println("cosine 					 : " + similarity);
+						System.out.println();
+						*/
+					}
+					
+					// all the vectors part of the extraction are used to calculate the similarity
+					// with a sentence, compare all vectors individually using REDSPattern.all()
+					// 	if the similarity with the majority is > threshold
+					// 	returns a Pair, with true, and max_similarity score
+					// 	otherwise returns False,0
+					
+					else if (REDSConfig.similarity.equalsIgnoreCase("all")) {
+						
+						Pair<Boolean,Double> result = extractionPattern.all(sentence);
+						
+						if (result.getFirst()==true) similarity = result.getSecond();
+						else similarity = 0.0;
+						
+						/*
+						System.out.println("relational words		 : " + relationalWords);
+						System.out.println("pattern relational words : " + extractionPattern.patterns);						
+						System.out.println("similarity				 : " + similarity);
+						System.out.println();
+						*/
+					}
+					
+					if (similarity > max_similarity) {					
+						max_similarity = similarity;
+						max_similarity_cluster_index = j;
 					}
 				}				
 			}
 				
 			// If max_similarity < min_degree_match create a new cluster having this tuple as the centroid */			
-			if ( max_similarity < REDSConfig.similarity_threshold) {
+			if ( max_similarity < REDSConfig.threshold_similarity) {
 				REDSPattern c = new REDSPattern(tuples.get(i));
-				patterns.add(c);				
+				patterns.add(c);
 			}
 			
 			// If max_similarity >= min_degree_match add to the cluster and recalculate centroid */ 			

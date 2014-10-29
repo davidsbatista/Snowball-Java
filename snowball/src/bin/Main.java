@@ -74,6 +74,7 @@ public class Main {
 				}
 				f2.write("\n================================================\n");
 			}
+			f2.close();
 		}
 		
 		else if (system.equalsIgnoreCase("REDS")) {
@@ -83,6 +84,8 @@ public class Main {
 				System.out.println("No semantic types defined");
 				System.exit(0);
 			}
+
+			//TestWord2Vec.main();
 			
 			/* start a bootstrapping extraction */
 			Map<REDSTuple, List<Pair<REDSPattern, Double>>> candidateTuples = new HashMap<REDSTuple, List<Pair<REDSPattern,Double>>>();
@@ -130,6 +133,7 @@ public class Main {
 	 * Writes the extracted Tuples and the generated Extraction Patterns to files
 	 */ 
 	static void outputToFiles(Map<Tuple, List<Pair<SnowballPattern, Double>>> candidateTuples, List<SnowballPattern> patterns) throws IOException {
+		/*
 		BufferedWriter f1 = new BufferedWriter(new FileWriter("tuples.txt"));
 		BufferedWriter f2 = new BufferedWriter(new FileWriter("patterns.txt"));
 		ArrayList<Tuple> tuplesOrdered  = new ArrayList<Tuple>(candidateTuples.keySet());				
@@ -140,7 +144,7 @@ public class Main {
 			f1.write(t.sentence + "\n\n");
 		}
 		f1.close();
-		if (SnowballConfig.algorihtm.equalsIgnoreCase("Snowball_classic") || SnowballConfig.algorihtm.equalsIgnoreCase("Snowball_word2vec")) {
+		if (REDSConfig.algorihtm.equalsIgnoreCase("Snowball_classic") || REDSConfig.algorihtm.equalsIgnoreCase("Snowball_word2vec")) {
 			for (SnowballPattern p : patterns) {
 				f2.write("confidence	:" + p.confidence+'\n');
 				f2.write("#tuples		:" + p.tuples.size()+'\n');
@@ -156,7 +160,7 @@ public class Main {
 				f2.write("\n================================================\n");
 			}				
 		}
-		else if (SnowballConfig.algorihtm.equalsIgnoreCase("REDS")) {
+		else if (REDsConfig.algorihtm.equalsIgnoreCase("REDS")) {
 			for (SnowballPattern p : patterns) {
 				f2.write("positive		:" + p.positive+'\n');
 				f2.write("negative		:" + p.negative+'\n');
@@ -166,6 +170,7 @@ public class Main {
 				f2.write("\n================================================\n");				
 			}				
 		}			
-		f2.close();		
+		f2.close();
+		*/		
 	}
 }

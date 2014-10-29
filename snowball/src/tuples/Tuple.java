@@ -18,7 +18,7 @@ import vsm.CreateWord2VecVectors;
 import vsm.TermsVector;
 import bin.SnowballConfig;
 
-public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable, Serializable {
+public class Tuple extends TermsVector implements Comparable<Tuple>, Serializable {
 	
 	private static final long serialVersionUID = -6291870921472158824L;
 	
@@ -74,96 +74,16 @@ public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable
 		this.ReVerbpatterns = new LinkedList<ReVerbPattern>();
 		
 		try {
-			// Use the same approach as Snowball but use Word2Vec to represent sentence 
-			if ( SnowballConfig.algorihtm.equalsIgnoreCase("Snowball_Word2vec")) {
-								
-				// For each context sum the vectors of the words vectors representations
-				left_sum = CreateWord2VecVectors.createVecSum(TermsVector.normalize(getLeftContext(left)));
-				middle_sum = CreateWord2VecVectors.createVecSum(TermsVector.normalize(middle));
-				right_sum = CreateWord2VecVectors.createVecSum(TermsVector.normalize(getRightContext(right)));
-				
-				// For each context calculate the centroid of the words vectors representations
-				left_centroid = CreateWord2VecVectors.createVecCentroid(TermsVector.normalize(getLeftContext(left)));
-				middle_centroid = CreateWord2VecVectors.createVecCentroid(TermsVector.normalize(middle));
-				right_centroid = CreateWord2VecVectors.createVecCentroid(TermsVector.normalize(getRightContext(right)));
-				
-				// Save words
-				left_words.addAll(TermsVector.normalize(getLeftContext(left)));
-				middle_words.addAll(TermsVector.normalize(middle) );
-				right_words.addAll(TermsVector.normalize(getRightContext(right)));
-				
-				/*
-				System.out.println(sentence);
-				System.out.println(left_words);
-				System.out.println(middle_words);
-				System.out.println(right_words);
-				System.out.println();
-				*/
-				
-			}			
 			
 			// Create TF-IDF representations
-			if ( SnowballConfig.algorihtm.equalsIgnoreCase("Snowball_Classic")) {				
-				if (left!=null) this.left = SnowballConfig.vsm.tfidf(TermsVector.normalize(getLeftContext(left)));				
-				if (middle!=null) this.middle = SnowballConfig.vsm.tfidf(TermsVector.normalize(middle));
-				if (right!=null) this.right = SnowballConfig.vsm.tfidf(TermsVector.normalize(getRightContext(right)));
+			if (left!=null) this.left = SnowballConfig.vsm.tfidf(TermsVector.normalize(getLeftContext(left)));				
+			if (middle!=null) this.middle = SnowballConfig.vsm.tfidf(TermsVector.normalize(middle));
+			if (right!=null) this.right = SnowballConfig.vsm.tfidf(TermsVector.normalize(getRightContext(right)));
 				
-				// Save words
-				left_words.addAll(TermsVector.normalize(getLeftContext(left)));
-				middle_words.addAll(TermsVector.normalize(middle) );
-				right_words.addAll(TermsVector.normalize(getRightContext(right)));				
-			}
-			
-			// Extract ReVerb patterns and construct Word2Vec representations 			
-			if ( SnowballConfig.algorihtm.equalsIgnoreCase("REDS")) {
-				List<ReVerbPattern> patterns = EnglishPoSTagger.extractRVB(middle);
-				boolean discard = false;				
-				if (patterns.size()>0) {
-					
-					//TODO: using only the first pattern, are there really more than 1 pattern in a middle context ?					
-					List<String> pattern_tokens = patterns.get(0).token_words;
-					List<String> pattern_ptb_pos = patterns.get(0).token_ptb_pos_tags;
-					List<String> pattern_universal_pos = patterns.get(0).token_universal_pos_tags;		
-					
-					// If contains only an auxiliary VERB + IN discard
-					// e.g.: is in, was out
-					if (pattern_tokens.size()==2) {
-						String verb = SnowballConfig.EnglishLemm.lemmatize(pattern_tokens.get(0));
-						if (SnowballConfig.aux_verbs.contains(verb) && pattern_universal_pos.get(1).equalsIgnoreCase("ADP")) {
-							discard = true;
-						}
-					}					
-					if (!discard) {
-						hasReVerbPatterns = true;
-						this.ReVerbpatterns = patterns;						
-						// Sum each word vector
-						FloatMatrix patternWord2Vec = CreateWord2VecVectors.createVecSum(pattern_tokens);
-						this.middleReverbPatternsWord2VecSum.add(patternWord2Vec);
-					}
-					
-					//TODO: log discarded ReVerb patterns
-					/*
-					else {
-						System.out.println("discarded:");
-						System.out.println(pattern_tokens);
-						System.out.println(pattern_ptb_pos);
-						System.out.println(pattern_universal_pos);
-						System.out.println();
-					}
-					*/					
-				}
-				
-				// If no ReVerb patterns are found
-				// add middle words and associated PoS-tags 
-				// stored in ReVerbPattern object
-				
-				else if (patterns.size()==0 || discard) {
-					hasReVerbPatterns = false;
-					ReVerbpatterns = EnglishPoSTagger.tagSentence(middle);
-					FloatMatrix patternWord2Vec = CreateWord2VecVectors.createVecSum(ReVerbpatterns.get(0).token_words);
-					this.middleReverbPatternsWord2VecSum.add(patternWord2Vec);
-				}
-			}
+			// Save words
+			left_words.addAll(TermsVector.normalize(getLeftContext(left)));
+			middle_words.addAll(TermsVector.normalize(middle) );
+			right_words.addAll(TermsVector.normalize(getRightContext(right)));				
 			
 		} catch (Exception e) {
 			System.out.println(sentence);
@@ -321,43 +241,5 @@ public class Tuple extends TermsVector implements Comparable<Tuple>, Clusterable
 
 	public String toString(){
 		return e1 + '\t' + e2;
-	}
-	
-	
-	/*
-	 * (non-Javadoc)
-	 * @see org.apache.commons.math3.ml.clustering.Clusterable#getPoint()
-	 * 
-	 * returns the n-dimensional vector to be used by DBSCAN
-	 */
-	
-	@Override
-	public double[] getPoint() {
-		if (SnowballConfig.useReverb==true) {
-			return getPointReVerb();
-		}
-		else return getPointMiddleSum();
-	}
-
-	public double[] getPointReVerb() {
-		// Returns ReVerb patterns
-		FloatMatrix v = this.middleReverbPatternsWord2VecSum.get(0);		
-		float[] t = v.toArray();
-		double[] vector = new double[t.length];
-		for (int i = 0; i < t.length; i++) {
-			vector[i] = t[i];
-		}
-		return vector;
-	}
-	
-	public double[] getPointMiddleSum() {
-		// Returns middle words summed
-		FloatMatrix v = this.middle_sum;		
-		float[] t = v.toArray();
-		double[] vector = new double[t.length];
-		for (int i = 0; i < t.length; i++) {
-			vector[i] = t[i];
-		}
-		return vector;
 	}
 }

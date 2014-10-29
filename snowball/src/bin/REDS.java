@@ -8,16 +8,17 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import nlp.ReVerbPattern;
 
 import org.apache.commons.math3.ml.clustering.Cluster;
 import org.apache.commons.math3.ml.clustering.Clusterable;
@@ -59,7 +60,7 @@ public class REDS {
 		*/
 		
 		// Start timing and extraction
-		SnowballConfig.readSeeds(seedsFile);
+		REDSConfig.readSeeds(seedsFile);
 		long startTime = System.nanoTime();		
 		iteration(startTime, sentencesFile, candidateTuples, patterns);		
 	}
@@ -96,13 +97,14 @@ public class REDS {
 			in.close();
 		}
 		
-		while (iter<=SnowballConfig.number_iterations) {
+		while (iter<=REDSConfig.number_iterations) {
 			// Collect sentences (Tuple objects) where both entities occur 
 			System.out.println("\n***************************");
 			System.out.println("Starting iteration " + iter);			
 			System.out.println("Seed matches:\n");			
 			LinkedList<REDSTuple> seedMatches = matchSeedsTuples(processedTuples);
 						
+			/*
 			System.out.println("Seed matches: " + seedMatches.size());
 			for (REDSTuple tuple : seedMatches) {
 				System.out.println(tuple.sentence);
@@ -112,8 +114,8 @@ public class REDS {
 				System.out.println();
 			}
 			System.out.println();
-		
-						
+			*/
+								
 			if (seedMatches.size()==0) {
 				System.out.println("No tuples found");
 				System.exit(0);	
@@ -126,14 +128,24 @@ public class REDS {
 					System.exit(0);
 				}
 				
-				/* TODO: Eliminate patterns supported by less than 'min_pattern_support' tuples			
+				// Eliminate patterns supported by less than 'min_pattern_support' tuples			
 				Iterator<REDSPattern> patternIter = patterns.iterator();
 				while (patternIter.hasNext()) {
 					REDSPattern p = patternIter.next();
-					if (p.tuples.size()<SnowballConfig.min_pattern_support) patternIter.remove();
+					if (p.tuples.size()<REDSConfig.min_pattern_support) patternIter.remove();
 				}
 				patternIter = null;
-				System.out.println(patterns.size() + " patterns supported by at least " + SnowballConfig.min_pattern_support + " tuple(s)");
+				System.out.println(patterns.size() + " patterns supported by at least " + REDSConfig.min_pattern_support + " tuple(s)");
+				
+				
+				/*
+				for (int j = 0; j < patterns.size(); j++) {
+					System.out.println("Cluster " + j );
+					for (REDSTuple t : patterns.get(j).tuples) {
+						System.out.println(t.ReVerbpatterns.get(0).token_words);
+					}				
+					System.out.println();
+				}
 				*/
 								
 				/* Maneira para comparar/avaliar patterns aprendidos */
@@ -222,6 +234,7 @@ public class REDS {
 				}
 				*/
 				
+				/*
 				System.out.println("\nPatterns confidence updated\n");
 				for (REDSPattern p: patterns) {
 					p.confidence();
@@ -232,31 +245,30 @@ public class REDS {
 					System.out.println(p.patterns);						
 					System.out.println("====================================\n");
 				}
+				*/
 				
 				// Update Tuple confidence based on patterns confidence
 				System.out.println("Calculating tuples confidence");
 				calculateTupleConfidence(candidateTuples);
 
-				/*
 				// Print each collected Tuple and its confidence
-				ArrayList<Tuple> tuplesOrdered  = new ArrayList<Tuple>(candidateTuples.keySet());				
+				ArrayList<REDSTuple> tuplesOrdered  = new ArrayList<REDSTuple>(candidateTuples.keySet());				
 				Collections.sort(tuplesOrdered);
-				for (Tuple t : tuplesOrdered) System.out.println(t.e1 + '\t' + t.e2 + '\t' + t.confidence);
+				for (REDSTuple t : tuplesOrdered) System.out.println(t.e1 + '\t' + t.e2 + '\t' + t.confidence);
 				System.out.println();
-				*/
 									
 				// Calculate a new seed set of tuples to use in next iteration, such that:
 				// seeds = { T | Conf(T) > min_tuple_confidence }
-				System.out.println("Adding tuples with confidence =>" + SnowballConfig.min_tuple_confidence + " as seed for next iteration");
+				System.out.println("Adding tuples with confidence =>" + REDSConfig.instance_confidance + " as seed for next iteration");
 				int added = 0;
 				int removed = 0;				
 				for (REDSTuple t : candidateTuples.keySet()) {
-					if (t.confidence>=SnowballConfig.min_tuple_confidence) {
-						SnowballConfig.seedTuples.add(new Seed(t.e1.trim(),t.e2.trim()));
+					if (t.confidence>=REDSConfig.instance_confidance) {
+						REDSConfig.seedTuples.add(new Seed(t.e1.trim(),t.e2.trim()));
 						added++;
 					} else removed++;
 				}
-				System.out.println(removed + " tuples removed due to confidence lower than " + SnowballConfig.min_tuple_confidence);				
+				System.out.println(removed + " tuples removed due to confidence lower than " + REDSConfig.instance_confidance);				
 				System.out.println(added + " tuples added to seed set");
 				iter++;
 			}			
@@ -270,21 +282,23 @@ public class REDS {
 	 *  - If no patterns are found, the middle words are considered
 	 *  - Word2Vec vectors from the ReVerb patterns/middle words are summed
 	 *  - Tuples are clustered according to: 1-cos(a,b) where 'a' and' b' are Word2Vec vectors
-	 */  
+	 */ 
 	private static void DBSCAN(LinkedList<Tuple> tuples, List<SnowballPattern> patterns) {
 		DistanceMeasure measure = new CosineMeasure();
-		double eps = 1-SnowballConfig.min_degree_match;
+		double eps = 1-REDSConfig.threshold_similarity;
 		int minPts = 2;
 		DBSCANClusterer<Clusterable> dbscan = new DBSCANClusterer<>(eps, minPts, measure);
 
 		// Tuples implement the Clusterable Interface to allow clustering
 		// Add all tuples to a Clusterable collection to be passed to DBSCAN
 		LinkedList<Clusterable> points = new LinkedList<Clusterable>();
-				
+		
+		/*
 		for (Tuple t : tuples) {			
 			// Cluster according to ReVerb patterns
 			if (t.middleReverbPatternsWord2VecSum.size()>0) points.add(t);
 		}
+		*/
 		
 		/* Cluster ReVerb patterns/words in middle context */		
 		int not_considered = tuples.size()-points.size();
@@ -303,9 +317,9 @@ public class REDS {
 				Tuple t = (Tuple) object;
 				pattern.tuples.add(t);
 			}						
-			if (pattern.tuples.size()>=SnowballConfig.min_pattern_support) {
+			if (pattern.tuples.size()>=REDSConfig.threshold_similarity) {
 				patterns.add(pattern);
-				pattern.mergeUniquePatterns();
+				//pattern.mergeUniquePatterns();
 				System.out.println("Cluster " + c );
 				System.out.println(pattern.tuples.size() + " tuples");
 				System.out.println(pattern.patterns.size() + " unique relational phrases");
@@ -345,44 +359,52 @@ public class REDS {
 			for (REDSPattern extractionPattern : patterns) {				
 				if (tuple.ReVerbpatterns.size()>0) {					
 					List<String> relationalWords = tuple.ReVerbpatterns.get(0).token_words;
+					FloatMatrix patternVector = null;
+					FloatMatrix sentence = null;
 					
-					if (REDSConfig.single_vector.equalsIgnoreCase("sum") || REDSConfig.single_vector.equalsIgnoreCase("centroid")) {
-						
-						// use the sum of the relational words vectors of the instances in the pattern					
-						if (REDSConfig.single_vector.equalsIgnoreCase("sum")) {						
-							FloatMatrix patternVector = extractionPattern.centroid();
-							FloatMatrix sentence = CreateWord2VecVectors.createVecSum(relationalWords); 						
-							similarity = TermsVector.cosSimilarity(sentence, patternVector);
-						}
-						
-						// use the centroid of the relational words vectors of the instances in the pattern
-						else if (REDSConfig.single_vector.equalsIgnoreCase("centroid")) {												
-							FloatMatrix patternVector = extractionPattern.sum();
-							FloatMatrix sentence = CreateWord2VecVectors.createVecCentroid(relationalWords); 						
-							similarity = TermsVector.cosSimilarity(sentence, patternVector);
-						}
+					// represent the sentence as the use the sum of the relational words vectors				
+					if (REDSConfig.single_vector.equalsIgnoreCase("sum")) {						
+						patternVector = extractionPattern.sum();
+						sentence = CreateWord2VecVectors.createVecSum(relationalWords);						
 					}
 					
-					else if (REDSConfig.single_vector.equalsIgnoreCase("all")) {
-						FloatMatrix sentence = null;
-						if (REDSConfig.single_vector.equalsIgnoreCase("sum")) {						
-							sentence = CreateWord2VecVectors.createVecSum(relationalWords); 						
-						}					
-						else if (REDSConfig.single_vector.equalsIgnoreCase("centroid")) {
-							sentence = CreateWord2VecVectors.createVecCentroid(relationalWords);
-						}
-						Pair<Boolean,Double> result = REDSPattern.all(sentence);
-												
-						if (result.getFirst()==true) {
-							similarity = result.getSecond();
-						}
-						else {
-							similarity = result.getSecond();
-						}
+					// represent the sentence as the centroid of the relational words vectors
+					else if (REDSConfig.single_vector.equalsIgnoreCase("centroid")) {												
+						patternVector = extractionPattern.centroid();
+						sentence = CreateWord2VecVectors.createVecCentroid(relationalWords);						
 					}
 					
+					// case when then extraction pattern is represented as single vector
+					// similarity calculate with just one vector
+					if (REDSConfig.similarity.equalsIgnoreCase("single-vector")) {
+						similarity = TermsVector.cosSimilarity(sentence, patternVector);
+						
+					}
 					
-					if (similarity>=REDSConfig.similarity_threshold) {
+					// all the vectors part of the extraction are used to calculate the similarity
+					// with a sentence, compare all vectors individually using REDSPattern.all()
+					// 	if the similarity with the majority is > threshold
+					// 	returns a Pair, with true, and max_similarity score
+					// 	otherwise returns False,0
+					
+					else if (REDSConfig.similarity.equalsIgnoreCase("all")) {						
+						Pair<Boolean,Double> result = extractionPattern.all(sentence);						
+						if (result.getFirst()==true) similarity = result.getSecond();
+						else similarity = 0.0;
+					}
+										
+					
+					// update patterns confidance based on matches					
+					if (similarity>=REDSConfig.threshold_similarity) {
+						
+						/*
+						System.out.println("sentence:  " + tuple.sentence);
+						System.out.println("relational words		 : " + relationalWords);
+						System.out.println("pattern relational words : " + extractionPattern.patterns);						
+						System.out.println("cosine 					 : " + similarity);
+						System.out.println();
+						*/
+											
 	    				patternsMatched.add(patterns.indexOf(extractionPattern));
 	    				extractionPattern.updatePatternSelectivity(tuple.e1,tuple.e2);
 	    				if (iter>0) {
@@ -394,14 +416,29 @@ public class REDS {
 	    					simBest = similarity;
 	    					patternBest = extractionPattern;    
 	    				}
+	    				
+	    				/*
+	    				System.out.println(tuple.e1 + '\t' + tuple.e2);
+	    				System.out.println(extractionPattern.patterns);
+	    				System.out.println("confidence:" + extractionPattern.confidence);
+	    				System.out.println();
+	    				*/
 	    			}
 				}
 				
-				// Associate the relationship instance with the pattern with the maximum similarity score
-				
-				if (simBest>=REDSConfig.similarity_threshold) {
+				// Associate the relationship instance with the pattern the has maximum similarity score				
+				if ( simBest >= REDSConfig.threshold_similarity ) {
 					List<Pair<REDSPattern, Double>> list = null;
 					Pair<REDSPattern,Double> p = new Pair<REDSPattern, Double>(patternBest, simBest);
+					
+					/*
+					System.out.println(tuple.sentence);
+					System.out.println(tuple.ReVerbpatterns.get(0).token_words);
+					System.out.println(patternBest.patterns);
+					System.out.println("similarity	:	" + simBest);
+					System.out.println("pattern		:	" + patternBest.confidence);
+					System.out.println();
+					*/
 
 					// Check if the tuple was already extracted in a previous iteration
 					REDSTuple tupleInCandidatesMap = null;	        					
@@ -443,6 +480,11 @@ public class REDS {
 		}
 	}
 
+	
+	
+	
+	
+	
 	/*
 	 * Expands the relationship words of a pattern based on similarities
 	 * 	- For each word part of a pattern
@@ -568,7 +610,7 @@ public class REDS {
 				vector = vector.div((float) patterns.size()); 
 			}									
 
-			Set<WordEntry> similar_words = SnowballConfig.word2vec.distance(vector.data, REDSConfig.top_k);
+			Set<WordEntry> similar_words = REDSConfig.word2vec.distance(vector.data, REDSConfig.top_k);
 			
 			for (WordEntry wordEntry : similar_words) {				
 				words.add(wordEntry.name);
@@ -583,13 +625,6 @@ public class REDS {
 	
 	
 	static LinkedList<REDSTuple> matchSeedsTuples(List<REDSTuple> processedTuples) {
-
-		/*
-		for (REDSTuple redsTuple : processedTuples) {
-			System.out.println(redsTuple.e1 + '\t' + redsTuple.e2);
-			System.out.println(redsTuple.sentence);
-		}
-		*/
 		
 		Map<Seed,Integer> counts = new HashMap<Seed, Integer>();
 		LinkedList<REDSTuple> matchedTuples = new LinkedList<>();
@@ -702,7 +737,7 @@ public class REDS {
 			t.confidence = 1 - confidence;
 			// If tuple was already seen use past confidence values to calculate new confidence 
 			if (iter>0) {
-				t.confidence = t.confidence * SnowballConfig.wUpdt + t.confidence_old * (1 - SnowballConfig.wUpdt);
+				t.confidence = t.confidence * REDSConfig.wUpdt + t.confidence_old * (1 - REDSConfig.wUpdt);
 			}
 		}
 	}

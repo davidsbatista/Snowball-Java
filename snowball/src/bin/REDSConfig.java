@@ -49,7 +49,7 @@ public class REDSConfig {
 	public static String similarity;
 
 	/* threshold similarity for clustering */
-	public static double similarity_threshold;
+	public static double threshold_similarity;
 	
 	/* confidence threshold of an instance to used as seed */
 	public static double instance_confidance;
@@ -62,6 +62,9 @@ public class REDSConfig {
 	
 	/* number of words considered for expansion */	
 	public static int top_k;
+	
+	/* minimum number of clustered instances to be considered a pattern */ 
+	public static int min_pattern_support;	
 	
 	public static int max_tokens_away;
 	public static int min_tokens_away;
@@ -82,7 +85,8 @@ public class REDSConfig {
 					if (line.isEmpty() || line.startsWith("#")) continue;					
 					if (line.startsWith("wUpdt")) wUpdt = Double.parseDouble(line.split("=")[1]);
 					if (line.startsWith("number_iterations")) number_iterations = Integer.parseInt(line.split("=")[1]);
-					if (line.startsWith("use_RlogF")) use_RlogF = Boolean.parseBoolean(line.split("=")[1]);
+					if (line.startsWith("use_RlogF")) use_RlogF = Boolean.parseBoolean(line.split("=")[1]);					
+					if (line.startsWith("min_pattern_support")) min_pattern_support = Integer.parseInt(line.split("=")[1]);					
 					
 					if (line.startsWith("max_tokens_away")) max_tokens_away = Integer.parseInt(line.split("=")[1]);					
 					if (line.startsWith("min_tokens_away")) min_tokens_away = Integer.parseInt(line.split("=")[1]);
@@ -94,7 +98,7 @@ public class REDSConfig {
 					
 					if (line.startsWith("single_vector")) REDSConfig.single_vector = line.split("=")[1];
 					if (line.startsWith("similarity")) REDSConfig.similarity = line.split("=")[1];
-					if (line.startsWith("similarity_threshold")) REDSConfig.similarity_threshold = Double.parseDouble(line.split("=")[1]);
+					if (line.startsWith("threshold_similarity")) REDSConfig.threshold_similarity = Double.parseDouble(line.split("=")[1]);
 					if (line.startsWith("instance_confidance")) REDSConfig.instance_confidance = Double.parseDouble(line.split("=")[1]);
 					
 					if (line.startsWith("stopwords")) REDSConfig.stopwords = line.split("=")[1];
