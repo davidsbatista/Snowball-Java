@@ -3,7 +3,7 @@ package tests;
 import org.jblas.FloatMatrix;
 
 import vsm.TermsVector;
-import bin.REDSConfig;
+import bin.BREADSConfig;
 import bin.SnowballConfig;
 
 public class TestWord2Vec {
@@ -11,19 +11,19 @@ public class TestWord2Vec {
 	public static void main() {
 		
 		/* TEST WORD2VEC */ 
-		System.out.println("Size   			: " + REDSConfig.word2vec.getSize());
-		System.out.println("Analogy			: " + REDSConfig.word2vec.analogy("king", "man", "women"));
-		System.out.println("Word Vector		: " + REDSConfig.word2vec.getWordVector("king"));
-		System.out.println("TopNSize		: " + REDSConfig.word2vec.getTopNSize());		
-		System.out.println("Distance		: " + REDSConfig.word2vec.distance("charged"));		
+		System.out.println("Size   			: " + BREADSConfig.word2vec.getSize());
+		System.out.println("Analogy			: " + BREADSConfig.word2vec.analogy("king", "man", "women"));
+		System.out.println("Word Vector		: " + BREADSConfig.word2vec.getWordVector("king"));
+		System.out.println("TopNSize		: " + BREADSConfig.word2vec.getTopNSize());		
+		System.out.println("Distance		: " + BREADSConfig.word2vec.distance("charged"));		
 		System.out.println();
 
 		//cosine_similarity(model2['is']+model2['headquartered']+model2['in'],model2['is']+model2['based']+model2['in'])
 		
-		float[] v1 = REDSConfig.word2vec.getWordVector("headquartered");
+		float[] v1 = BREADSConfig.word2vec.getWordVector("headquartered");
 		//float[] v2 = SnowballConfig.word2vec.getWordVector("in");
 		
-		float[] v3 = REDSConfig.word2vec.getWordVector("headquarters");
+		float[] v3 = BREADSConfig.word2vec.getWordVector("headquarters");
 		//float[] v4 = SnowballConfig.word2vec.getWordVector("in");
 		
 		/*

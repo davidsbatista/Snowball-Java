@@ -14,7 +14,7 @@ import org.jblas.FloatMatrix;
 
 import vsm.CreateWord2VecVectors;
 import vsm.TermsVector;
-import bin.REDSConfig;
+import bin.BREADSConfig;
 import bin.SnowballConfig;
 
 public class REDSTuple extends TermsVector implements Comparable<REDSTuple>, Serializable {
@@ -84,8 +84,8 @@ public class REDSTuple extends TermsVector implements Comparable<REDSTuple>, Ser
 			// If contains only an auxiliary VERB + IN discard
 			// e.g.: is in, was out
 			if (pattern_tokens.size()==2) {
-				String verb = REDSConfig.EnglishLemm.lemmatize(pattern_tokens.get(0));
-				if (REDSConfig.aux_verbs.contains(verb) && pattern_universal_pos.get(1).equalsIgnoreCase("ADP")) {
+				String verb = BREADSConfig.EnglishLemm.lemmatize(pattern_tokens.get(0));
+				if (BREADSConfig.aux_verbs.contains(verb) && pattern_universal_pos.get(1).equalsIgnoreCase("ADP")) {
 					discard = true;
 				}
 			}
@@ -95,11 +95,11 @@ public class REDSTuple extends TermsVector implements Comparable<REDSTuple>, Ser
 				this.ReVerbpatterns = patterns;
 				FloatMatrix patternWord2Vec = null;
 				// Sum each word vector				
-				if (REDSConfig.single_vector.equalsIgnoreCase("sum")) {
+				if (BREADSConfig.single_vector.equalsIgnoreCase("sum")) {
 					patternWord2Vec = CreateWord2VecVectors.createVecSum(pattern_tokens);
 				}
 				// Centroid of each word vector
-				else if (REDSConfig.single_vector.equalsIgnoreCase("centroid")) {
+				else if (BREADSConfig.single_vector.equalsIgnoreCase("centroid")) {
 					patternWord2Vec = CreateWord2VecVectors.createVecCentroid(pattern_tokens);
 				}				
 				this.relationalWordsVector.add(patternWord2Vec);
@@ -124,10 +124,10 @@ public class REDSTuple extends TermsVector implements Comparable<REDSTuple>, Ser
 			hasReVerbPatterns = false;
 			ReVerbpatterns = EnglishPoSTagger.tagSentence(middle);
 			FloatMatrix patternWord2Vec = null;
-			if (REDSConfig.single_vector.equalsIgnoreCase("sum")) {
+			if (BREADSConfig.single_vector.equalsIgnoreCase("sum")) {
 				patternWord2Vec = CreateWord2VecVectors.createVecSum(ReVerbpatterns.get(0).token_words);
 			}
-			else if (REDSConfig.single_vector.equalsIgnoreCase("centroid")) {
+			else if (BREADSConfig.single_vector.equalsIgnoreCase("centroid")) {
 				patternWord2Vec = CreateWord2VecVectors.createVecCentroid(ReVerbpatterns.get(0).token_words);
 			}
 			this.relationalWordsVector.add(patternWord2Vec);
@@ -138,7 +138,7 @@ public class REDSTuple extends TermsVector implements Comparable<REDSTuple>, Ser
 	public static String getLeftContext(String left){		
 		String[] left_tokens = left.split("\\s");
 		List<String> tokens = new LinkedList<String>();
-		if (left_tokens.length>=REDSConfig.context_window_size) {
+		if (left_tokens.length>=BREADSConfig.context_window_size) {
 			for (int i = left_tokens.length-1; i > left_tokens.length-1-SnowballConfig.context_window_size; i--) tokens.add(left_tokens[i]);
 		} else return left;
 		String left_context = StringUtils.join(tokens," ");
@@ -149,8 +149,8 @@ public class REDSTuple extends TermsVector implements Comparable<REDSTuple>, Ser
 	public static String getRightContext(String right){
 		String[] right_tokens = right.split("\\s");
 		List<String> tokens = new LinkedList<String>();		
-		if (right_tokens.length>=REDSConfig.context_window_size) {
-			for (int i = 0; i < REDSConfig.context_window_size; i++) {
+		if (right_tokens.length>=BREADSConfig.context_window_size) {
+			for (int i = 0; i < BREADSConfig.context_window_size; i++) {
 				tokens.add(right_tokens[i]);
 			}
 		} else return right;

@@ -11,7 +11,7 @@ import tuples.Seed;
 import utils.Pair;
 import vsm.CreateWord2VecVectors;
 import vsm.TermsVector;
-import bin.REDSConfig;
+import bin.BREADSConfig;
 import bin.SnowballConfig;
 
 
@@ -75,7 +75,7 @@ public class REDSPattern {
 	
 	public FloatMatrix sum() {
 		mergeUniquePatterns();
-		FloatMatrix sum = FloatMatrix.zeros(REDSConfig.word2Vec_dim);
+		FloatMatrix sum = FloatMatrix.zeros(BREADSConfig.word2Vec_dim);
 		for (List<String> pattern : patterns) {
 			FloatMatrix p = CreateWord2VecVectors.createVecSum(pattern);
 			sum.addi(p);
@@ -85,7 +85,7 @@ public class REDSPattern {
 	
 	public FloatMatrix centroid() {
 		mergeUniquePatterns();
-		FloatMatrix centroid = FloatMatrix.zeros(REDSConfig.word2Vec_dim);
+		FloatMatrix centroid = FloatMatrix.zeros(BREADSConfig.word2Vec_dim);
 		for (List<String> pattern : patterns) {
 			FloatMatrix p = CreateWord2VecVectors.createVecCentroid(pattern);
 			centroid.addi(p);
@@ -102,21 +102,21 @@ public class REDSPattern {
 		double max_similarity = 0;
 		
 		for (List<String> relationalWords : patterns) {			
-			if (REDSConfig.single_vector.equalsIgnoreCase("sum")) {
+			if (BREADSConfig.single_vector.equalsIgnoreCase("sum")) {
 				FloatMatrix a = CreateWord2VecVectors.createVecSum(relationalWords);
 				score = TermsVector.cosSimilarity(a, vector);
 				if (score > max_similarity) {					
 					max_similarity = score;
 				}
 			}			
-			if (REDSConfig.single_vector.equalsIgnoreCase("centroid")) {
+			if (BREADSConfig.single_vector.equalsIgnoreCase("centroid")) {
 				FloatMatrix a = CreateWord2VecVectors.createVecCentroid(relationalWords);
 				score = TermsVector.cosSimilarity(a, vector);
 				if (score > max_similarity) {					
 					max_similarity = score;
 				}
 			}			
-			if (score>=REDSConfig.threshold_similarity) good++;
+			if (score>=BREADSConfig.threshold_similarity) good++;
 			else bad++;
 		}
 		if (good>=bad) {
@@ -138,7 +138,7 @@ public class REDSPattern {
 	}
 
 	public void updatePatternSelectivity(String e1, String e2) {
-		for (Seed s : REDSConfig.seedTuples) {
+		for (Seed s : BREADSConfig.seedTuples) {
 			if (s.e1.equals(e1.trim()) || s.e1.trim().equals(e1.trim())) {
 				if (s.e2.equals(e2.trim()) || s.e2.trim().equals(e2.trim())) {
 					positive++;

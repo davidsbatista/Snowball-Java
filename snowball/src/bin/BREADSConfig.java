@@ -18,7 +18,7 @@ import tuples.Seed;
 import word2vec.com.ansj.vec.Word2VEC;
 import edu.northwestern.at.utils.corpuslinguistics.lemmatizer.EnglishLemmatizer;
 
-public class REDSConfig {
+public class BREADSConfig {
 	
 	/* NLP related configuration */
 	public static PortugueseTokenizer PTtokenizer;
@@ -92,19 +92,19 @@ public class REDSConfig {
 					if (line.startsWith("min_tokens_away")) min_tokens_away = Integer.parseInt(line.split("=")[1]);
 					if (line.startsWith("context_window_size")) context_window_size = Integer.parseInt(line.split("=")[1]);
 					
-					if (line.startsWith("expand_patterns")) REDSConfig.expand_patterns = Boolean.parseBoolean(line.split("=")[1]);
-					if (line.startsWith("expansion")) REDSConfig.expansion = line.split("=")[1];
-					if (line.startsWith("top_k")) REDSConfig.expansion = line.split("=")[1];
+					if (line.startsWith("expand_patterns")) BREADSConfig.expand_patterns = Boolean.parseBoolean(line.split("=")[1]);
+					if (line.startsWith("expansion")) BREADSConfig.expansion = line.split("=")[1];
+					if (line.startsWith("top_k")) BREADSConfig.expansion = line.split("=")[1];
 					
-					if (line.startsWith("single_vector")) REDSConfig.single_vector = line.split("=")[1];
-					if (line.startsWith("similarity")) REDSConfig.similarity = line.split("=")[1];
-					if (line.startsWith("threshold_similarity")) REDSConfig.threshold_similarity = Double.parseDouble(line.split("=")[1]);
-					if (line.startsWith("instance_confidance")) REDSConfig.instance_confidance = Double.parseDouble(line.split("=")[1]);
+					if (line.startsWith("single_vector")) BREADSConfig.single_vector = line.split("=")[1];
+					if (line.startsWith("similarity")) BREADSConfig.similarity = line.split("=")[1];
+					if (line.startsWith("threshold_similarity")) BREADSConfig.threshold_similarity = Double.parseDouble(line.split("=")[1]);
+					if (line.startsWith("instance_confidance")) BREADSConfig.instance_confidance = Double.parseDouble(line.split("=")[1]);
 					
-					if (line.startsWith("stopwords")) REDSConfig.stopwords = line.split("=")[1];
-					if (line.startsWith("PoS_models_path")) REDSConfig.PoS_models_path = line.split("=")[1];
+					if (line.startsWith("stopwords")) BREADSConfig.stopwords = line.split("=")[1];
+					if (line.startsWith("PoS_models_path")) BREADSConfig.PoS_models_path = line.split("=")[1];
 					
-					if (line.startsWith("word2vec_path")) REDSConfig.Word2VecModelPath = line.split("=")[1];
+					if (line.startsWith("word2vec_path")) BREADSConfig.Word2VecModelPath = line.split("=")[1];
 				}				
 			} catch (IOException e) {
 				System.out.println("I/O error reading paramters.cfg");
@@ -121,7 +121,7 @@ public class REDSConfig {
 		EnglishLemm = new EnglishLemmatizer();		
 		System.out.print("Loading stopwords ...");
 		try {
-			Stopwords.loadStopWords(REDSConfig.stopwords);
+			Stopwords.loadStopWords(BREADSConfig.stopwords);
 		} catch (IOException e) {
 			System.out.println("Stopwords file not found!");
 			e.printStackTrace();
@@ -132,7 +132,7 @@ public class REDSConfig {
 		// Load Word2vec model
 		word2vec = new Word2VEC();
 		System.out.print("Loading word2vec model... ");
-		word2vec.loadGoogleModel(REDSConfig.Word2VecModelPath);			
+		word2vec.loadGoogleModel(BREADSConfig.Word2VecModelPath);			
 		System.out.println(word2vec.getWords() + " words loaded");
 		word2Vec_dim = word2vec.getSize();
 		System.out.println("Vectors dimension: " + word2Vec_dim);

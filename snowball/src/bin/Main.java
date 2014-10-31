@@ -78,9 +78,9 @@ public class Main {
 		}
 		
 		else if (system.equalsIgnoreCase("REDS")) {
-			REDSConfig.init(parameters, sentencesFile);
-			REDSConfig.readSeeds(seedsFile);
-			if (REDSConfig.e1_type==null || REDSConfig.e2_type==null) {
+			BREADSConfig.init(parameters, sentencesFile);
+			BREADSConfig.readSeeds(seedsFile);
+			if (BREADSConfig.e1_type==null || BREADSConfig.e2_type==null) {
 				System.out.println("No semantic types defined");
 				System.exit(0);
 			}
@@ -90,7 +90,7 @@ public class Main {
 			/* start a bootstrapping extraction */
 			Map<REDSTuple, List<Pair<REDSPattern, Double>>> candidateTuples = new HashMap<REDSTuple, List<Pair<REDSPattern,Double>>>();
 			List<REDSPattern> patterns = new ArrayList<REDSPattern>();			
-			REDS.start(sentencesFile,seedsFile,candidateTuples,patterns);
+			BREADS.start(sentencesFile,seedsFile,candidateTuples,patterns);
 			
 			/* calculate time taken to process */
 			

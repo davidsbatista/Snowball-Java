@@ -11,7 +11,7 @@ import tuples.Tuple;
 import utils.Pair;
 import vsm.CreateWord2VecVectors;
 import vsm.TermsVector;
-import bin.REDSConfig;
+import bin.BREADSConfig;
 import bin.SnowballConfig;
 
 public class Singlepass {
@@ -99,20 +99,20 @@ public class Singlepass {
 					FloatMatrix sentence = null;
 					
 					// represent the sentence as the use the sum of the relational words vectors				
-					if (REDSConfig.single_vector.equalsIgnoreCase("sum")) {						
+					if (BREADSConfig.single_vector.equalsIgnoreCase("sum")) {						
 						patternVector = extractionPattern.sum();
 						sentence = CreateWord2VecVectors.createVecSum(relationalWords);						
 					}
 					
 					// represent the sentence as the centroid of the relational words vectors
-					else if (REDSConfig.single_vector.equalsIgnoreCase("centroid")) {												
+					else if (BREADSConfig.single_vector.equalsIgnoreCase("centroid")) {												
 						patternVector = extractionPattern.centroid();
 						sentence = CreateWord2VecVectors.createVecCentroid(relationalWords);						
 					}
 					
 					// case when then extraction pattern is represented as single vector
 					// similarity calculate with just one vector
-					if (REDSConfig.similarity.equalsIgnoreCase("single-vector")) {
+					if (BREADSConfig.similarity.equalsIgnoreCase("single-vector")) {
 						similarity = TermsVector.cosSimilarity(sentence, patternVector);
 						/*
 						System.out.println("relational words		 : " + relationalWords);
@@ -128,7 +128,7 @@ public class Singlepass {
 					// 	returns a Pair, with true, and max_similarity score
 					// 	otherwise returns False,0
 					
-					else if (REDSConfig.similarity.equalsIgnoreCase("all")) {
+					else if (BREADSConfig.similarity.equalsIgnoreCase("all")) {
 						
 						Pair<Boolean,Double> result = extractionPattern.all(sentence);
 						
@@ -151,7 +151,7 @@ public class Singlepass {
 			}
 				
 			// If max_similarity < min_degree_match create a new cluster having this tuple as the centroid */			
-			if ( max_similarity < REDSConfig.threshold_similarity) {
+			if ( max_similarity < BREADSConfig.threshold_similarity) {
 				REDSPattern c = new REDSPattern(tuples.get(i));
 				patterns.add(c);
 			}

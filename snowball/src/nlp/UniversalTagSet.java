@@ -5,7 +5,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashMap;
 
-import bin.REDSConfig;
+import bin.BREADSConfig;
 
 public class UniversalTagSet {
 	
@@ -13,7 +13,7 @@ public class UniversalTagSet {
 	
 	public static void init() throws IOException {
 		
-		String file = REDSConfig.PoS_models_path+"/universal-tagset.txt";		
+		String file = BREADSConfig.PoS_models_path+"/universal-tagset.txt";		
 		BufferedReader br = new BufferedReader(new FileReader(file));
 		String line;
 		while ((line = br.readLine()) != null) {			
