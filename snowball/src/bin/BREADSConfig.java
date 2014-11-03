@@ -94,7 +94,7 @@ public class BREADSConfig {
 					
 					if (line.startsWith("expand_patterns")) BREADSConfig.expand_patterns = Boolean.parseBoolean(line.split("=")[1]);
 					if (line.startsWith("expansion")) BREADSConfig.expansion = line.split("=")[1];
-					if (line.startsWith("top_k")) BREADSConfig.expansion = line.split("=")[1];
+					if (line.startsWith("top_k")) BREADSConfig.top_k = Integer.parseInt(line.split("=")[1]);
 					
 					if (line.startsWith("single_vector")) BREADSConfig.single_vector = line.split("=")[1];
 					if (line.startsWith("similarity")) BREADSConfig.similarity = line.split("=")[1];

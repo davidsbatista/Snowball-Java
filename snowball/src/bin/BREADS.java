@@ -16,9 +16,13 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import nlp.ReVerbPattern;
+import nlp.Stopwords;
 
 import org.apache.commons.math3.ml.clustering.Cluster;
 import org.apache.commons.math3.ml.clustering.Clusterable;
@@ -30,6 +34,7 @@ import tuples.REDSTuple;
 import tuples.Seed;
 import tuples.Tuple;
 import utils.Pair;
+import utils.SortMaps;
 import vsm.CreateWord2VecVectors;
 import vsm.TermsVector;
 import word2vec.com.ansj.vec.domain.WordEntry;
@@ -103,7 +108,7 @@ public class BREADS {
 			System.out.println("Starting iteration " + iter);			
 			System.out.println("Seed matches:\n");			
 			LinkedList<REDSTuple> seedMatches = matchSeedsTuples(processedTuples);
-						
+			
 			/*
 			System.out.println("Seed matches: " + seedMatches.size());
 			for (REDSTuple tuple : seedMatches) {
@@ -121,7 +126,7 @@ public class BREADS {
 				System.exit(0);	
 			}
 			else {
-				Singlepass.SinglePassREDS(seedMatches,patterns);
+				Singlepass.SinglePassBREDS(seedMatches,patterns);
 				System.out.println("\n"+patterns.size() + " patterns generated");					
 				if (patterns.size()==0) {
 					System.out.println("No patterns generated");
@@ -137,8 +142,6 @@ public class BREADS {
 				patternIter = null;
 				System.out.println(patterns.size() + " patterns supported by at least " + BREADSConfig.min_pattern_support + " tuple(s)");
 				
-				
-				/*
 				for (int j = 0; j < patterns.size(); j++) {
 					System.out.println("Cluster " + j );
 					for (REDSTuple t : patterns.get(j).tuples) {
@@ -146,7 +149,6 @@ public class BREADS {
 					}				
 					System.out.println();
 				}
-				*/
 								
 				/* Maneira para comparar/avaliar patterns aprendidos */
 				// TODO: Dump initial patterns	
@@ -166,55 +168,35 @@ public class BREADS {
 				System.out.println("\n"+candidateTuples.size() + " tuples found");
 				
 				// Expand extraction patterns with semantic similar words
+								
+				System.out.println("BREADSConfig.expand_patterns:" + BREADSConfig.expand_patterns);
+				
 				if (BREADSConfig.expand_patterns==true) {
 					
 					Set<String> similar_words = expandPatterns(patterns);
-					
-					for (String string : similar_words) {
-						System.out.println(string);
-					}
-					
-					/*
-					List<String> list_similar_words = new LinkedList<String>(similar_words);					
-					Collections.sort(list_similar_words);
-					
-					LinkedList<String> top_similar = new LinkedList<String>(list_similar_words.subList(0, 2));
-					
-					for (String wordEntry : top_similar) {						 						
-						if (!similar_words.getFirst().contains(wordEntry.name) && wordEntry.score>=0.6) {
-							REDSPattern p = new REDSPattern();
-							System.out.println(wordEntry.name + '\t' + wordEntry.score);
+										
+					for (String word : similar_words) {
+						REDSPattern p = new REDSPattern();
+						System.out.println(word);
 							
-							// Create a (virtual) tuple (i.e., no sentence associated with) with the word2vec representation
-							REDSTuple t = new REDSTuple();
-							t.middle_words.add(wordEntry.name);
-							List<String> words = new LinkedList<String>();
-							words.add(wordEntry.name);
-							FloatMatrix patternWord2Vec = CreateWord2VecVectors.createVecSum(words);
-							t.middleReverbPatternsWord2VecSum.add(patternWord2Vec);
-							p.addTuple(t);
-							p.expanded=true;
-							ReVerbPattern rvb = new ReVerbPattern();
-							rvb.token_words = words;
-							t.ReVerbpatterns.add(rvb);
-							p.mergeUniquePatterns();
-							
-							// Add it to known patterns, if its different
-							if (!patterns.contains(p)) {
-								patterns.add(p);
-								System.out.println("New pattern generated: ");
-								System.out.println(p.patterns);
-								System.out.println();
-							}
-						}						
-					}
+						// Create a (virtual) tuple (i.e., no sentence associated with) with the word2vec representation
+						REDSTuple t = new REDSTuple();
+						t.middle_words.add(word);						
+						p.addTuple(t);
+						
+						p.expanded=true;
+						ReVerbPattern rvb = new ReVerbPattern();
+						rvb.token_words.add(word);
+						t.ReVerbpatterns.add(rvb);
+						p.mergeUniquePatterns();
+						patterns.add(p);						
+					}						
 
 					System.out.println("\nPatterns and Expanded Patterns");
 					for (REDSPattern pattern : patterns) {
 						System.out.println(pattern.patterns);
 						System.out.println();
-					}
-					*/					
+					}					
 				}
 				
 				
@@ -392,6 +374,14 @@ public class BREADS {
 						if (result.getFirst()==true) similarity = result.getSecond();
 						else similarity = 0.0;
 					}
+					
+					/*
+					System.out.println("sentence	: " + tuple.sentence);
+					System.out.println("rel			: " + relationalWords);
+					System.out.println("pattern		: " + extractionPattern.patterns);
+					System.out.println("similarity	: " + similarity);
+					System.out.println();
+					*/
 										
 					
 					// update patterns confidance based on matches					
@@ -438,7 +428,7 @@ public class BREADS {
 					System.out.println("similarity	:	" + simBest);
 					System.out.println("pattern		:	" + patternBest.confidence);
 					System.out.println();
-					*/
+					*/					
 
 					// Check if the tuple was already extracted in a previous iteration
 					REDSTuple tupleInCandidatesMap = null;	        					
@@ -492,7 +482,7 @@ public class BREADS {
 	 *  	- Calculate the intersection of all sets
 	 */
 	private static Set<String> expandPatterns(List<REDSPattern> patterns) {
-		
+				
 		//TODO: fazer o mesmo, mas seleccionar apenas verbos e nouns
 		/*
 		Set<String> words = new HashSet<String>();		
@@ -565,32 +555,58 @@ public class BREADS {
 		// TODO: normalize verbs (with Morphadoner) ?
 		// TODO: expandir apenas patterns com a confiança alta
 		
-		if (BREADSConfig.expansion=="common-words") {
+		
+		System.out.println("BREADSConfig.expansion: " + BREADSConfig.expansion);
+		
+		if (BREADSConfig.expansion.equalsIgnoreCase("common-words")) {
 			
 			for (REDSPattern p : patterns) {
+				
+				Set<String> relationalWords = new HashSet<String>();
+				FloatMatrix vectorPattern = null;
+				
 				for (REDSTuple tuple : p.tuples) {					
-					List<String> relationalWords = tuple.ReVerbpatterns.get(0).token_words;
-					FloatMatrix vectorPattern = null;					
+					ReVerbPattern reverb = tuple.ReVerbpatterns.get(0);
+					// If its not an expanded pattern it has PoS-tags 
+					// Select main verbs if it has a ReVerb pattern
+					if (p.expanded!=true) {
+						// If its a ReVerb pattern it has a verb, extract the verb
+						if (tuple.hasReVerbPatterns) {
+							for (int i = 0; i < reverb.token_ptb_pos_tags.size(); i++) {
+								if (reverb.token_ptb_pos_tags.get(i).equalsIgnoreCase("VBN")) {
+									relationalWords.add(reverb.token_words.get(i));
+								}
+							}						
+						}
+					}
+					
 					if (BREADSConfig.single_vector.equalsIgnoreCase("sum")) {
 						vectorPattern = CreateWord2VecVectors.createVecSum(relationalWords);
-					}					
+					}
+					
 					else if (BREADSConfig.single_vector.equalsIgnoreCase("centroid")) {
 						vectorPattern = CreateWord2VecVectors.createVecCentroid(relationalWords);
 					}
-					
-					Set<WordEntry> similar_words = BREADSConfig.word2vec.distance(vectorPattern.data, BREADSConfig.top_k);
-					
-					for (WordEntry wordEntry : similar_words) {
-						words.add(wordEntry.name);
-					}
 				}
+				
+				System.out.println(relationalWords);
+					
+				Set<WordEntry> similar_words = BREADSConfig.word2vec.distance(vectorPattern.data, BREADSConfig.top_k);
+					
+				for (WordEntry wordEntry : similar_words) {
+					System.out.println(wordEntry.name);
+					if (!Stopwords.stopwords.contains(wordEntry.name)) {
+						words.add(wordEntry.name);	
+					}						
+				}
+				System.out.println();
 			}
 		}
 		
 		// Generate a single vector from all the patterns, find the top-k words closest that vector
-		else if (BREADSConfig.expansion=="single-vector") {
+		else if (BREADSConfig.expansion.equalsIgnoreCase("single-vector")) {
 			
-			FloatMatrix vector = null;
+			FloatMatrix vector =  new FloatMatrix(BREADSConfig.word2Vec_dim);
 			FloatMatrix vectorPattern = null;
 			
 			for (REDSPattern p : patterns) {
@@ -612,9 +628,11 @@ public class BREADS {
 
 			Set<WordEntry> similar_words = BREADSConfig.word2vec.distance(vector.data, BREADSConfig.top_k);
 			
-			for (WordEntry wordEntry : similar_words) {				
+			for (WordEntry wordEntry : similar_words) {
+				System.out.println(wordEntry.name);
 				words.add(wordEntry.name);
 			}
+			System.out.println();
 		}
 		
 		return words;
@@ -643,7 +661,7 @@ public class BREADS {
 		}
 		
 		/* Print number of seed matches sorted by descending order */
-		/*
+		
 		System.out.println();
 		ArrayList<Map.Entry<Seed,Integer>> myArrayList = new ArrayList<Map.Entry<Seed, Integer>>(counts.entrySet());		
 		Collections.sort(myArrayList, new SortMaps.StringIntegerComparator());		
@@ -656,8 +674,8 @@ public class BREADS {
 			value = e.getValue().intValue();		
 			System.out.println(key.e1 + '\t'+ key.e2 +"\t" + value);
 		}
-		for (Seed s : Config.seedTuples) if (counts.get(s) == null) System.out.println(s.e1 + '\t' + s.e2 + "\t 0 tuples");
-		*/
+		for (Seed s : BREADSConfig.seedTuples) if (counts.get(s) == null) System.out.println(s.e1 + '\t' + s.e2 + "\t 0 tuples");
+		
 		return matchedTuples;
 	}
 	

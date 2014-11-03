@@ -67,7 +67,7 @@ public class Singlepass {
 		
 	
 	
-	public static void SinglePassREDS(LinkedList<REDSTuple> tuples, List<REDSPattern> patterns) {
+	public static void SinglePassBREDS(LinkedList<REDSTuple> tuples, List<REDSPattern> patterns) {
 		
 		System.out.println(tuples.size() + " tuples to process");
 		int count = 0;
@@ -114,6 +114,7 @@ public class Singlepass {
 					// similarity calculate with just one vector
 					if (BREADSConfig.similarity.equalsIgnoreCase("single-vector")) {
 						similarity = TermsVector.cosSimilarity(sentence, patternVector);
+						
 						/*
 						System.out.println("relational words		 : " + relationalWords);
 						System.out.println("pattern relational words : " + extractionPattern.patterns);						

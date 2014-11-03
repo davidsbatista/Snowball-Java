@@ -1,5 +1,6 @@
 package vsm;
 
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -11,7 +12,7 @@ import bin.BREADSConfig;
 
 public class CreateWord2VecVectors {
 	
-	public static FloatMatrix createVecSum(List<String> text) {
+	public static FloatMatrix createVecSum(Collection<String> text) {
 		FloatMatrix sum = new FloatMatrix(BREADSConfig.word2Vec_dim);
 		List<String> words_vector = new LinkedList<String>();
 		for (String w : text) {
@@ -39,7 +40,7 @@ public class CreateWord2VecVectors {
 		return sum;
 	}
 		
-	public static FloatMatrix createVecCentroid(List<String> text){
+	public static FloatMatrix createVecCentroid(Collection<String> text){
 		FloatMatrix centroid = new FloatMatrix(BREADSConfig.word2Vec_dim);
 		for (String word : text) {
 			if (!Stopwords.stopwords.contains(text)) {

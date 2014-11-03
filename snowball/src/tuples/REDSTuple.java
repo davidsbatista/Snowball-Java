@@ -63,8 +63,6 @@ public class REDSTuple extends TermsVector implements Comparable<REDSTuple>, Ser
 		this.right_words = new HashSet<String>();
 		this.relationalWordsVector = new LinkedList<FloatMatrix>();
 		this.ReVerbpatterns = new LinkedList<ReVerbPattern>();
-		
-		// Word2Vec to represent sentence
 				
 		// Save words
 		left_words.addAll(TermsVector.normalize(getLeftContext(left)));
@@ -81,11 +79,12 @@ public class REDSTuple extends TermsVector implements Comparable<REDSTuple>, Ser
 			List<String> pattern_ptb_pos = patterns.get(0).token_ptb_pos_tags;
 			List<String> pattern_universal_pos = patterns.get(0).token_universal_pos_tags;		
 						
-			// If contains only an auxiliary VERB + IN discard
-			// e.g.: is in, was out
+			// If contains only an auxiliary VERB discard
+			// e.g.: is in, was out, is a
 			if (pattern_tokens.size()==2) {
 				String verb = BREADSConfig.EnglishLemm.lemmatize(pattern_tokens.get(0));
-				if (BREADSConfig.aux_verbs.contains(verb) && pattern_universal_pos.get(1).equalsIgnoreCase("ADP")) {
+				//if (BREADSConfig.aux_verbs.contains(verb) && pattern_universal_pos.get(1).equalsIgnoreCase("ADP")) {
+				if (BREADSConfig.aux_verbs.contains(verb)) {
 					discard = true;
 				}
 			}
@@ -94,6 +93,14 @@ public class REDSTuple extends TermsVector implements Comparable<REDSTuple>, Ser
 				hasReVerbPatterns = true;
 				this.ReVerbpatterns = patterns;
 				FloatMatrix patternWord2Vec = null;
+				
+				/*
+				System.out.println(sentence);
+				System.out.println(patterns.get(0).token_words);
+				System.out.println(patterns.get(0).token_universal_pos_tags);
+				System.out.println();
+				*/				
+				
 				// Sum each word vector				
 				if (BREADSConfig.single_vector.equalsIgnoreCase("sum")) {
 					patternWord2Vec = CreateWord2VecVectors.createVecSum(pattern_tokens);

@@ -15,12 +15,14 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import tuples.Seed;
 import tuples.Tuple;
 import utils.Pair;
+import utils.SortMaps;
 import clustering.Singlepass;
 import clustering.SnowballPattern;
 
@@ -349,7 +351,6 @@ public class Snowball {
 		}
 		
 		/* Print number of seed matches sorted by descending order */
-		/*
 		System.out.println();
 		ArrayList<Map.Entry<Seed,Integer>> myArrayList = new ArrayList<Map.Entry<Seed, Integer>>(counts.entrySet());		
 		Collections.sort(myArrayList, new SortMaps.StringIntegerComparator());		
@@ -362,8 +363,7 @@ public class Snowball {
 			value = e.getValue().intValue();		
 			System.out.println(key.e1 + '\t'+ key.e2 +"\t" + value);
 		}
-		for (Seed s : Config.seedTuples) if (counts.get(s) == null) System.out.println(s.e1 + '\t' + s.e2 + "\t 0 tuples");
-		*/
+		for (Seed s : SnowballConfig.seedTuples) if (counts.get(s) == null) System.out.println(s.e1 + '\t' + s.e2 + "\t 0 tuples");
 		return matchedTuples;
 	}
 }
