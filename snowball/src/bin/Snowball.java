@@ -20,9 +20,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import tuples.Seed;
-import tuples.Tuple;
+import tuples.SnowballTuple;
 import utils.Pair;
 import utils.SortMaps;
+import vsm.TermsVector;
 import clustering.Singlepass;
 import clustering.SnowballPattern;
 
@@ -30,15 +31,15 @@ public class Snowball {
 	
 	public static int iter = 0;
 
-	public static void start(String sentencesFile, String seedsFile,Map<Tuple, List<Pair<SnowballPattern, Double>>> candidateTuples, List<SnowballPattern> patterns) throws IOException, Exception {		
+	public static void start(String sentencesFile, String seedsFile,Map<SnowballTuple, List<Pair<SnowballPattern, Double>>> candidateTuples, List<SnowballPattern> patterns) throws IOException, Exception {		
 		long startTime = System.nanoTime();
 		SnowballConfig.readSeeds(seedsFile);
 		iteration(startTime, sentencesFile, candidateTuples, patterns);		
 	}
 	
-	static void iteration(long startTime, String sentencesFile, Map<Tuple, List<Pair<SnowballPattern, Double>>> candidateTuples, List<SnowballPattern> patterns) throws IOException, Exception {					
+	static void iteration(long startTime, String sentencesFile, Map<SnowballTuple, List<Pair<SnowballPattern, Double>>> candidateTuples, List<SnowballPattern> patterns) throws IOException, Exception {					
 
-		List<Tuple> processedTuples = new LinkedList<Tuple>();		
+		List<SnowballTuple> processedTuples = new LinkedList<SnowballTuple>();		
 		File f = new File("Snowball_processed_tuples.obj");
 		
 		if (!f.exists()) {
@@ -62,7 +63,7 @@ public class Snowball {
 			System.out.println("Loading pre-processed sentences");
 			FileInputStream in = new FileInputStream("Snowball_processed_tuples.obj");
 			ObjectInputStream objectInput = new ObjectInputStream(in);
-			processedTuples = (List<Tuple>) objectInput.readObject();
+			processedTuples = (List<SnowballTuple>) objectInput.readObject();
 			System.out.println("\n"+processedTuples.size() + " tuples gathered");						
 			in.close();
 		}
@@ -73,7 +74,7 @@ public class Snowball {
 			System.out.println("\n***************************");
 			System.out.println("Starting iteration " + iter);			
 			System.out.println("Collecting tuples acording to " +  SnowballConfig.seedTuples.size() + " seeds ");			
-			LinkedList<Tuple> seedMatches = matchSeedsTuples(processedTuples);
+			LinkedList<SnowballTuple> seedMatches = matchSeedsTuples(processedTuples);
 
 			/*
 			for (Tuple tuple : seedMatches) {
@@ -104,6 +105,20 @@ public class Snowball {
 				patternIter = null;
 				
 				System.out.println(patterns.size() + " patterns supported by at least " + SnowballConfig.min_pattern_support + " tuple(s)");
+				
+				System.out.println("Patterns " + patterns.size() + " generated");
+				for (SnowballPattern p: patterns) {
+					System.out.println("confidence	:" + p.confidence);
+					System.out.println("#tuples		:" + p.tuples.size());
+					for (SnowballTuple t: p.tuples) {
+						System.out.println("left 	:" + t.left.keySet());
+						System.out.println("middle 	:" + t.middle.keySet());
+						System.out.println("right	:" + t.right.keySet());
+						System.out.println();
+					}
+					System.out.println("====================================\n");
+				}
+			
 
 				// - Look for sentences with occurrence of seeds semantic type (e.g., ORG - LOC)
 				// - Measure the similarity of each sentence with each Pattern
@@ -113,21 +128,6 @@ public class Snowball {
 				comparePatternsTuples(candidateTuples, patterns, processedTuples);
 				System.out.println("\n"+candidateTuples.size() + " tuples found");
 				
-				/*
-				System.out.println("Patterns " + patterns.size() + " generated");
-				for (SnowballPattern p: patterns) {
-					System.out.println("confidence	:" + p.confidence);
-					System.out.println("#tuples		:" + p.tuples.size());
-					for (Tuple t: p.tuples) {
-						//System.out.println("left 	:" + t.left_words);
-						System.out.println("middle 	:" + t.middle_words);
-						//System.out.println("right	:" + t.right_words);
-						System.out.println();
-					}
-					System.out.println("====================================\n");
-				}
-				*/
-				
 				// Update Tuple confidence based on patterns confidence
 				System.out.println("Calculating tuples confidence");
 				calculateTupleConfidence(candidateTuples);
@@ -135,9 +135,9 @@ public class Snowball {
 				System.out.println("\n"+candidateTuples.size() + " tuples");
 
 				// Print each collected Tuple and its confidence				
-				ArrayList<Tuple> tuplesOrdered  = new ArrayList<Tuple>(candidateTuples.keySet());				
+				ArrayList<SnowballTuple> tuplesOrdered  = new ArrayList<SnowballTuple>(candidateTuples.keySet());				
 				Collections.sort(tuplesOrdered);
-				for (Tuple t : tuplesOrdered) System.out.println(t.e1 + '\t' + t.e2 + '\t' + t.confidence);
+				for (SnowballTuple t : tuplesOrdered) System.out.println(t.e1 + '\t' + t.e2 + '\t' + t.confidence);
 				System.out.println();
 				
 				// Calculate a new seed set of tuples to use in next iteration, such that:
@@ -145,7 +145,7 @@ public class Snowball {
 				System.out.println("Adding tuples with confidence =>" + SnowballConfig.min_tuple_confidence + " as seed for next iteration");
 				int added = 0;
 				int removed = 0;				
-				for (Tuple t : candidateTuples.keySet()) {
+				for (SnowballTuple t : candidateTuples.keySet()) {
 					if (t.confidence>=SnowballConfig.min_tuple_confidence) {
 						SnowballConfig.seedTuples.add(new Seed(t.e1.trim(),t.e2.trim()));
 						added++;
@@ -158,9 +158,9 @@ public class Snowball {
 		}		
 	}
 
-	static void comparePatternsTuples(Map<Tuple, List<Pair<SnowballPattern, Double>>> candidateTuples, List<SnowballPattern> patterns, List<Tuple> processedTuples) {		
+	static void comparePatternsTuples(Map<SnowballTuple, List<Pair<SnowballPattern, Double>>> candidateTuples, List<SnowballPattern> patterns, List<SnowballTuple> processedTuples) {		
 		int count = 0;		
-		for (Tuple t : processedTuples) {
+		for (SnowballTuple t : processedTuples) {
 			if (count % 10000==0) System.out.print(".");
 			List<Integer> patternsMatched = new LinkedList<Integer>();
 			double simBest = 0;
@@ -213,8 +213,8 @@ public class Snowball {
 				Pair<SnowballPattern,Double> p = new Pair<SnowballPattern, Double>(patternBest, simBest);
 
 				// Check if the tuple was already extracted in a previous iteration
-				Tuple tupleInCandidatesMap = null;	        					
-				for (Tuple extractedT : candidateTuples.keySet()) {
+				SnowballTuple tupleInCandidatesMap = null;	        					
+				for (SnowballTuple extractedT : candidateTuples.keySet()) {
 					if (t.equals(extractedT)) {
 						tupleInCandidatesMap = extractedT;        							
 					}        						
@@ -254,8 +254,8 @@ public class Snowball {
 	/*
 	 * Calculates the confidence of a tuple is: Conf(P_i) * DegreeMatch(P_i)
 	 */	
-	static void calculateTupleConfidence(Map<Tuple, List<Pair<SnowballPattern, Double>>> candidateTuples) throws IOException {
-		for (Tuple t : candidateTuples.keySet()) {			
+	static void calculateTupleConfidence(Map<SnowballTuple, List<Pair<SnowballPattern, Double>>> candidateTuples) throws IOException {
+		for (SnowballTuple t : candidateTuples.keySet()) {			
 			double confidence = 1;
 			if (iter>0) {
 				t.confidence_old = t.confidence;
@@ -272,7 +272,7 @@ public class Snowball {
 		}
 	}
 	
-	static void generateTuples(String file, List<Tuple> processedTuples) throws Exception {
+	static void generateTuples(String file, List<SnowballTuple> processedTuples) throws Exception {
 		String sentence = null;
 		String e1_begin = "<"+SnowballConfig.e1_type+">";
 		String e1_end = "</"+SnowballConfig.e1_type+">";
@@ -285,59 +285,73 @@ public class Snowball {
 		// Find all possible pairs of seed e1_type and e2_type
 		while ( ( sentence = f1.readLine() ) != null) {
 			if (count % 10000 == 0) System.out.print(".");
-			sentence = sentence.trim();			
+			sentence = sentence.trim();
 			Matcher matcher1 = pattern1.matcher(sentence);
 			Matcher matcher2 = pattern2.matcher(sentence);			
-			// Make sure e2 is not the same as e1, if e1 and e2 have the same type
-			// Just run matcher2.find() to match the next occurrence
-			boolean found1 = matcher1.find();
-			boolean found2 = matcher2.find();
-			if (SnowballConfig.e1_type.equals(SnowballConfig.e2_type) && found1) {
-				found2 = matcher2.find();
-			}		
+			List<Pair<Integer,Integer>> allMatches1 = new ArrayList<Pair<Integer,Integer>>();
+			List<Pair<Integer,Integer>> allMatches2 = new ArrayList<Pair<Integer,Integer>>();
+
+			// Find all occurrences of semantic type of e1
+			while (matcher1.find()) allMatches1.add(new Pair<Integer,Integer>(matcher1.start(),matcher1.end()));
 			
-			try {
-				String e1 = (sentence.substring(matcher1.start(),matcher1.end())).replaceAll("<[^>]+>"," ");
-				String e2 = (sentence.substring(matcher2.start(),matcher2.end())).replaceAll("<[^>]+>"," ");
-				if ( (!SnowballConfig.e1_type.equals(SnowballConfig.e2_type) && matcher2.end()<matcher1.end() || matcher2.start()<matcher1.end())) continue;								
-				if ( (found1 && found2) && matcher1.end()<matcher2.end()) {
+			// Find all occurrences of semantic type of e2
+			while (matcher2.find()) allMatches2.add(new Pair<Integer,Integer>(matcher2.start(),matcher2.end()));
+			
+			for (Pair<Integer, Integer> pair1 : allMatches1) {
+				for (Pair<Integer, Integer> pair2 : allMatches2) {					
+					String e1 = (sentence.substring(pair1.getFirst(),pair1.getSecond())).replaceAll("<[^>]+>"," ");
+					String e2 = (sentence.substring(pair2.getFirst(),pair2.getSecond())).replaceAll("<[^>]+>"," ");
 					
-					// Ignore contexts where another entity occur between the two entities
-					String middleText = sentence.substring(matcher1.end(),matcher2.start());
-            		Pattern ptr = Pattern.compile("<[^>]+>[^<]+</[^>]+>");            		
-            		Matcher matcher = ptr.matcher(middleText);            		
-	            	if (matcher.find()) continue;
-	            	
-					// Consider only tokens, name-entities are not part of the considered vocabulary               		
-	            	String left_txt = sentence.substring(0,matcher1.start()).replaceAll("<[^>]+>[^<]+</[^>]+>","");
-	            	String middle_txt = sentence.substring(matcher1.end(),matcher2.start()).replaceAll("<[^>]+>[^<]+</[^>]+>","");
-	            	String right_txt = sentence.substring(matcher2.end()+1).replaceAll("<[^>]+>[^<]+</[^>]+>","");
-	        		String[] middle_tokens = middle_txt.split("\\s");
-	        		
-	                if (middle_tokens.length<=SnowballConfig.max_tokens_away && middle_tokens.length>=SnowballConfig.min_tokens_away) {	                	
-	                	// Create a Tuple for an occurrence found        				
-	        			Tuple t = new Tuple(left_txt, middle_txt, right_txt, e1.trim(), e2.trim(), sentence);	        			
-	        			processedTuples.add(t);        			
-	                }
-				}
-				
-			} catch (java.lang.IllegalStateException e) {
-				/*
-				System.out.println(e.getLocalizedMessage());
-				System.out.println(e.getStackTrace());
-				*/				
-				}			
+					// do not consider cases where e2 occurs before e1
+					if ( (!SnowballConfig.e1_type.equals(SnowballConfig.e2_type) && pair2.getSecond()<pair1.getFirst() || pair2.getFirst()<pair1.getSecond())) continue;
+					
+					// consider the case where the e1 occurs before e2
+					if ( pair1.getSecond()<pair2.getFirst()) {
+						
+						// Ignore contexts where another entity occur between the two entities
+						String middleText = sentence.substring(pair1.getSecond(),pair2.getFirst());
+	            		Pattern ptr = Pattern.compile("<[^>]+>[^<]+</[^>]+>");            		
+	            		Matcher matcher = ptr.matcher(middleText);            		
+		            	if (!matcher.find()) {
+		            		
+							// Consider only tokens, name-entities are not part of the considered vocabulary               		
+			            	String left_txt = sentence.substring(0,pair1.getFirst()).replaceAll("<[^>]+>[^<]+</[^>]+>","");
+			            	String middle_txt = sentence.substring(pair1.getSecond(),pair2.getFirst()).replaceAll("<[^>]+>[^<]+</[^>]+>","");
+			            	String right_txt = sentence.substring(pair2.getSecond()+1).replaceAll("<[^>]+>[^<]+</[^>]+>","");
+			        		String[] middle_tokens = middle_txt.trim().split("\\s");
+
+			                if (middle_tokens.length<=SnowballConfig.max_tokens_away && middle_tokens.length>=SnowballConfig.min_tokens_away) {
+			                	
+			                	// Create a Tuple for an occurrence found			                	
+			            	    List<String> left =  TermsVector.normalize(left_txt);
+			            	    List<String> middle =  TermsVector.normalize(middle_txt);
+			            	    List<String> right =  TermsVector.normalize(right_txt);
+			                	
+			            	    if (left.size()==0 || middle.size()==0 || right.size()==0) {
+			            	    	System.out.println(e1 + '\t' + e2);
+			            	    	System.out.println(sentence);
+			            	    	continue;
+			            	    }
+			            	    else {			            	    	
+			            	    	SnowballTuple t = new SnowballTuple(left, middle, right, e1.trim(), e2.trim(), sentence);	        			
+				        			processedTuples.add(t);        			
+			            	    }
+			                }
+		            	}
+					}					
+				}				
+			}
 		count++;
 		}
 		f1.close();
 	}
 
-	static LinkedList<Tuple> matchSeedsTuples(List<Tuple> processedTuples) {
+	static LinkedList<SnowballTuple> matchSeedsTuples(List<SnowballTuple> processedTuples) {
 		
 		Map<Seed,Integer> counts = new HashMap<Seed, Integer>();
-		LinkedList<Tuple> matchedTuples = new LinkedList<>();
+		LinkedList<SnowballTuple> matchedTuples = new LinkedList<>();
 		int processed = 0;
-		for (Tuple tuple : processedTuples) {
+		for (SnowballTuple tuple : processedTuples) {
 			if (processed % 10000==0) System.out.println(processed + " of " + processedTuples.size());
 			for (Seed seed : SnowballConfig.seedTuples) {
 				if (tuple.e1.equalsIgnoreCase(seed.e1) && tuple.e2.equalsIgnoreCase(seed.e2)) {

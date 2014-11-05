@@ -10,10 +10,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import tuples.REDSTuple;
-import tuples.Tuple;
+import tuples.BREDSTuple;
+import tuples.SnowballTuple;
 import utils.Pair;
-import clustering.REDSPattern;
+import clustering.BREDSPattern;
 import clustering.SnowballPattern;
 
 public class Main {
@@ -23,8 +23,7 @@ public class Main {
 	public static void main(String[] args) throws Exception {
 		long maxBytes = Runtime.getRuntime().maxMemory();
 		System.out.println("Max memory: " + maxBytes / 1024 / 1024 + " Mbytes");
-		long startTime = System.nanoTime();
-
+		
 		if (args.length==0) {
 			System.out.println("java -jar bootstrapping.jar [Snowball|REDS] sentencesFile parameters.cfg seedsFile");
 			System.out.println();
@@ -45,17 +44,31 @@ public class Main {
 				System.exit(0);
 			}
 			
-			Map<Tuple, List<Pair<SnowballPattern, Double>>> candidateTuples = new HashMap<Tuple, List<Pair<SnowballPattern,Double>>>();
+			Map<SnowballTuple, List<Pair<SnowballPattern, Double>>> candidateTuples = new HashMap<SnowballTuple, List<Pair<SnowballPattern,Double>>>();
 			List<SnowballPattern> patterns = new ArrayList<SnowballPattern>();
 			
+			long startTime = System.nanoTime();
 			Snowball.start(sentencesFile,seedsFile,candidateTuples,patterns);
+			
+			/* calculate time taken to process */
+			
+			long stopTime = System.nanoTime();
+			long elapsedTime = stopTime - startTime;		
+			long elapsedTimeSeconds = TimeUnit.SECONDS.convert(elapsedTime, TimeUnit.NANOSECONDS);		
+			long hours = elapsedTimeSeconds / 3600;
+			long minutes = (elapsedTimeSeconds % 3600) / 60;
+			long seconds = elapsedTimeSeconds % 60;
+			String timeString = hours + ":" + minutes + ":" + seconds + " seconds";
+			System.out.println("Runtime: " + timeString);		
+			System.out.println();
+			System.out.println(candidateTuples.size() + " tuples extracted");
 			
 			BufferedWriter f1 = new BufferedWriter(new FileWriter("tuples.txt"));
 			BufferedWriter f2 = new BufferedWriter(new FileWriter("patterns.txt"));
-			ArrayList<Tuple> tuplesOrdered  = new ArrayList<Tuple>(candidateTuples.keySet());				
+			ArrayList<SnowballTuple> tuplesOrdered  = new ArrayList<SnowballTuple>(candidateTuples.keySet());				
 			Collections.sort(tuplesOrdered);
 			Collections.reverse(tuplesOrdered);
-			for (Tuple t : tuplesOrdered) {
+			for (SnowballTuple t : tuplesOrdered) {
 				f1.write("tuple:" + t.e1 + '\t' + t.e2 + '\t' + t.confidence + "\n");
 				f1.write(t.sentence + "\n\n");
 			}
@@ -63,13 +76,13 @@ public class Main {
 			for (SnowballPattern p : patterns) {
 				f2.write("confidence	:" + p.confidence+'\n');
 				f2.write("#tuples		:" + p.tuples.size()+'\n');
-				for (Tuple tuple : p.tuples) {
+				for (SnowballTuple tuple : p.tuples) {
 					f2.write("\nleft: ");
-					for (String word : tuple.left_words) f2.write(word+',');
+					for (String word : tuple.left.keySet()) f2.write(word+',');
 					f2.write("\nmiddle: ");
-					for (String word : tuple.middle_words) f2.write(word+',');
+					for (String word : tuple.middle.keySet()) f2.write(word+',');
 					f2.write("\nright: ");
-					for (String word : tuple.right_words) f2.write(word+',');
+					for (String word : tuple.right.keySet()) f2.write(word+',');
 					f2.write("\n");
 				}
 				f2.write("\n================================================\n");
@@ -78,9 +91,9 @@ public class Main {
 		}
 		
 		else if (system.equalsIgnoreCase("REDS")) {
-			BREADSConfig.init(parameters, sentencesFile);
-			BREADSConfig.readSeeds(seedsFile);
-			if (BREADSConfig.e1_type==null || BREADSConfig.e2_type==null) {
+			BREDSConfig.init(parameters, sentencesFile);
+			BREDSConfig.readSeeds(seedsFile);
+			if (BREDSConfig.e1_type==null || BREDSConfig.e2_type==null) {
 				System.out.println("No semantic types defined");
 				System.exit(0);
 			}
@@ -88,9 +101,10 @@ public class Main {
 			//TestWord2Vec.main();
 			
 			/* start a bootstrapping extraction */
-			Map<REDSTuple, List<Pair<REDSPattern, Double>>> candidateTuples = new HashMap<REDSTuple, List<Pair<REDSPattern,Double>>>();
-			List<REDSPattern> patterns = new ArrayList<REDSPattern>();			
-			BREADS.start(sentencesFile,seedsFile,candidateTuples,patterns);
+			Map<BREDSTuple, List<Pair<BREDSPattern, Double>>> candidateTuples = new HashMap<BREDSTuple, List<Pair<BREDSPattern,Double>>>();
+			List<BREDSPattern> patterns = new ArrayList<BREDSPattern>();
+			long startTime = System.nanoTime();
+			BREDS.start(sentencesFile,seedsFile,candidateTuples,patterns);
 			
 			/* calculate time taken to process */
 			
@@ -108,15 +122,15 @@ public class Main {
 			/* save results disk */
 			BufferedWriter f1 = new BufferedWriter(new FileWriter("tuples.txt"));
 			BufferedWriter f2 = new BufferedWriter(new FileWriter("patterns.txt"));
-			ArrayList<REDSTuple> tuplesOrdered  = new ArrayList<REDSTuple>(candidateTuples.keySet());				
+			ArrayList<BREDSTuple> tuplesOrdered  = new ArrayList<BREDSTuple>(candidateTuples.keySet());				
 			Collections.sort(tuplesOrdered);
 			Collections.reverse(tuplesOrdered);
-			for (REDSTuple t : tuplesOrdered) {
+			for (BREDSTuple t : tuplesOrdered) {
 				f1.write("tuple:" + t.e1 + '\t' + t.e2 + '\t' + t.confidence + "\n");
 				f1.write(t.sentence + "\n\n");
 			}
 			f1.close();
-			for (REDSPattern p : patterns) {
+			for (BREDSPattern p : patterns) {
 				f2.write("positive		:" + p.positive+'\n');
 				f2.write("negative		:" + p.negative+'\n');
 				f2.write("confidence	:" + p.confidence+'\n');
@@ -132,7 +146,7 @@ public class Main {
 	/*
 	 * Writes the extracted Tuples and the generated Extraction Patterns to files
 	 */ 
-	static void outputToFiles(Map<Tuple, List<Pair<SnowballPattern, Double>>> candidateTuples, List<SnowballPattern> patterns) throws IOException {
+	static void outputToFiles(Map<SnowballTuple, List<Pair<SnowballPattern, Double>>> candidateTuples, List<SnowballPattern> patterns) throws IOException {
 		/*
 		BufferedWriter f1 = new BufferedWriter(new FileWriter("tuples.txt"));
 		BufferedWriter f2 = new BufferedWriter(new FileWriter("patterns.txt"));

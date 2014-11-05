@@ -14,14 +14,14 @@ import nlp.ReVerbPattern;
 import org.jblas.FloatMatrix;
 
 import tuples.Seed;
-import tuples.Tuple;
+import tuples.SnowballTuple;
 import utils.SortMaps;
 import vsm.CreateWord2VecVectors;
 import bin.SnowballConfig;
 
 public class SnowballPattern {
 	
-	public Set<Tuple> tuples;
+	public Set<SnowballTuple> tuples;
 	public Set<List<String>> patterns = new HashSet<List<String>>();
 	
 	// Expanded pattern
@@ -47,8 +47,8 @@ public class SnowballPattern {
 	public double RlogF_old = 0;
 	
 	// Create a new cluster with just one tuple, which will be the centroid
-	public SnowballPattern(Tuple tuple){ 
-		tuples = new HashSet<Tuple>();	
+	public SnowballPattern(SnowballTuple tuple){ 
+		tuples = new HashSet<SnowballTuple>();	
 		
 		this.tuples.add(tuple);
 		
@@ -59,7 +59,7 @@ public class SnowballPattern {
 		
 	public SnowballPattern() {
 		super();
-		tuples = new HashSet<Tuple>();
+		tuples = new HashSet<SnowballTuple>();
 	}
 	
 	public void updateConfidencePattern(){
@@ -128,7 +128,7 @@ public class SnowballPattern {
 		Map<String,Double> max_t = null;
 		
 		if (vector.equals("left")) {
-			for (Tuple tuple : tuples) {				
+			for (SnowballTuple tuple : tuples) {				
 				if (tuple.left.keySet().size()>max_size) {
 					max_t = tuple.left;
 					max_size = tuple.left.size();
@@ -137,7 +137,7 @@ public class SnowballPattern {
 		}
 
 		if (vector.equals("middle")) {
-			for (Tuple tuple : tuples) {
+			for (SnowballTuple tuple : tuples) {
 				if (tuple.middle.keySet().size()>max_size) {
 					max_t = tuple.middle;
 					max_size = tuple.middle.size();
@@ -145,7 +145,7 @@ public class SnowballPattern {
 			}
 		}
 		if (vector.equals("right")) {
-			for (Tuple tuple : tuples) {
+			for (SnowballTuple tuple : tuples) {
 				if (tuple.right.keySet().size()>max_size) {
 					max_t = tuple.middle;
 					max_size = tuple.right.size();
@@ -163,7 +163,7 @@ public class SnowballPattern {
 			Set<String> t_keys = null;
 			Map<String,Double> t_vector = null;
 
-			for (Tuple t : tuples) {
+			for (SnowballTuple t : tuples) {
 				
 				if (vector.equals("left")) {
 					t_keys = t.left.keySet();
@@ -224,7 +224,7 @@ public class SnowballPattern {
 		else this.RlogF = 0;		
 	}
 	
-	public void addTuple(Tuple t){
+	public void addTuple(SnowballTuple t){
 		tuples.add(t);
 	}	
 }

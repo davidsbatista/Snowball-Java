@@ -7,6 +7,8 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 
+import nlp.Stopwords;
+
 import org.jblas.FloatMatrix;
 
 public abstract class TermsVector {
@@ -15,17 +17,18 @@ public abstract class TermsVector {
 		
 		List<String> terms = new LinkedList<String>();
 		
-		// Remove text between tags and numbers
-		for (String term : Arrays.asList(text.split("\\s"))) {
+		// remove tagged text and numbers
+		for (String term : Arrays.asList(text.split("\\s+"))) {
 			term = term.replaceAll("<[^>]+>[^<]+</?[^>]+>"," ").replaceAll("^[0-9]+?(,|\\.|/)?([0-9]+)?.?(º|ª|%)?", "");			
 			terms.add(term);
 		}
 
-		// Convert terms to lower case representation
+		// convert terms to lower case representation
 	    ListIterator<String> iterator = terms.listIterator();
 	    while (iterator.hasNext()) iterator.set(iterator.next().toLowerCase());
-	    		
-		return terms;		
+	    
+	    // remove stop-words and return
+	    return Stopwords.removeStopWords(terms);
 	}
 	
 	// Cosine Similarity between FloatMatrix vectors

@@ -6,12 +6,12 @@ import java.util.List;
 
 import org.jblas.FloatMatrix;
 
-import tuples.REDSTuple;
-import tuples.Tuple;
+import tuples.BREDSTuple;
+import tuples.SnowballTuple;
 import utils.Pair;
 import vsm.CreateWord2VecVectors;
 import vsm.TermsVector;
-import bin.BREADSConfig;
+import bin.BREDSConfig;
 import bin.SnowballConfig;
 
 public class Singlepass {
@@ -22,7 +22,7 @@ public class Singlepass {
 	 * - Word2Vec vector representation
 	 */ 		
 				
-	public static void singlePassTFIDF(LinkedList<Tuple> tuples, List<SnowballPattern> patterns) throws IOException {
+	public static void singlePassTFIDF(LinkedList<SnowballTuple> tuples, List<SnowballPattern> patterns) throws IOException {
 		System.out.println(tuples.size() + " tuples to process");		
 		int count = 0;
 				
@@ -67,7 +67,7 @@ public class Singlepass {
 		
 	
 	
-	public static void SinglePassBREDS(LinkedList<REDSTuple> tuples, List<REDSPattern> patterns) {
+	public static void SinglePassBREDS(LinkedList<BREDSTuple> tuples, List<BREDSPattern> patterns) {
 		
 		System.out.println(tuples.size() + " tuples to process");
 		int count = 0;
@@ -75,7 +75,7 @@ public class Singlepass {
 		
 		// Initialize: first tuple goes to first cluster
 		if (patterns.size()==0) {
-			REDSPattern c1 = new REDSPattern(tuples.get(0));
+			BREDSPattern c1 = new BREDSPattern(tuples.get(0));
 			patterns.add(c1);
 			start = 1;
 		}
@@ -89,30 +89,28 @@ public class Singlepass {
 			
 			for (int j = 0; j < patterns.size(); j++) {
 				
-				REDSPattern extractionPattern = patterns.get(j);				
+				BREDSPattern extractionPattern = patterns.get(j);				
 				double similarity = 0;
 				
 				if (tuples.get(i).ReVerbpatterns.size()>0) {
 					
 					List<String> relationalWords = tuples.get(i).ReVerbpatterns.get(0).token_words;
 					FloatMatrix patternVector = null;
-					FloatMatrix sentence = null;
+					FloatMatrix sentence = tuples.get(i).relationalWordsVector.get(0);
 					
 					// represent the sentence as the use the sum of the relational words vectors				
-					if (BREADSConfig.single_vector.equalsIgnoreCase("sum")) {						
-						patternVector = extractionPattern.sum();
-						sentence = CreateWord2VecVectors.createVecSum(relationalWords);						
+					if (BREDSConfig.single_vector.equalsIgnoreCase("sum")) {						
+						patternVector = extractionPattern.sum();						
 					}
 					
 					// represent the sentence as the centroid of the relational words vectors
-					else if (BREADSConfig.single_vector.equalsIgnoreCase("centroid")) {												
-						patternVector = extractionPattern.centroid();
-						sentence = CreateWord2VecVectors.createVecCentroid(relationalWords);						
+					else if (BREDSConfig.single_vector.equalsIgnoreCase("centroid")) {												
+						patternVector = extractionPattern.centroid();						
 					}
 					
 					// case when then extraction pattern is represented as single vector
 					// similarity calculate with just one vector
-					if (BREADSConfig.similarity.equalsIgnoreCase("single-vector")) {
+					if (BREDSConfig.similarity.equalsIgnoreCase("single-vector")) {
 						similarity = TermsVector.cosSimilarity(sentence, patternVector);
 						
 						/*
@@ -129,7 +127,7 @@ public class Singlepass {
 					// 	returns a Pair, with true, and max_similarity score
 					// 	otherwise returns False,0
 					
-					else if (BREADSConfig.similarity.equalsIgnoreCase("all")) {
+					else if (BREDSConfig.similarity.equalsIgnoreCase("all")) {
 						
 						Pair<Boolean,Double> result = extractionPattern.all(sentence);
 						
@@ -152,8 +150,8 @@ public class Singlepass {
 			}
 				
 			// If max_similarity < min_degree_match create a new cluster having this tuple as the centroid */			
-			if ( max_similarity < BREADSConfig.threshold_similarity) {
-				REDSPattern c = new REDSPattern(tuples.get(i));
+			if ( max_similarity < BREDSConfig.threshold_similarity) {
+				BREDSPattern c = new BREDSPattern(tuples.get(i));
 				patterns.add(c);
 			}
 			

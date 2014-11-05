@@ -9,18 +9,14 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
-import nlp.EnglishPoSTagger;
 import nlp.PortuguesePoSTagger;
 import nlp.PortugueseTokenizer;
 import nlp.Stopwords;
 import tuples.Seed;
 import vsm.VectorSpaceModel;
-import word2vec.com.ansj.vec.Word2VEC;
 import edu.northwestern.at.utils.corpuslinguistics.lemmatizer.EnglishLemmatizer;
 
 public class SnowballConfig {
