@@ -19,6 +19,8 @@ import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.StringUtils;
+
 import tuples.Seed;
 import tuples.SnowballTuple;
 import utils.Pair;
@@ -323,16 +325,11 @@ public class Snowball {
 			                if (middle_tokens.length<=SnowballConfig.max_tokens_away && middle_tokens.length>=SnowballConfig.min_tokens_away) {
 			                	
 			                	// Create a Tuple for an occurrence found			                	
-			            	    List<String> left =  TermsVector.normalize(left_txt);
+			            	    List<String> left =  TermsVector.normalize(getLeftContext(left_txt));
 			            	    List<String> middle =  TermsVector.normalize(middle_txt);
-			            	    List<String> right =  TermsVector.normalize(right_txt);
+			            	    List<String> right =  TermsVector.normalize(getRightContext(right_txt));
 			                	
-			            	    if (left.size()==0 || middle.size()==0 || right.size()==0) {
-			            	    	System.out.println(e1 + '\t' + e2);
-			            	    	System.out.println(sentence);
-			            	    	continue;
-			            	    }
-			            	    else {			            	    	
+			                	if (!(left.size()==0 && middle.size()==0 && right.size()==0)) {			            	    	
 			            	    	SnowballTuple t = new SnowballTuple(left, middle, right, e1.trim(), e2.trim(), sentence);	        			
 				        			processedTuples.add(t);        			
 			            	    }
@@ -345,6 +342,33 @@ public class Snowball {
 		}
 		f1.close();
 	}
+	
+	public static String getLeftContext(String left){		
+		String[] left_tokens = left.split("\\s");
+		List<String> tokens = new LinkedList<String>();
+		if (left_tokens.length>=SnowballConfig.context_window_size) {
+			for (int i = left_tokens.length-1; i > left_tokens.length-1-SnowballConfig.context_window_size; i--) tokens.add(left_tokens[i]);
+		} else return left;
+		String left_context = StringUtils.join(tokens," ");
+		return left_context;
+		
+	}
+	
+	public static String getRightContext(String right){
+		String[] right_tokens = right.split("\\s");
+		List<String> tokens = new LinkedList<String>();		
+		if (right_tokens.length>=SnowballConfig.context_window_size) {
+			for (int i = 0; i < SnowballConfig.context_window_size; i++) {
+				tokens.add(right_tokens[i]);
+			}
+		} else return right;
+		String right_context = StringUtils.join(tokens," ");
+		return right_context;
+	}
+	
+	
+	
+	
 
 	static LinkedList<SnowballTuple> matchSeedsTuples(List<SnowballTuple> processedTuples) {
 		

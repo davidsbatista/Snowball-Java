@@ -65,29 +65,6 @@ public class SnowballTuple extends TermsVector implements Comparable<SnowballTup
 		}
 	}
 	
-	public static String getLeftContext(String left){		
-		String[] left_tokens = left.split("\\s");
-		List<String> tokens = new LinkedList<String>();
-		if (left_tokens.length>=SnowballConfig.context_window_size) {
-			for (int i = left_tokens.length-1; i > left_tokens.length-1-SnowballConfig.context_window_size; i--) tokens.add(left_tokens[i]);
-		} else return left;
-		String left_context = StringUtils.join(tokens," ");
-		return left_context;
-		
-	}
-	
-	public static String getRightContext(String right){
-		String[] right_tokens = right.split("\\s");
-		List<String> tokens = new LinkedList<String>();		
-		if (right_tokens.length>=SnowballConfig.context_window_size) {
-			for (int i = 0; i < SnowballConfig.context_window_size; i++) {
-				tokens.add(right_tokens[i]);
-			}
-		} else return right;
-		String right_context = StringUtils.join(tokens," ");
-		return right_context;
-	}
-	
 	public double[] convertFloatDouble(float[] v) {
 		double[] w = new double[v.length];
 		for (int i = 0; i < v.length; i++) {
