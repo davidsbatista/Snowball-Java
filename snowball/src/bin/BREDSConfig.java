@@ -63,6 +63,9 @@ public class BREDSConfig {
 	/* number of words considered for expansion */	
 	public static int top_k;
 	
+	/* detect and eliminate patterns that cause drift */
+	public static boolean pattern_drift;
+	
 	/* minimum number of clustered instances to be considered a pattern */ 
 	public static int min_pattern_support;	
 	
@@ -95,6 +98,8 @@ public class BREDSConfig {
 					if (line.startsWith("expand_patterns")) BREDSConfig.expand_patterns = Boolean.parseBoolean(line.split("=")[1]);
 					if (line.startsWith("expansion")) BREDSConfig.expansion = line.split("=")[1];
 					if (line.startsWith("top_k")) BREDSConfig.top_k = Integer.parseInt(line.split("=")[1]);
+					
+					if (line.startsWith("pattern_drift")) BREDSConfig.pattern_drift = Boolean.parseBoolean(line.split("=")[1]);
 					
 					if (line.startsWith("single_vector")) BREDSConfig.single_vector = line.split("=")[1];
 					if (line.startsWith("similarity")) BREDSConfig.similarity = line.split("=")[1];

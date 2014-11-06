@@ -105,7 +105,7 @@ public class BREDS {
 			System.out.println("Seed matches:\n");			
 			LinkedList<BREDSTuple> seedMatches = matchSeedsTuples(processedTuples);
 			
-			/*
+			
 			System.out.println("Seed matches: " + seedMatches.size());
 			for (BREDSTuple tuple : seedMatches) {
 				System.out.println(tuple.sentence);
@@ -115,8 +115,7 @@ public class BREDS {
 				}
 				System.out.println();
 			}
-			System.out.println();
-			*/
+			System.out.println();			
 								
 			if (seedMatches.size()==0) {
 				System.out.println("No tuples found");
@@ -148,37 +147,33 @@ public class BREDS {
 					System.out.println();
 				}
 				*/
-				
-				System.out.println("\nDetecting and eliminating drifting patterns..");
-				System.out.println();
-				
-				// assume the first generated patterns are all good
-				if (iter==0) {
-					goodPatterns = new LinkedList<BREDSPattern>(patterns);					
-				}
-				else if (iter>0) {		 
-					for (Iterator<BREDSPattern> iter = patterns.iterator(); iter.hasNext(); ) {
-						BREDSPattern pattern = iter.next();
-						if (!goodPatterns.contains(pattern)) {							
-							if (patternDrifts(goodPatterns, pattern)) iter.remove();
-							else goodPatterns.add(pattern);
-						}							
+								
+				if (BREDSConfig.pattern_drift==true) {					
+					System.out.println("\nDetecting and eliminating semantic drifting patterns..");
+					System.out.println();					
+					if (iter==0) {
+						// assume the first generated patterns are all good
+						goodPatterns = new LinkedList<BREDSPattern>(patterns);					
 					}
-				}					
+					else {
+						// in further iterations keep only patterns that are semantic similar to the goodPatterns 
+						for (Iterator<BREDSPattern> iter = patterns.iterator(); iter.hasNext(); ) {
+							BREDSPattern pattern = iter.next();
+							if (!goodPatterns.contains(pattern)) {							
+								if (patternDrifts(goodPatterns, pattern)) iter.remove();
+								else goodPatterns.add(pattern);
+							}							
+						}						
+					}
+				}
+				else goodPatterns = new LinkedList<BREDSPattern>(patterns);
 				
-				/* Maneira para comparar/avaliar patterns aprendidos */
-				// TODO: Dump initial patterns	
-				// Compare with all learned patterns
-				// Calculate how many different relational/words pattern were learned
-				// How many extracted valid patterns
-
-				
-				// - Look for sentences with occurrence of seeds semantic type (e.g., ORG - LOC)
-				// - Measure the similarity of each sentence(Tuple) with each Pattern
-				// - Matching Tuple objects are used to score a Pattern confidence, based 
-				// 	 on having extracted a relationship which part of the seed set
-				
-				System.out.println('\n'+BREDSConfig.seedTuples.size() + " tuples in the Seed set");
+				/*
+				 * - Look for sentences with occurrence of seeds semantic types (e.g., ORG - LOC)
+				 * - Measure the similarity of each sentence(Tuple) with each Pattern
+				 * - Matching Tuple objects are used to score a Pattern confidence, based 
+				 *	 on having extracted a relationship which part of the seed set
+				 */ 								
 				System.out.println("Computing similarity of " + BREDSConfig.e1_type + " - " + BREDSConfig.e2_type + " tuples with patterns");								
 				comparePatternsTuples(candidateTuples, goodPatterns, processedTuples);				
 				System.out.println("\n"+candidateTuples.size() + " tuples found");
@@ -186,15 +181,12 @@ public class BREDS {
 				
 				// Expand extraction patterns with semantic similar words
 				if (BREDSConfig.expand_patterns==true) {					
-					
 					System.out.println("\nExpanding extraction patterns");
 					Set<String> similar_words = expandPatterns(goodPatterns);
-					System.out.println("similar words:" + similar_words);
-					
+					System.out.println("similar words:" + similar_words);					
 					for (String word : similar_words) {
 						BREDSPattern p = new BREDSPattern();
-						p.expanded=true;							
-						
+						p.expanded=true;						
 						// Create a (virtual) tuple (i.e., no sentence associated with) with the word2vec representation						
 						BREDSTuple t = new BREDSTuple();
 						ReVerbPattern rvb = new ReVerbPattern();
@@ -206,14 +198,12 @@ public class BREDS {
 						System.out.println(p.patterns);						
 						goodPatterns.add(p);
 					}						
-
 					System.out.println("\nPatterns and Expanded Patterns");
 					for (BREDSPattern pattern : goodPatterns) {
 						System.out.println(pattern.patterns);
 						System.out.println();
 					}					
-				}
-				
+				}				
 				
 				
 				/*
@@ -668,17 +658,6 @@ public class BREDS {
 	static void calculateTupleConfidence(Map<BREDSTuple, List<Pair<BREDSPattern, Double>>> candidateTuples) throws IOException {
 		
 		for (BREDSTuple t : candidateTuples.keySet()) {
-			
-			if (t.e1.equalsIgnoreCase("Getty Images")) {
-				System.out.println(t.sentence);
-				for (Pair<BREDSPattern, Double> p : candidateTuples.get(t)) {
-					System.out.println("pattern		: " + p.getFirst().patterns);
-					System.out.println("confidence	: " + p.getFirst().confidence());					
-					System.out.println("similarity  : " + p.getSecond());							
-				}
-				System.out.println();
-			}			
-			
 			double confidence = 1;
 			if (iter>0) t.confidence_old = t.confidence; 
 			for (Pair<BREDSPattern, Double> pair : candidateTuples.get(t)) {
