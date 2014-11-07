@@ -131,9 +131,21 @@ public class Main {
 			ArrayList<BREDSTuple> tuplesOrdered  = new ArrayList<BREDSTuple>(candidateTuples.keySet());				
 			Collections.sort(tuplesOrdered);
 			Collections.reverse(tuplesOrdered);
+			int count = 0; 
 			for (BREDSTuple t : tuplesOrdered) {
+				f1.write(count + "\n");
 				f1.write("tuple:" + t.e1 + '\t' + t.e2 + '\t' + t.confidence + "\n");
-				f1.write(t.sentence + "\n\n");
+				f1.write(t.sentence + "\n");
+				for (String token : t.ReVerbpatterns.get(0).token_words) {
+					f1.write(token + " ");
+				}
+				f1.write("\n");
+				for (String pos : t.ReVerbpatterns.get(0).token_universal_pos_tags) {
+					f1.write(pos + " ");
+				}
+				f1.write("\n\n");
+				count++;
+				
 			}
 			f1.close();
 			for (BREDSPattern p : patterns) {
