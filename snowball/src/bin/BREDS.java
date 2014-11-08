@@ -106,16 +106,18 @@ public class BREDS {
 			LinkedList<BREDSTuple> seedMatches = matchSeedsTuples(processedTuples);
 			
 			
-			System.out.println("Seed matches: " + seedMatches.size());
-			for (BREDSTuple tuple : seedMatches) {
-				System.out.println(tuple.sentence);
-				for (ReVerbPattern rvb : tuple.ReVerbpatterns) {
-					System.out.println(rvb.token_words);
-					System.out.println(rvb.token_universal_pos_tags);
+			if (iter==0) {
+				System.out.println("Seed matches: " + seedMatches.size());
+				for (BREDSTuple tuple : seedMatches) {
+					System.out.println(tuple.sentence);
+					for (ReVerbPattern rvb : tuple.ReVerbpatterns) {
+						System.out.println(rvb.token_words);
+						System.out.println(rvb.token_universal_pos_tags);
+					}
+					System.out.println();
 				}
-				System.out.println();
+				System.out.println();				
 			}
-			System.out.println();			
 								
 			if (seedMatches.size()==0) {
 				System.out.println("No tuples found");
@@ -362,8 +364,16 @@ public class BREDS {
 					System.out.println("similarity	: " + similarity);
 					System.out.println();
 					*/
-										
 					
+					//<ORG>Gazprom</ORG> offices in <LOC>Moscow</LOC>
+					
+					if (tuple.e1.equalsIgnoreCase("BBC") && tuple.e2.equalsIgnoreCase("LONDON")) {
+						System.out.println(tuple.sentence);
+						System.out.println(extractionPattern.patterns);
+						System.out.println(similarity);
+						System.out.println();
+					}
+					 
 					// update patterns confidence based on matches					
 					if (similarity>=BREDSConfig.threshold_similarity) {
 						
@@ -615,9 +625,9 @@ public class BREDS {
 			while (matcher2.find()) allMatches2.add(new Pair<Integer,Integer>(matcher2.start(),matcher2.end()));
 			
 			for (Pair<Integer, Integer> pair1 : allMatches1) {
-				for (Pair<Integer, Integer> pair2 : allMatches2) {					
-					String e1 = (sentence.substring(pair1.getFirst(),pair1.getSecond())).replaceAll("<[^>]+>"," ");
-					String e2 = (sentence.substring(pair2.getFirst(),pair2.getSecond())).replaceAll("<[^>]+>"," ");
+				for (Pair<Integer, Integer> pair2 : allMatches2) {
+					String e1 = (sentence.substring(pair1.getFirst(),pair1.getSecond())).replaceAll("<[^>]+>"," ").trim();
+					String e2 = (sentence.substring(pair2.getFirst(),pair2.getSecond())).replaceAll("<[^>]+>"," ").trim();
 					
 					// do not consider cases where e2 occurs before e1
 					if ( (!BREDSConfig.e1_type.equals(BREDSConfig.e2_type) && pair2.getSecond()<pair1.getFirst() || pair2.getFirst()<pair1.getSecond())) continue;
@@ -632,10 +642,20 @@ public class BREDS {
 		            	if (!matcher.find()) {
 		            		
 							// Consider only tokens, name-entities are not part of the considered vocabulary               		
-			            	String left_txt = sentence.substring(0,pair1.getFirst()).replaceAll("<[^>]+>[^<]+</[^>]+>","");
-			            	String middle_txt = sentence.substring(pair1.getSecond(),pair2.getFirst()).replaceAll("<[^>]+>[^<]+</[^>]+>","");
-			            	String right_txt = sentence.substring(pair2.getSecond()+1).replaceAll("<[^>]+>[^<]+</[^>]+>","");
-			        		String[] middle_tokens = middle_txt.trim().split("\\s+");
+			            	String left_txt = null;
+							String middle_txt = null;
+							String right_txt = null;
+							String[] middle_tokens = null;
+							
+								left_txt = sentence.substring(0,pair1.getFirst()).replaceAll("<[^>]+>[^<]+</[^>]+>","");
+								middle_txt = sentence.substring(pair1.getSecond(),pair2.getFirst()).replaceAll("<[^>]+>[^<]+</[^>]+>","");
+								
+								if (sentence.length()>pair2.getSecond()+1) {
+									right_txt = sentence.substring(pair2.getSecond()+1).replaceAll("<[^>]+>[^<]+</[^>]+>","");
+								}
+								else right_txt="";
+								middle_tokens = middle_txt.trim().split("\\s+");
+							
 			        		
 			        		// if number of tokens between entities is within the specified limits create a Tuple
 			                if (middle_tokens.length<=BREDSConfig.max_tokens_away && middle_tokens.length>=BREDSConfig.min_tokens_away) {	                	

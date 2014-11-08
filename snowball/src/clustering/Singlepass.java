@@ -94,7 +94,6 @@ public class Singlepass {
 				
 				if (tuples.get(i).ReVerbpatterns.size()>0) {
 					
-					List<String> relationalWords = tuples.get(i).ReVerbpatterns.get(0).token_words;
 					FloatMatrix patternVector = null;
 					FloatMatrix sentence = tuples.get(i).relationalWordsVector.get(0);
 					

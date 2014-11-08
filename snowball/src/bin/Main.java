@@ -103,8 +103,6 @@ public class Main {
 				System.out.println("No semantic types defined");
 				System.exit(0);
 			}
-
-			//TestWord2Vec.main();
 			
 			/* start a bootstrapping extraction */
 			Map<BREDSTuple, List<Pair<BREDSPattern, Double>>> candidateTuples = new HashMap<BREDSTuple, List<Pair<BREDSPattern,Double>>>();
