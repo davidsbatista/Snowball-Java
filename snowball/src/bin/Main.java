@@ -110,8 +110,7 @@ public class Main {
 			long startTime = System.nanoTime();
 			BREDS.start(sentencesFile,seedsFile,candidateTuples,patterns);
 			
-			/* calculate time taken to process */
-			
+			/* calculate time taken to process */			
 			long stopTime = System.nanoTime();
 			long elapsedTime = stopTime - startTime;		
 			long elapsedTimeSeconds = TimeUnit.SECONDS.convert(elapsedTime, TimeUnit.NANOSECONDS);		
@@ -130,14 +129,21 @@ public class Main {
 			Collections.sort(tuplesOrdered);
 			Collections.reverse(tuplesOrdered);
 			int count = 0; 
+			f1.write("Configuration parameters \n");			
+			f1.write("single_vector		   : " + BREDSConfig.single_vector + "\n");
+			f1.write("similarity   		   : " + BREDSConfig.similarity + "\n");
+			f1.write("threshold_similarity : " + String.valueOf(BREDSConfig.threshold_similarity) + "\n");
+			f1.write("instance_confidance  : " + String.valueOf(BREDSConfig.instance_confidance) + "\n");
 			for (BREDSTuple t : tuplesOrdered) {
 				f1.write(count + "\n");
 				f1.write("tuple:" + t.e1 + '\t' + t.e2 + '\t' + t.confidence + "\n");
 				f1.write(t.sentence + "\n");
+				f1.write("pattern: ");
 				for (String token : t.ReVerbpatterns.get(0).token_words) {
 					f1.write(token + " ");
 				}
 				f1.write("\n");
+				f1.write("PoS-tags: ");
 				for (String pos : t.ReVerbpatterns.get(0).token_universal_pos_tags) {
 					f1.write(pos + " ");
 				}
