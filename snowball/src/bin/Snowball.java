@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -18,6 +19,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import nlp.Stopwords;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -321,8 +324,12 @@ public class Snowball {
 			            	String middle_txt = sentence.substring(pair1.getSecond(),pair2.getFirst()).replaceAll("<[^>]+>[^<]+</[^>]+>","");
 			            	String right_txt = sentence.substring(pair2.getSecond()+1).replaceAll("<[^>]+>[^<]+</[^>]+>","");
 			        		String[] middle_tokens = middle_txt.trim().split("\\s");
-
-			                if (middle_tokens.length<=SnowballConfig.max_tokens_away && middle_tokens.length>=SnowballConfig.min_tokens_away) {
+			        					        		
+							// remove stop-words and return								
+						    List<String> tokens_no_stop_words = Stopwords.removeStopWords(new LinkedList<String>(Arrays.asList(middle_tokens)));
+			        		
+			        		// if number of tokens between entities is within the specified limits create a Tuple
+			                if (tokens_no_stop_words.size()<=SnowballConfig.max_tokens_away && tokens_no_stop_words.size()>=SnowballConfig.min_tokens_away) {
 			                	
 			                	// Create a Tuple for an occurrence found			                	
 			            	    List<String> left =  TermsVector.normalize(getLeftContext(left_txt));

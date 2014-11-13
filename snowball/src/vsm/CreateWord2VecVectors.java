@@ -1,23 +1,16 @@
 package vsm;
 
 import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
-
 import nlp.Stopwords;
-
 import org.jblas.FloatMatrix;
-
 import bin.BREDSConfig;
 
 public class CreateWord2VecVectors {
 	
 	public static FloatMatrix createVecSum(Collection<String> text) {
 		FloatMatrix sum = new FloatMatrix(BREDSConfig.word2Vec_dim);
-		List<String> words_vector = new LinkedList<String>();
 		for (String w : text) {
 			if (!Stopwords.stopwords.contains(w)) {
-				words_vector.add(w);
 				try {
 					float[] vector = BREDSConfig.word2vec.getWordVector(w);
 					if (vector == null) continue;
@@ -27,40 +20,35 @@ public class CreateWord2VecVectors {
 					}			
 				} catch (Exception e) {
 					//TODO:log words not_found
-					//System.out.println(w);
+					//System.out.println("w);
 				}
-			}
+			}		
 		}
-		//TODO:log
-		/*
-		System.out.println("ReVerb pattern/Relational words:" + text);
-		System.out.println("Words used for vector :" + words_vector);
-		System.out.println();
-		*/
 		return sum;
 	}
 		
 	public static FloatMatrix createVecCentroid(Collection<String> text){
 		FloatMatrix centroid = new FloatMatrix(BREDSConfig.word2Vec_dim);
-		for (String word : text) {
-			if (!Stopwords.stopwords.contains(text)) {
+		int number_words = 0;
+		for (String w : text) {
+			if (!Stopwords.stopwords.contains(w)) {
 				try {
-					float[] vector = BREDSConfig.word2vec.getWordVector(word);
+					float[] vector = BREDSConfig.word2vec.getWordVector(w);
 					if (vector == null) continue;
 					else {
 						FloatMatrix v = new FloatMatrix(vector);
 						centroid.addi(v);
+						number_words++;
 					}		 		
 				} catch (Exception e) {
-					/*
-					e.printStackTrace();
-					System.out.println(e);
-					System.out.println(word);
-					*/
+					//TODO:log words not_found
+					//System.out.println("word not found: " + w);
 				}
 			}
 		}
-		centroid = centroid.divi((float) BREDSConfig.word2Vec_dim);		
+		if (number_words>1) {
+			centroid = centroid.divi((float) number_words);
+		}
 		return centroid;
 	}
 }

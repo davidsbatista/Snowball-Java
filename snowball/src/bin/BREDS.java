@@ -368,12 +368,14 @@ public class BREDS {
 					
 					//<ORG>Gazprom</ORG> offices in <LOC>Moscow</LOC>
 					
+					/*
 					if (tuple.e1.equalsIgnoreCase("BBC") && tuple.e2.equalsIgnoreCase("LONDON")) {
 						System.out.println(tuple.sentence);
 						System.out.println(extractionPattern.patterns);
 						System.out.println(similarity);
 						System.out.println();
 					}
+					*/
 					 
 					// update patterns confidence based on matches					
 					if (similarity>=BREDSConfig.threshold_similarity) {
@@ -648,17 +650,17 @@ public class BREDS {
 							String right_txt = null;
 							String[] middle_tokens = null;
 							
-								left_txt = sentence.substring(0,pair1.getFirst()).replaceAll("<[^>]+>[^<]+</[^>]+>","");
-								middle_txt = sentence.substring(pair1.getSecond(),pair2.getFirst()).replaceAll("<[^>]+>[^<]+</[^>]+>","");
+							left_txt = sentence.substring(0,pair1.getFirst()).replaceAll("<[^>]+>[^<]+</[^>]+>","");
+							middle_txt = sentence.substring(pair1.getSecond(),pair2.getFirst()).replaceAll("<[^>]+>[^<]+</[^>]+>","");
 								
-								if (sentence.length()>pair2.getSecond()+1) {
-									right_txt = sentence.substring(pair2.getSecond()+1).replaceAll("<[^>]+>[^<]+</[^>]+>","");
-								}
-								else right_txt="";
-								middle_tokens = middle_txt.trim().split("\\s+");
+							if (sentence.length()>pair2.getSecond()+1) {
+								right_txt = sentence.substring(pair2.getSecond()+1).replaceAll("<[^>]+>[^<]+</[^>]+>","");
+							}
+							else right_txt="";
+							middle_tokens = middle_txt.trim().split("\\s+");
 								
-								// remove stop-words and return								
-							    List<String> tokens_no_stop_words = Stopwords.removeStopWords(new LinkedList<String>(Arrays.asList(middle_tokens)));
+							// remove stop-words and return								
+						    List<String> tokens_no_stop_words = Stopwords.removeStopWords(new LinkedList<String>(Arrays.asList(middle_tokens)));
 			        		
 			        		// if number of tokens between entities is within the specified limits create a Tuple
 			                if (tokens_no_stop_words.size()<=BREDSConfig.max_tokens_away && tokens_no_stop_words.size()>=BREDSConfig.min_tokens_away) {	                	

@@ -96,6 +96,8 @@ public class Main {
 			f2.close();
 		}
 		
+		
+		
 		else if (system.equalsIgnoreCase("REDS")) {
 			BREDSConfig.init(parameters, sentencesFile);
 			BREDSConfig.readSeeds(seedsFile);
@@ -134,6 +136,7 @@ public class Main {
 			f1.write("similarity   		   : " + BREDSConfig.similarity + "\n");
 			f1.write("threshold_similarity : " + String.valueOf(BREDSConfig.threshold_similarity) + "\n");
 			f1.write("instance_confidance  : " + String.valueOf(BREDSConfig.instance_confidance) + "\n");
+			f1.write("\n");
 			for (BREDSTuple t : tuplesOrdered) {
 				f1.write(count + "\n");
 				f1.write("tuple:" + t.e1 + '\t' + t.e2 + '\t' + t.confidence + "\n");
