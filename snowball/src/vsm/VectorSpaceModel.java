@@ -77,25 +77,24 @@ public class VectorSpaceModel implements Serializable {
 	return tf;
 	}
 	
-	/* calculate a document vector according to its terms weights (TF-IDF) HashMap version*/
+	/* calculate a document vector according to its terms weights (TF-IDF) */
 	public Map<String,Double> tfidf(List<String> document) throws Exception {		
 		Map<String,Double> vector = new HashMap<String,Double>();
 		TObjectIntMap<String> doc_tf = termsFrequency(document);
 		double tf_idf = 0;
 		for (String term : document) {
 			int tf = doc_tf.get(term);
-			double idf = 0;			
+			double idf = 0;
 			try {
 				idf = Math.log( (float) n_docs / (double) (term_document_frequency.get(term)) );				
 			} catch (Exception e) {
-				System.out.println("");
-				System.out.println("term: " + term);
-				System.out.println("tf: " + doc_tf.get(term));
-				System.out.println("idf: " + term_document_frequency.get(term));
-				e.printStackTrace();
+					System.out.println("\nterm: " + term);
+					System.out.println("tf: " + doc_tf.get(term));
+					System.out.println("idf: " + term_document_frequency.get(term));
+					e.printStackTrace();
 			}						
 			if (Double.isInfinite(idf)) {
-				System.out.println("term: " + term);
+				System.out.println("\nterm: " + term);
 				System.out.println("tf: " + doc_tf.get(term));
 				System.out.println("idf: " + term_document_frequency.get(term));
 				throw new Exception("Result is Infinite");
@@ -103,7 +102,6 @@ public class VectorSpaceModel implements Serializable {
 			else tf_idf = tf*idf;	
 			vector.put(term,tf_idf);
 		}
-
 		return vector;
 	}
 }

@@ -39,25 +39,27 @@ public class SnowballTuple extends TermsVector implements Comparable<SnowballTup
 		
 		try {			
 			// Create TF-IDF representations
-			if (left_!=null) this.left = SnowballConfig.vsm.tfidf(left_);				
-			if (middle_!=null) this.middle = SnowballConfig.vsm.tfidf(middle_);
-			if (right_!=null) this.right = SnowballConfig.vsm.tfidf(right_);
+			if (left_!=null)  
+				this.left = SnowballConfig.vsm.tfidf(left_);
+			if (middle_!=null); 
+				this.middle = SnowballConfig.vsm.tfidf(middle_);
+			if (right_!=null);
+				this.right = SnowballConfig.vsm.tfidf(right_);
 			
 		} catch (Exception e) {
-			System.out.println(sentence);
-			System.out.println("e1: " + e1);
-			System.out.println("e2: " + e2);
+			System.out.println('\n'+sentence);
 			System.out.println("left:");
-			System.out.println(left);
-			System.out.println(this.left);
+			System.out.println(left_);
 			System.out.println();			
 			System.out.println("middle:");
-			System.out.println(middle);
-			System.out.println(this.middle);
+			System.out.println(middle_);
+			System.out.println(middle_.size());
+			System.out.println(middle_.get(0));
+			System.out.println(middle_.get(0).length());
+			System.out.println(middle_.isEmpty());
 			System.out.println();					
 			System.out.println("right:");
-			System.out.println(right);
-			System.out.println(this.right);
+			System.out.println(right_);
 			System.out.println();			
 			System.out.println("***************************************");
 			e.printStackTrace();
@@ -77,10 +79,10 @@ public class SnowballTuple extends TermsVector implements Comparable<SnowballTup
 		double l_w = SnowballConfig.weight_left_context;
 		double m_w = SnowballConfig.weight_middle_context;
 		double r_w = SnowballConfig.weight_right_context;
-		double left_similarity;
-		double middle_similarity;
-		double right_similarity;
-				
+		double left_similarity = 0;
+		double middle_similarity = 0;
+		double right_similarity = 0;
+			
 		if (t_left_vector.size()==0 && t_right_vector.size()==0) {			
 			left_similarity = 0;
 			middle_similarity = cosSimilarity(this.middle,t_middle_vector)*(m_w+l_w+r_w);
@@ -104,6 +106,8 @@ public class SnowballTuple extends TermsVector implements Comparable<SnowballTup
 			middle_similarity = cosSimilarity(this.middle,t_middle_vector)*m_w;
 			right_similarity = cosSimilarity(this.right,t_right_vector)*r_w;
 		}
+			
+		
 		
 		return 	(left_similarity + middle_similarity + right_similarity);
 	}

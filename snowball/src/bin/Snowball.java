@@ -320,12 +320,12 @@ public class Snowball {
 		            	if (!matcher.find()) {
 		            		
 							// Consider only tokens, name-entities are not part of the considered vocabulary               		
-			            	String left_txt = sentence.substring(0,pair1.getFirst()).replaceAll("<[^>]+>[^<]+</[^>]+>","");
-			            	String middle_txt = sentence.substring(pair1.getSecond(),pair2.getFirst()).replaceAll("<[^>]+>[^<]+</[^>]+>","");
-			            	String right_txt = sentence.substring(pair2.getSecond()+1).replaceAll("<[^>]+>[^<]+</[^>]+>","");
+			            	String left_txt = sentence.substring(0,pair1.getFirst()).replaceAll("<[^>]+>[^<]+</[^>]+> ","");
+			            	String middle_txt = sentence.substring(pair1.getSecond(),pair2.getFirst()).replaceAll("<[^>]+>[^<]+</[^>]+> ","");
+			            	String right_txt = sentence.substring(pair2.getSecond()+1).replaceAll("<[^>]+>[^<]+</[^>]+> ","");
 			        		String[] middle_tokens = middle_txt.trim().split("\\s");
 			        					        		
-							// remove stop-words and return								
+							// count number of tokens not considering stop words 								
 						    List<String> tokens_no_stop_words = Stopwords.removeStopWords(new LinkedList<String>(Arrays.asList(middle_tokens)));
 			        		
 			        		// if number of tokens between entities is within the specified limits create a Tuple
@@ -333,11 +333,11 @@ public class Snowball {
 			                	
 			                	// Create a Tuple for an occurrence found			                	
 			            	    List<String> left =  TermsVector.normalize(getLeftContext(left_txt));
-			            	    List<String> middle =  TermsVector.normalize(middle_txt);
+			            	    List<String> middle =  TermsVector.normalize(middle_txt);			            	    
 			            	    List<String> right =  TermsVector.normalize(getRightContext(right_txt));
 			                	
 			                	if (!(left.size()==0 && middle.size()==0 && right.size()==0)) {			            	    	
-			            	    	SnowballTuple t = new SnowballTuple(left, middle, right, e1.trim(), e2.trim(), sentence);	        			
+			            	    	SnowballTuple t = new SnowballTuple(left, middle, right, e1.trim(), e2.trim(), sentence);
 				        			processedTuples.add(t);        			
 			            	    }
 			                }

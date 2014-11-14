@@ -6,7 +6,7 @@ public class PortugueseTokenizer extends com.aliasi.tokenizer.RegExTokenizerFact
 	
 	private static String regex = "" +
 	"((\\d+((/\\d+)+))" + "|" + 														/* dates or similar, e.g. 12/21/1 */
-	",|\\(|\\)" + "|" +																			/* characters to be tokenized: , */
+	",|\\(|\\)" + "|" +																	/* characters to be tokenized: , */
 	"([\\d+\\p{L}._-]+?@[\\d+\\p{L}._-]+?\\.\\p{L}+)" + "|" + 							/* emails */                              								  
 	"(\\d+\\:\\d+(\\:\\d+)?)" + "|" + 													/* the time, e.g. 12:12:2 */
     "(\\d+(([.]?[oaºª°])+))" + "|" + 													/* ordinal numbers, e.g. 12.o */	                              

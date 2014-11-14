@@ -44,10 +44,12 @@ public class Main {
 				System.exit(0);
 			}
 			
+			/* create data structures and nanoTime */
 			Map<SnowballTuple, List<Pair<SnowballPattern, Double>>> candidateTuples = new HashMap<SnowballTuple, List<Pair<SnowballPattern,Double>>>();
-			List<SnowballPattern> patterns = new ArrayList<SnowballPattern>();
-			
+			List<SnowballPattern> patterns = new ArrayList<SnowballPattern>();			
 			long startTime = System.nanoTime();
+			
+			/* start a bootstrapping extraction */
 			Snowball.start(sentencesFile,seedsFile,candidateTuples,patterns);
 			
 			/* calculate time taken to process */			
@@ -66,8 +68,23 @@ public class Main {
 			BufferedWriter f2 = new BufferedWriter(new FileWriter("patterns.txt"));
 			ArrayList<SnowballTuple> tuplesOrdered  = new ArrayList<SnowballTuple>(candidateTuples.keySet());							
 			Collections.sort(tuplesOrdered);
-			Collections.reverse(tuplesOrdered);
+			Collections.reverse(tuplesOrdered);			
+			int count = 0; 
+			f1.write("Configuration parameters \n");			
+			f1.write("min_degree_match	   		: " + String.valueOf(SnowballConfig.min_degree_match) + "\n");
+			f1.write("min_instance_confidance  	: " + String.valueOf(SnowballConfig.min_tuple_confidence) + "\n");
+			f1.write("min_pattern_support  		: " + String.valueOf(SnowballConfig.min_pattern_support) + "\n");
+			f1.write("\n");
+			f1.write("weight_left_context  		: " + String.valueOf(SnowballConfig.weight_left_context) + "\n");
+			f1.write("weight_middle_context  	: " + String.valueOf(SnowballConfig.weight_middle_context) + "\n");
+			f1.write("weight_right_context  	: " + String.valueOf(SnowballConfig.weight_right_context) + "\n");
+			f1.write("\n");			
+			f1.write("wUpdt  					: " + String.valueOf(SnowballConfig.wUpdt) + "\n");
+			f1.write("number_iterations  		: " + String.valueOf(SnowballConfig.number_iterations) + "\n");
+			f1.write("use_RlogF  				: " + String.valueOf(SnowballConfig.use_RlogF) + "\n");			
+			f1.write("\n");			
 			for (SnowballTuple t : tuplesOrdered) {
+				f1.write(count + "\n");
 				f1.write("tuple:" + t.e1 + '\t' + t.e2 + '\t' + t.confidence + "\n");
 				f1.write(t.sentence + "\n");
 				f1.write("left: ");
@@ -106,10 +123,12 @@ public class Main {
 				System.exit(0);
 			}
 			
-			/* start a bootstrapping extraction */
+			/* create data structures and nanoTime */
 			Map<BREDSTuple, List<Pair<BREDSPattern, Double>>> candidateTuples = new HashMap<BREDSTuple, List<Pair<BREDSPattern,Double>>>();
 			List<BREDSPattern> patterns = new ArrayList<BREDSPattern>();
 			long startTime = System.nanoTime();
+			
+			/* start a bootstrapping extraction */
 			BREDS.start(sentencesFile,seedsFile,candidateTuples,patterns);
 			
 			/* calculate time taken to process */			
@@ -131,12 +150,23 @@ public class Main {
 			Collections.sort(tuplesOrdered);
 			Collections.reverse(tuplesOrdered);
 			int count = 0; 
-			f1.write("Configuration parameters \n");			
-			f1.write("single_vector		   : " + BREDSConfig.single_vector + "\n");
+			f1.write("Configuration parameters \n");						
+			f1.write("single vector 	   : " + BREDSConfig.single_vector + "\n");
 			f1.write("similarity   		   : " + BREDSConfig.similarity + "\n");
 			f1.write("threshold_similarity : " + String.valueOf(BREDSConfig.threshold_similarity) + "\n");
 			f1.write("instance_confidance  : " + String.valueOf(BREDSConfig.instance_confidance) + "\n");
+			f1.write("min_pattern_support  : " + String.valueOf(BREDSConfig.min_pattern_support) + "\n");
 			f1.write("\n");
+			f1.write("expand_patterns  	   : " + String.valueOf(BREDSConfig.expand_patterns) + "\n");
+			f1.write("expansion		  	   : " + String.valueOf(BREDSConfig.expansion) + "\n");
+			f1.write("top_k			  	   : " + String.valueOf(BREDSConfig.top_k) + "\n");
+			f1.write("pattern_drift	  	   : " + String.valueOf(BREDSConfig.pattern_drift) + "\n");
+			f1.write("word2vec_model  	   : " + String.valueOf(BREDSConfig.Word2VecModelPath) + "\n");
+			f1.write("\n");
+			f1.write("wUpdt  : " + String.valueOf(BREDSConfig.wUpdt) + "\n");
+			f1.write("number_iterations  : " + String.valueOf(BREDSConfig.number_iterations) + "\n");
+			f1.write("use_RlogF  : " + String.valueOf(BREDSConfig.use_RlogF) + "\n");
+			f1.write("\n");			
 			for (BREDSTuple t : tuplesOrdered) {
 				f1.write(count + "\n");
 				f1.write("tuple:" + t.e1 + '\t' + t.e2 + '\t' + t.confidence + "\n");

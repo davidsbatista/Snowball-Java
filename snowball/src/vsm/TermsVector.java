@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import nlp.Stopwords;
 
@@ -15,12 +17,16 @@ public abstract class TermsVector {
 		
 	public static List<String> normalize(String text) {
 		
-		List<String> terms = new LinkedList<String>();
+		text = text.replaceAll("<[^>]+>[^<]+</?[^>]+> ","");
 		
-		// remove tagged text and numbers
-		for (String term : Arrays.asList(text.split("\\s+"))) {
-			term = term.replaceAll("<[^>]+>[^<]+</?[^>]+>"," ").replaceAll("^[0-9]+?(,|\\.|/)?([0-9]+)?.?(º|ª|%)?", "");			
-			terms.add(term);
+		// remove numbers, comma, parenthesis
+		List<String> terms = new LinkedList<String>();		
+		Pattern ptr = Pattern.compile("[0-9]+?|\\(|\\)|,|-+|:|\\.");			
+		for (String term : Arrays.asList(text.split("\\s+?"))) {
+			if (!term.equalsIgnoreCase("")) {
+				Matcher matcher = ptr.matcher(term);
+				if (!matcher.matches()) terms.add(term);
+			}			
 		}
 
 		// convert terms to lower case representation
