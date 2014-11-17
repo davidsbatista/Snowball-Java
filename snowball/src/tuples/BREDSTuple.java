@@ -12,6 +12,7 @@ import nlp.ReVerbPattern;
 import org.apache.commons.lang3.StringUtils;
 import org.jblas.FloatMatrix;
 
+import utils.Pair;
 import vsm.CreateWord2VecVectors;
 import vsm.TermsVector;
 import bin.BREDSConfig;
@@ -43,6 +44,9 @@ public class BREDSTuple extends TermsVector implements Comparable<BREDSTuple>, S
 	public FloatMatrix right_sum;
 	
 	public FloatMatrix middleReverbPatternsWord2VecSum;
+	
+	public List<String> patternWords;
+	
 	
 	public BREDSTuple() {
 		super();
@@ -107,12 +111,17 @@ public class BREDSTuple extends TermsVector implements Comparable<BREDSTuple>, S
 				*/				
 				
 				// Sum each word vector				
-				if (BREDSConfig.single_vector.equalsIgnoreCase("sum")) {
-					patternWord2Vec = CreateWord2VecVectors.createVecSum(pattern_tokens);
+				if (BREDSConfig.single_vector.equalsIgnoreCase("sum")) {					
+					//CreateWord2VecVectors.createVecCentroid(relationalWords);
+					Pair<FloatMatrix,List<String>> p = CreateWord2VecVectors.createVecSum(pattern_tokens);
+					patternWord2Vec = p.getFirst();
+					patternWords = p.getSecond();
 				}
 				// Centroid of each word vector
 				else if (BREDSConfig.single_vector.equalsIgnoreCase("centroid")) {
-					patternWord2Vec = CreateWord2VecVectors.createVecCentroid(pattern_tokens);
+					Pair<FloatMatrix,List<String>> p = CreateWord2VecVectors.createVecCentroid(pattern_tokens);
+					patternWord2Vec = p.getFirst();
+					patternWords = p.getSecond();
 				}				
 				this.relationalWordsVector.add(patternWord2Vec);
 			}
@@ -136,11 +145,15 @@ public class BREDSTuple extends TermsVector implements Comparable<BREDSTuple>, S
 			hasReVerbPatterns = false;
 			ReVerbpatterns = EnglishPoSTagger.tagSentence(middle);
 			FloatMatrix patternWord2Vec = null;
-			if (BREDSConfig.single_vector.equalsIgnoreCase("sum")) {
-				patternWord2Vec = CreateWord2VecVectors.createVecSum(ReVerbpatterns.get(0).token_words);
+			if (BREDSConfig.single_vector.equalsIgnoreCase("sum")) {				
+				Pair<FloatMatrix,List<String>> p = CreateWord2VecVectors.createVecSum(ReVerbpatterns.get(0).token_words);
+				patternWord2Vec = p.getFirst();
+				patternWords = p.getSecond();
 			}
 			else if (BREDSConfig.single_vector.equalsIgnoreCase("centroid")) {
-				patternWord2Vec = CreateWord2VecVectors.createVecCentroid(ReVerbpatterns.get(0).token_words);
+				Pair<FloatMatrix,List<String>> p = CreateWord2VecVectors.createVecCentroid(ReVerbpatterns.get(0).token_words);
+				patternWord2Vec = p.getFirst();
+				patternWords = p.getSecond();
 			}
 			this.relationalWordsVector.add(patternWord2Vec);
 		}

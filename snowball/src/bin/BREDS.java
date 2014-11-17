@@ -106,7 +106,6 @@ public class BREDS {
 			System.out.println("Seed matches:\n");			
 			LinkedList<BREDSTuple> seedMatches = matchSeedsTuples(processedTuples);
 			
-			
 			if (iter==0) {
 				System.out.println("Seed matches: " + seedMatches.size());
 				for (BREDSTuple tuple : seedMatches) {
@@ -280,12 +279,25 @@ public class BREDS {
 		int negative = 0;		
 		for (List<String> pattern_tokens1 : patterns1) {			
 			FloatMatrix vectorPattern1 = null;			
-			if (BREDSConfig.single_vector.equalsIgnoreCase("sum")) vectorPattern1 = CreateWord2VecVectors.createVecSum(pattern_tokens1);					
-			else if (BREDSConfig.single_vector.equalsIgnoreCase("centroid"))vectorPattern1 = CreateWord2VecVectors.createVecCentroid(pattern_tokens1);			
+			if (BREDSConfig.single_vector.equalsIgnoreCase("sum")) {
+				Pair<FloatMatrix,List<String>> p = CreateWord2VecVectors.createVecSum(pattern_tokens1); 
+				vectorPattern1 = p.getFirst();
+			}
+			else if (BREDSConfig.single_vector.equalsIgnoreCase("centroid")){
+				Pair<FloatMatrix,List<String>> p = CreateWord2VecVectors.createVecCentroid(pattern_tokens1);
+				vectorPattern1 = p.getFirst();
+			}
+			
 			for (List<String> pattern_tokens2 : patterns2) {
 				FloatMatrix vectorPattern2 = null;			
-				if (BREDSConfig.single_vector.equalsIgnoreCase("sum")) vectorPattern2 = CreateWord2VecVectors.createVecSum(pattern_tokens2);					
-				else if (BREDSConfig.single_vector.equalsIgnoreCase("centroid"))vectorPattern2 = CreateWord2VecVectors.createVecCentroid(pattern_tokens2);				
+				if (BREDSConfig.single_vector.equalsIgnoreCase("sum")) {				
+					Pair<FloatMatrix,List<String>> p = CreateWord2VecVectors.createVecSum(pattern_tokens2); 
+					vectorPattern2 = p.getFirst();
+				}
+				else if (BREDSConfig.single_vector.equalsIgnoreCase("centroid")){					
+					Pair<FloatMatrix,List<String>> p = CreateWord2VecVectors.createVecCentroid(pattern_tokens2);
+					vectorPattern2 = p.getFirst();
+				}
 				double sim = TermsVector.cosSimilarity(vectorPattern1, vectorPattern2);
 				if (sim>=BREDSConfig.threshold_similarity) {
 					positive++;
@@ -311,9 +323,12 @@ public class BREDS {
 		System.out.println("Tuples to analyze   : " + processedTuples.size());
 		System.out.println("Extraction patterns : " + patterns.size());
 		
+		/*
 		for (BREDSPattern p : patterns) {
 			System.out.println(p.patterns);
-		}		
+		}
+		*/		
+		System.out.println();
 		
 		for (BREDSTuple tuple : processedTuples) {			
 			if (count % 10000==0) System.out.print(".");
@@ -353,39 +368,22 @@ public class BREDS {
 					// 	otherwise returns False,0
 					
 					else if (BREDSConfig.similarity.equalsIgnoreCase("all")) {						
-						Pair<Boolean,Double> result = extractionPattern.all(sentence);						
+						Pair<Boolean,Double> result = extractionPattern.all(sentence,tuple.patternWords,false);						
 						if (result.getFirst()==true) similarity = result.getSecond();
 						else similarity = 0.0;											
 					}
 					
-					/*
-					System.out.println("sentence	: " + tuple.sentence);
-					System.out.println("rel			: " + relationalWords);
-					System.out.println("pattern		: " + extractionPattern.patterns);
-					System.out.println("similarity	: " + similarity);
-					System.out.println();
-					*/
-					
-					//<ORG>Gazprom</ORG> offices in <LOC>Moscow</LOC>
-					
-					/*
-					if (tuple.e1.equalsIgnoreCase("BBC") && tuple.e2.equalsIgnoreCase("LONDON")) {
-						System.out.println(tuple.sentence);
-						System.out.println(extractionPattern.patterns);
-						System.out.println(similarity);
-						System.out.println();
-					}
-					*/
-					 
 					// update patterns confidence based on matches					
 					if (similarity>=BREDSConfig.threshold_similarity) {
 						
 						/*
-						System.out.println("sentence:  " + tuple.sentence);
-						System.out.println("relational words		 : " + relationalWords);
-						System.out.println("pattern relational words : " + extractionPattern.patterns);						
-						System.out.println("cosine 					 : " + similarity);
-						System.out.println();
+						if (similarity>0.0) {
+							System.out.println("sentence	: " + tuple.sentence);
+							System.out.println("rel		: " + tuple.ReVerbpatterns.get(0).token_words);
+							System.out.println("pattern		: " + extractionPattern.patterns);
+							System.out.println("similarity	: " + similarity);
+							System.out.println();						
+						}
 						*/
 											
 	    				patternsMatched.add(patterns.indexOf(extractionPattern));
@@ -508,8 +506,14 @@ public class BREDS {
 					
 					System.out.println("pattern word: " + relationalWords);
 					
-					if (BREDSConfig.single_vector.equalsIgnoreCase("sum")) vectorPattern = CreateWord2VecVectors.createVecSum(relationalWords);					
-					else if (BREDSConfig.single_vector.equalsIgnoreCase("centroid")) vectorPattern = CreateWord2VecVectors.createVecCentroid(relationalWords);
+					if (BREDSConfig.single_vector.equalsIgnoreCase("sum")) {						
+						Pair<FloatMatrix,List<String>> result = CreateWord2VecVectors.createVecSum(relationalWords);
+						vectorPattern = result.getFirst();
+					}
+					else if (BREDSConfig.single_vector.equalsIgnoreCase("centroid")) { 
+						Pair<FloatMatrix,List<String>> result = CreateWord2VecVectors.createVecCentroid(relationalWords);
+						vectorPattern = result.getFirst();
+					}
 					
 					Set<WordEntry> similar_words = BREDSConfig.word2vec.distance(vectorPattern.data, BREDSConfig.top_k);
 						
@@ -536,10 +540,12 @@ public class BREDS {
 				for (BREDSTuple tuple : p.tuples) {										
 					List<String> relationalWords = tuple.ReVerbpatterns.get(0).token_words;					
 					if (BREDSConfig.single_vector.equalsIgnoreCase("sum")) {
-						vectorPattern = CreateWord2VecVectors.createVecSum(relationalWords);
+						 Pair<FloatMatrix,List<String>> result = CreateWord2VecVectors.createVecSum(relationalWords);
+						 vectorPattern = result.getFirst();
 					}					
 					else if (BREDSConfig.single_vector.equalsIgnoreCase("centroid")) {
-						vectorPattern = CreateWord2VecVectors.createVecCentroid(relationalWords);
+						Pair<FloatMatrix,List<String>> result = CreateWord2VecVectors.createVecCentroid(relationalWords);
+						vectorPattern = result.getFirst();
 					}				
 				}				
 				vector.addi(vectorPattern);

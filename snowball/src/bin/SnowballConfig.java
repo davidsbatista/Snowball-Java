@@ -89,12 +89,9 @@ public class SnowballConfig {
 			Stopwords.loadStopWords(SnowballConfig.stopwords);
 		} catch (IOException e) {
 			System.out.println("Stopwords file not found!");
-			e.printStackTrace();
 			System.exit(0);
 		}		
 		System.out.println("done");
-		
-		
 		// Vector Space Model, TF-IDF: calculate vocabulary term overall frequency
 		try {
 			calculateTF(sentencesFile);

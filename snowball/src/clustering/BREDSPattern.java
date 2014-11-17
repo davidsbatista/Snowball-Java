@@ -77,7 +77,8 @@ public class BREDSPattern {
 		mergeUniquePatterns();
 		FloatMatrix sum = FloatMatrix.zeros(BREDSConfig.word2Vec_dim);
 		for (List<String> pattern : patterns) {
-			FloatMatrix p = CreateWord2VecVectors.createVecSum(pattern);
+			Pair<FloatMatrix,List<String>> result = CreateWord2VecVectors.createVecSum(pattern);
+			FloatMatrix p = result.getFirst();
 			sum.addi(p);
 		}
 		return sum;
@@ -87,14 +88,15 @@ public class BREDSPattern {
 		mergeUniquePatterns();
 		FloatMatrix centroid = FloatMatrix.zeros(BREDSConfig.word2Vec_dim);
 		for (List<String> pattern : patterns) {
-			FloatMatrix p = CreateWord2VecVectors.createVecCentroid(pattern);
+			Pair<FloatMatrix,List<String>> result = CreateWord2VecVectors.createVecCentroid(pattern);
+			FloatMatrix p = result.getFirst();
 			centroid.addi(p);
 		}		
 		centroid = centroid.divi((float) patterns.size());		
 		return centroid;
 	}
 	
-	public Pair<Boolean, Double> all(FloatMatrix vector) {		
+	public Pair<Boolean, Double> all(FloatMatrix vector, List<String> vector_words, boolean print) {		
 		
 		int good = 0;
 		int bad = 0;
@@ -102,18 +104,26 @@ public class BREDSPattern {
 		double max_similarity = 0;
 		
 		for (List<String> relationalWords : patterns) {
-			if (BREDSConfig.single_vector.equalsIgnoreCase("sum")) {
-				FloatMatrix a = CreateWord2VecVectors.createVecSum(relationalWords);
+			if (BREDSConfig.single_vector.equalsIgnoreCase("sum")) {				
+				Pair<FloatMatrix,List<String>> result = CreateWord2VecVectors.createVecSum(relationalWords);
+				FloatMatrix a = result.getFirst();							
 				score = TermsVector.cosSimilarity(a, vector);
-				if (score > max_similarity) {					
+				if (score > max_similarity) {	
 					max_similarity = score;
+					if (score>BREDSConfig.threshold_similarity && print) {
+						System.out.println(vector_words+","+result.getSecond() + "\t" + score);
+					}
 				}
 			}			
 			if (BREDSConfig.single_vector.equalsIgnoreCase("centroid")) {
-				FloatMatrix a = CreateWord2VecVectors.createVecCentroid(relationalWords);
+				Pair<FloatMatrix,List<String>> result = CreateWord2VecVectors.createVecCentroid(relationalWords);
+				FloatMatrix a = result.getFirst();
 				score = TermsVector.cosSimilarity(a, vector);
 				if (score > max_similarity) {					
 					max_similarity = score;
+					if (score>BREDSConfig.threshold_similarity && print) {
+						System.out.println(vector_words+","+result.getSecond() + "\t" + score);
+					}					
 				}
 			}
 			

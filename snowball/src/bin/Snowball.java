@@ -80,17 +80,18 @@ public class Snowball {
 			System.out.println("Starting iteration " + iter);			
 			System.out.println("Collecting tuples acording to " +  SnowballConfig.seedTuples.size() + " seeds ");			
 			LinkedList<SnowballTuple> seedMatches = matchSeedsTuples(processedTuples);
-
-			/*
-			for (Tuple tuple : seedMatches) {
-				System.out.println(tuple.sentence);
-				System.out.println(tuple);
-				System.out.println(tuple.left_words);
-				System.out.println(tuple.middle_words);
-				System.out.println(tuple.right_words);
-				System.out.println();
+			
+			if (iter==0) {
+				System.out.println("Seed matches: " + seedMatches.size());
+				for (SnowballTuple tuple : seedMatches) {
+					System.out.println(tuple.sentence);
+					System.out.println("left: " + tuple.left);
+					System.out.println("middle: " + tuple.middle);
+					System.out.println("right: " + tuple.right);
+					System.out.println();
+				}				
 			}
-			*/
+			System.out.println();
 			
 			if (seedMatches.size()==0) {
 				System.out.println("No tuples found");
@@ -319,7 +320,7 @@ public class Snowball {
 	            		Matcher matcher = ptr.matcher(middleText);            		
 		            	if (!matcher.find()) {
 		            		
-							// Consider only tokens, name-entities are not part of the considered vocabulary               		
+							// Consider only tokens, name-entities are not part of the ocabulary               		
 			            	String left_txt = sentence.substring(0,pair1.getFirst()).replaceAll("<[^>]+>[^<]+</[^>]+> ","");
 			            	String middle_txt = sentence.substring(pair1.getSecond(),pair2.getFirst()).replaceAll("<[^>]+>[^<]+</[^>]+> ","");
 			            	String right_txt = sentence.substring(pair2.getSecond()+1).replaceAll("<[^>]+>[^<]+</[^>]+> ","");

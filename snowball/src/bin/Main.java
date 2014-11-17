@@ -10,6 +10,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import nlp.Stopwords;
+
+import org.jblas.FloatMatrix;
+
 import tuples.BREDSTuple;
 import tuples.SnowballTuple;
 import utils.Pair;
@@ -71,17 +75,17 @@ public class Main {
 			Collections.reverse(tuplesOrdered);			
 			int count = 0; 
 			f1.write("Configuration parameters \n");			
-			f1.write("min_degree_match	   		: " + String.valueOf(SnowballConfig.min_degree_match) + "\n");
-			f1.write("min_instance_confidance  	: " + String.valueOf(SnowballConfig.min_tuple_confidence) + "\n");
-			f1.write("min_pattern_support  		: " + String.valueOf(SnowballConfig.min_pattern_support) + "\n");
+			f1.write("min_degree_match: " + String.valueOf(SnowballConfig.min_degree_match) + "\n");
+			f1.write("min_instance_confidance: " + String.valueOf(SnowballConfig.min_tuple_confidence) + "\n");
+			f1.write("min_pattern_support: " + String.valueOf(SnowballConfig.min_pattern_support) + "\n");
 			f1.write("\n");
-			f1.write("weight_left_context  		: " + String.valueOf(SnowballConfig.weight_left_context) + "\n");
-			f1.write("weight_middle_context  	: " + String.valueOf(SnowballConfig.weight_middle_context) + "\n");
-			f1.write("weight_right_context  	: " + String.valueOf(SnowballConfig.weight_right_context) + "\n");
+			f1.write("weight_left_context: " + String.valueOf(SnowballConfig.weight_left_context) + "\n");
+			f1.write("weight_middle_context: " + String.valueOf(SnowballConfig.weight_middle_context) + "\n");
+			f1.write("weight_right_context: " + String.valueOf(SnowballConfig.weight_right_context) + "\n");
 			f1.write("\n");			
-			f1.write("wUpdt  					: " + String.valueOf(SnowballConfig.wUpdt) + "\n");
-			f1.write("number_iterations  		: " + String.valueOf(SnowballConfig.number_iterations) + "\n");
-			f1.write("use_RlogF  				: " + String.valueOf(SnowballConfig.use_RlogF) + "\n");			
+			f1.write("wUpdt: " + String.valueOf(SnowballConfig.wUpdt) + "\n");
+			f1.write("number_iterations: " + String.valueOf(SnowballConfig.number_iterations) + "\n");
+			f1.write("use_RlogF: " + String.valueOf(SnowballConfig.use_RlogF) + "\n");			
 			f1.write("\n");			
 			for (SnowballTuple t : tuplesOrdered) {
 				f1.write(count + "\n");
@@ -94,6 +98,7 @@ public class Main {
 				f1.write("\nright: ");
 				for (String word : t.right.keySet()) f1.write(word+' ');
 				f1.write("\n\n");
+				count++;
 			}
 			f1.close();			
 			for (SnowballPattern p : patterns) {
@@ -151,21 +156,21 @@ public class Main {
 			Collections.reverse(tuplesOrdered);
 			int count = 0; 
 			f1.write("Configuration parameters \n");						
-			f1.write("single vector 	   : " + BREDSConfig.single_vector + "\n");
-			f1.write("similarity   		   : " + BREDSConfig.similarity + "\n");
+			f1.write("single vector: " + BREDSConfig.single_vector + "\n");
+			f1.write("similarity : " + BREDSConfig.similarity + "\n");
 			f1.write("threshold_similarity : " + String.valueOf(BREDSConfig.threshold_similarity) + "\n");
-			f1.write("instance_confidance  : " + String.valueOf(BREDSConfig.instance_confidance) + "\n");
-			f1.write("min_pattern_support  : " + String.valueOf(BREDSConfig.min_pattern_support) + "\n");
+			f1.write("instance_confidance : " + String.valueOf(BREDSConfig.instance_confidance) + "\n");
+			f1.write("min_pattern_support : " + String.valueOf(BREDSConfig.min_pattern_support) + "\n");
 			f1.write("\n");
-			f1.write("expand_patterns  	   : " + String.valueOf(BREDSConfig.expand_patterns) + "\n");
-			f1.write("expansion		  	   : " + String.valueOf(BREDSConfig.expansion) + "\n");
-			f1.write("top_k			  	   : " + String.valueOf(BREDSConfig.top_k) + "\n");
-			f1.write("pattern_drift	  	   : " + String.valueOf(BREDSConfig.pattern_drift) + "\n");
-			f1.write("word2vec_model  	   : " + String.valueOf(BREDSConfig.Word2VecModelPath) + "\n");
+			f1.write("expand_patterns : " + String.valueOf(BREDSConfig.expand_patterns) + "\n");
+			f1.write("expansion : " + String.valueOf(BREDSConfig.expansion) + "\n");
+			f1.write("top_k : " + String.valueOf(BREDSConfig.top_k) + "\n");
+			f1.write("pattern_drift : " + String.valueOf(BREDSConfig.pattern_drift) + "\n");
+			f1.write("word2vec_model : " + String.valueOf(BREDSConfig.Word2VecModelPath) + "\n");
 			f1.write("\n");
-			f1.write("wUpdt  : " + String.valueOf(BREDSConfig.wUpdt) + "\n");
-			f1.write("number_iterations  : " + String.valueOf(BREDSConfig.number_iterations) + "\n");
-			f1.write("use_RlogF  : " + String.valueOf(BREDSConfig.use_RlogF) + "\n");
+			f1.write("wUpdt : " + String.valueOf(BREDSConfig.wUpdt) + "\n");
+			f1.write("number_iterations : " + String.valueOf(BREDSConfig.number_iterations) + "\n");
+			f1.write("use_RlogF : " + String.valueOf(BREDSConfig.use_RlogF) + "\n");
 			f1.write("\n");			
 			for (BREDSTuple t : tuplesOrdered) {
 				f1.write(count + "\n");
@@ -180,9 +185,20 @@ public class Main {
 				for (String pos : t.ReVerbpatterns.get(0).token_universal_pos_tags) {
 					f1.write(pos + " ");
 				}
+				f1.write("\n");
+				f1.write("Vector(words considered): ");
+				for (String w : t.ReVerbpatterns.get(0).token_words) {
+					if (!Stopwords.stopwords.contains(w)) {
+						try {
+							float[] vector = BREDSConfig.word2vec.getWordVector(w);
+							if (vector == null) continue;
+							f1.write(w + " ");	
+						} catch (Exception e) {
+						}
+					}					
+				}
 				f1.write("\n\n");
-				count++;
-				
+				count++;				
 			}
 			f1.close();
 			for (BREDSPattern p : patterns) {

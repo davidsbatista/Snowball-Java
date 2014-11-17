@@ -128,7 +128,7 @@ public class Singlepass {
 					
 					else if (BREDSConfig.similarity.equalsIgnoreCase("all")) {
 						
-						Pair<Boolean,Double> result = extractionPattern.all(sentence);
+						Pair<Boolean,Double> result = extractionPattern.all(sentence,new LinkedList<String>(),false);
 						
 						if (result.getFirst()==true) similarity = result.getSecond();
 						else similarity = 0.0;

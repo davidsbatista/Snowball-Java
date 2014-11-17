@@ -17,7 +17,7 @@ public class Stopwords {
 		BufferedReader f = new BufferedReader(new FileReader(new File(file)));
 	    String word = null;
 	    while ( ( word = f.readLine() ) != null ) {
-	    	if (word.startsWith("#") || word.isEmpty()) continue;
+	    	if (word.startsWith("#")) continue;
 	    	stopwords.add(word.trim());
 	    }
 	    f.close();
@@ -25,7 +25,7 @@ public class Stopwords {
 	
 	public static List<String> removeStopWords(List<String> words) {
 		List<String> result = new LinkedList<String>();
-		for (String w : words) {			
+		for (String w : words) {
 			if (stopwords.contains(w.toLowerCase().trim())) continue;
 			else result.add(w);
 		}
