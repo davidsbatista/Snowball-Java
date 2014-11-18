@@ -90,7 +90,7 @@ public class Main {
 			for (SnowballTuple t : tuplesOrdered) {
 				f1.write(count + "\n");
 				f1.write("tuple:" + t.e1 + '\t' + t.e2 + '\t' + t.confidence + "\n");
-				f1.write(t.sentence + "\n");
+				f1.write("sentence:" + t.sentence + "\n");
 				f1.write("left: ");
 				for (String word : t.left.keySet()) f1.write(word+' ');
 				f1.write("\nmiddle: ");
@@ -175,7 +175,7 @@ public class Main {
 			for (BREDSTuple t : tuplesOrdered) {
 				f1.write(count + "\n");
 				f1.write("tuple:" + t.e1 + '\t' + t.e2 + '\t' + t.confidence + "\n");
-				f1.write(t.sentence + "\n");
+				f1.write("sentence:" + t.sentence + "\n");
 				f1.write("pattern: ");
 				for (String token : t.ReVerbpatterns.get(0).token_words) {
 					f1.write(token + " ");
