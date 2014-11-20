@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -665,11 +664,8 @@ public class BREDS {
 							else right_txt="";
 							middle_tokens = middle_txt.trim().split("\\s+");
 								
-							// remove stop-words and return								
-						    List<String> tokens_no_stop_words = Stopwords.removeStopWords(new LinkedList<String>(Arrays.asList(middle_tokens)));
-			        		
 			        		// if number of tokens between entities is within the specified limits create a Tuple
-			                if (tokens_no_stop_words.size()<=BREDSConfig.max_tokens_away && tokens_no_stop_words.size()>=BREDSConfig.min_tokens_away) {	                	
+			                if (middle_tokens.length<=BREDSConfig.max_tokens_away && middle_tokens.length>=BREDSConfig.min_tokens_away) {
 			                	
 			        			BREDSTuple t = new BREDSTuple(left_txt, middle_txt, right_txt, e1.trim(), e2.trim(), sentence);	        			
 			        			processedTuples.add(t);        			

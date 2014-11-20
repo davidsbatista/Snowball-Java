@@ -5,14 +5,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
-
-import edu.northwestern.at.utils.corpuslinguistics.lemmatizer.EnglishLemmatizer;
-
-import bin.BREDSConfig;
-import bin.SnowballConfig;
 
 import opennlp.tools.postag.POSModel;
 import opennlp.tools.postag.POSTaggerME;
@@ -20,6 +14,7 @@ import opennlp.tools.tokenize.Tokenizer;
 import opennlp.tools.tokenize.TokenizerME;
 import opennlp.tools.tokenize.TokenizerModel;
 import opennlp.tools.util.InvalidFormatException;
+import bin.BREDSConfig;
 
 public class EnglishPoSTagger {
 	
@@ -62,10 +57,23 @@ public class EnglishPoSTagger {
 			}
 		}
 		*/
-		
-		
-		
 	}
+	
+	public static void initialize(String token, String maxent, String tagset) throws InvalidFormatException, FileNotFoundException, IOException {
+		System.out.println("Loading English PoS-tagger");
+		
+		_tokenizer = null;	
+	   // Loading tokenizer model		   
+	   final TokenizerModel tokenModel = new TokenizerModel( new FileInputStream(new File(token)));		 
+	   _tokenizer = new TokenizerME(tokenModel);
+		 
+       // Loading pos model
+       final POSModel posModel = new POSModel( new FileInputStream(new File(maxent)));         
+       _posTagger = new POSTaggerME(posModel);
+       
+       UniversalTagSet.init(tagset);
+	}
+	
 	
 	public static void initialize() throws InvalidFormatException, FileNotFoundException, IOException {		
 		System.out.println("Loading English PoS-tagger");
@@ -123,12 +131,11 @@ public class EnglishPoSTagger {
 		int limit = sourcePOS.length-1;
 		int i = 0;
 		
-		while (i < limit) {
+		while (i < limit) {			
 			if ( sourcePOS[i].startsWith("VERB")) {
 				List<String> token_words = new ArrayList<String>();
 				List<String> token_universal_pos_tags = new ArrayList<String>();
-				List<String> token_ptb_pos_tags = new ArrayList<String>();				
-				
+				List<String> token_ptb_pos_tags = new ArrayList<String>();
 				token_words.add(sourceTokens[i].toLowerCase());
 				token_universal_pos_tags.add(sourcePOS[i]);
 				token_ptb_pos_tags.add(PTB_POS[i]);
@@ -157,6 +164,24 @@ public class EnglishPoSTagger {
 					token_ptb_pos_tags.add(PTB_POS[i]);
 					i++;
 	            }
+	            
+	            /*
+	            // negation detection 
+	            if ( (i - 1 > 0) && ( 
+	            		sourceTokens[i-1].equals("not") ||
+	            		sourceTokens[i-1].equals("neither") ||
+	            		sourceTokens[i-1].equals("nobody") ||
+	            		sourceTokens[i-1].equals("no") ||
+	            		sourceTokens[i-1].equals("none") ||
+	            		sourceTokens[i-1].equals("nor") ||
+	            		sourceTokens[i-1].equals("nothing") ||
+	            		sourceTokens[i-1].equals("nowhere") ||
+	            		sourceTokens[i-1].equals("never"))) {
+	            	token_words.add(sourceTokens[i-1].toLowerCase());
+					token_universal_pos_tags.add(sourcePOS[i-1]);
+					token_ptb_pos_tags.add(PTB_POS[i-1]);
+	            }
+	            */
 	            
 	            // add the build pattern to the list collected patterns
 	            ReVerbPattern patternRVB = new ReVerbPattern(token_words,token_universal_pos_tags,token_ptb_pos_tags);

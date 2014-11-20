@@ -11,9 +11,6 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import nlp.Stopwords;
-
-import org.jblas.FloatMatrix;
-
 import tuples.BREDSTuple;
 import tuples.SnowballTuple;
 import utils.Pair;

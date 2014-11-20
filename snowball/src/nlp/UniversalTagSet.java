@@ -11,6 +11,18 @@ public class UniversalTagSet {
 	
 	static HashMap<String, String> convertTagsPTB = new HashMap<String,String>();
 	
+	public static void init(String tagset) throws IOException {
+		
+		BufferedReader br = new BufferedReader(new FileReader(tagset));
+		String line;
+		while ((line = br.readLine()) != null) {			
+			String[] tags = line.split("\\t");
+			convertTagsPTB.put(tags[0], tags[1]);	  
+		}
+		br.close();		
+	}
+	
+	
 	public static void init() throws IOException {
 		
 		String file = BREDSConfig.PoS_models_path+"/universal-tagset.txt";		
