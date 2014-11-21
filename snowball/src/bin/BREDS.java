@@ -150,8 +150,6 @@ public class BREDS {
 				*/
 								
 				if (BREDSConfig.pattern_drift==true) {					
-					System.out.println("\nDetecting and eliminating semantic drifting patterns..");
-					System.out.println();					
 					if (iter==0) {
 						// assume the first generated patterns are all good
 						goodPatterns = new LinkedList<BREDSPattern>(patterns);					
@@ -159,12 +157,19 @@ public class BREDS {
 					else {
 						// in further iterations keep only patterns that are semantic similar to the goodPatterns 
 						for (Iterator<BREDSPattern> iter = patterns.iterator(); iter.hasNext(); ) {
+							System.out.println("\nDetecting and eliminating semantic drifting patterns..");
+							System.out.println();
 							BREDSPattern pattern = iter.next();
 							if (!goodPatterns.contains(pattern)) {							
-								if (patternDrifts(goodPatterns, pattern)) iter.remove();
+								if (patternDrifts(goodPatterns, pattern)) {
+									System.out.println("discarded pattern");
+									pattern.mergeUniquePatterns();
+									System.out.println(pattern.patterns);
+									iter.remove();
+								}
 								else goodPatterns.add(pattern);
 							}							
-						}						
+						}
 					}
 				}
 				else goodPatterns = new LinkedList<BREDSPattern>(patterns);

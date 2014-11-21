@@ -71,6 +71,8 @@ public class Main {
 			Collections.sort(tuplesOrdered);
 			Collections.reverse(tuplesOrdered);			
 			int count = 0; 
+			f1.write("Input file: " + sentencesFile);
+			f1.write("\n");
 			f1.write("Configuration parameters \n");			
 			f1.write("min_degree_match: " + String.valueOf(SnowballConfig.min_degree_match) + "\n");
 			f1.write("min_instance_confidance: " + String.valueOf(SnowballConfig.min_tuple_confidence) + "\n");
@@ -152,6 +154,8 @@ public class Main {
 			Collections.sort(tuplesOrdered);
 			Collections.reverse(tuplesOrdered);
 			int count = 0; 
+			f1.write("Input file: " + sentencesFile);
+			f1.write("\n");
 			f1.write("Configuration parameters \n");						
 			f1.write("single vector: " + BREDSConfig.single_vector + "\n");
 			f1.write("similarity : " + BREDSConfig.similarity + "\n");
