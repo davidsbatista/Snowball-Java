@@ -9,14 +9,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import nlp.ReVerbPattern;
-
 import org.jblas.FloatMatrix;
 
 import tuples.Seed;
 import tuples.SnowballTuple;
 import utils.SortMaps;
-import vsm.CreateWord2VecVectors;
 import bin.SnowballConfig;
 
 public class SnowballPattern {

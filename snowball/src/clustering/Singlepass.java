@@ -9,7 +9,6 @@ import org.jblas.FloatMatrix;
 import tuples.BREDSTuple;
 import tuples.SnowballTuple;
 import utils.Pair;
-import vsm.CreateWord2VecVectors;
 import vsm.TermsVector;
 import bin.BREDSConfig;
 import bin.SnowballConfig;

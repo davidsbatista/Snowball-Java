@@ -181,8 +181,8 @@ public class Main {
 				for (String token : t.ReVerbpatterns.get(0).token_words) {
 					f1.write(token + " ");
 				}
-				f1.write("\n");
-				f1.write("PoS-tags: ");
+				f1.write(" ");
+				f1.write("\tPos-tags:");
 				for (String pos : t.ReVerbpatterns.get(0).token_universal_pos_tags) {
 					f1.write(pos + " ");
 				}

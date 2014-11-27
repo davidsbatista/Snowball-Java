@@ -14,38 +14,6 @@ import opennlp.tools.tokenize.Tokenizer;
 import opennlp.tools.tokenize.TokenizerME;
 import opennlp.tools.tokenize.TokenizerModel;
 import opennlp.tools.util.InvalidFormatException;
-import utils.Pair;
-
-import edu.northwestern.at.utils.CharUtils;
-import edu.northwestern.at.utils.corpuslinguistics.adornedword.AdornedWord;
-import edu.northwestern.at.utils.corpuslinguistics.lemmatizer.DefaultLemmatizer;
-import edu.northwestern.at.utils.corpuslinguistics.lemmatizer.Lemmatizer;
-import edu.northwestern.at.utils.corpuslinguistics.lexicon.Lexicon;
-import edu.northwestern.at.utils.corpuslinguistics.partsofspeech.PartOfSpeechTags;
-import edu.northwestern.at.utils.corpuslinguistics.postagger.DefaultPartOfSpeechTagger;
-import edu.northwestern.at.utils.corpuslinguistics.postagger.PartOfSpeechTagger;
-import edu.northwestern.at.utils.corpuslinguistics.sentencesplitter.DefaultSentenceSplitter;
-import edu.northwestern.at.utils.corpuslinguistics.sentencesplitter.SentenceSplitter;
-import edu.northwestern.at.utils.corpuslinguistics.spellingstandardizer.DefaultSpellingStandardizer;
-import edu.northwestern.at.utils.corpuslinguistics.spellingstandardizer.SpellingStandardizer;
-import edu.northwestern.at.utils.corpuslinguistics.tokenizer.DefaultWordTokenizer;
-import edu.northwestern.at.utils.corpuslinguistics.tokenizer.PennTreebankTokenizer;
-import edu.northwestern.at.utils.corpuslinguistics.tokenizer.WordTokenizer;
-import edu.northwestern.at.utils.CharUtils;
-import edu.northwestern.at.utils.corpuslinguistics.adornedword.AdornedWord;
-import edu.northwestern.at.utils.corpuslinguistics.lemmatizer.DefaultLemmatizer;
-import edu.northwestern.at.utils.corpuslinguistics.lemmatizer.Lemmatizer;
-import edu.northwestern.at.utils.corpuslinguistics.lexicon.Lexicon;
-import edu.northwestern.at.utils.corpuslinguistics.partsofspeech.PartOfSpeechTags;
-import edu.northwestern.at.utils.corpuslinguistics.postagger.DefaultPartOfSpeechTagger;
-import edu.northwestern.at.utils.corpuslinguistics.postagger.PartOfSpeechTagger;
-import edu.northwestern.at.utils.corpuslinguistics.sentencesplitter.DefaultSentenceSplitter;
-import edu.northwestern.at.utils.corpuslinguistics.sentencesplitter.SentenceSplitter;
-import edu.northwestern.at.utils.corpuslinguistics.spellingstandardizer.DefaultSpellingStandardizer;
-import edu.northwestern.at.utils.corpuslinguistics.spellingstandardizer.SpellingStandardizer;
-import edu.northwestern.at.utils.corpuslinguistics.tokenizer.DefaultWordTokenizer;
-import edu.northwestern.at.utils.corpuslinguistics.tokenizer.PennTreebankTokenizer;
-import edu.northwestern.at.utils.corpuslinguistics.tokenizer.WordTokenizer;
 
 public class EnglishPoSTaggerMorphAdoner {
 	

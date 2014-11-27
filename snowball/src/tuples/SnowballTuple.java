@@ -1,11 +1,8 @@
 package tuples;
 
 import java.io.Serializable;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
 
 import vsm.TermsVector;
 import bin.SnowballConfig;

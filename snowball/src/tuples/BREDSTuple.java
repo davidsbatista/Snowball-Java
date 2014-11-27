@@ -74,14 +74,16 @@ public class BREDSTuple extends TermsVector implements Comparable<BREDSTuple>, S
 		right_words.addAll(TermsVector.normalize(getRightContext(right)));
 			
 		// Extract ReVerb patterns and construct Word2Vec representations
-		List<ReVerbPattern> patterns = EnglishPoSTagger.extractRVB(middle);
+		List<ReVerbPattern> patterns_left = EnglishPoSTagger.extractRVB(left);
+		List<ReVerbPattern> patterns_middle = EnglishPoSTagger.extractRVB(middle);
+		List<ReVerbPattern> patterns_right = EnglishPoSTagger.extractRVB(right);
 		boolean discard = false;				
-		if (patterns.size()>0) {
+		if (patterns_middle.size()>0) {
 					
 			//TODO: using only the first pattern, are there really more than 1 pattern in a middle context ?					
-			List<String> pattern_tokens = patterns.get(0).token_words;
-			List<String> pattern_ptb_pos = patterns.get(0).token_ptb_pos_tags;
-			List<String> pattern_universal_pos = patterns.get(0).token_universal_pos_tags;		
+			List<String> pattern_tokens = patterns_middle.get(0).token_words;
+			List<String> pattern_ptb_pos = patterns_middle.get(0).token_ptb_pos_tags;
+			List<String> pattern_universal_pos = patterns_middle.get(0).token_universal_pos_tags;		
 			
 			/*
 			<PER>Guterres</PER> was a founding member of the <ORG>Portuguese Refugee Council</ORG>
@@ -100,7 +102,7 @@ public class BREDSTuple extends TermsVector implements Comparable<BREDSTuple>, S
 			
 			if (!discard) {
 				hasReVerbPatterns = true;
-				this.ReVerbpatterns = patterns;
+				this.ReVerbpatterns = patterns_middle;
 				FloatMatrix patternWord2Vec = null;
 				
 				/*
@@ -141,7 +143,7 @@ public class BREDSTuple extends TermsVector implements Comparable<BREDSTuple>, S
 		// If no ReVerb patterns are found, extract relational words, words between entities 
 		// stored in ReVerbPattern object
 	
-		else if (patterns.size()==0 || discard) {
+		else if (patterns_middle.size()==0 || discard) {
 			hasReVerbPatterns = false;
 			ReVerbpatterns = EnglishPoSTagger.tagSentence(middle);
 			FloatMatrix patternWord2Vec = null;
