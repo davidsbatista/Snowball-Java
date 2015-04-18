@@ -12,19 +12,14 @@ import java.io.ObjectOutputStream;
 import java.util.HashSet;
 import java.util.Set;
 
-import nlp.PortuguesePoSTagger;
 import nlp.PortugueseTokenizer;
 import nlp.Stopwords;
 import tuples.Seed;
 import vsm.VectorSpaceModel;
-import edu.northwestern.at.utils.corpuslinguistics.lemmatizer.EnglishLemmatizer;
 
 public class SnowballConfig {
 		
-	public static PortugueseTokenizer PTtokenizer;
-	public static PortuguesePoSTagger tagger;
-	public static EnglishLemmatizer EnglishLemm;
-	
+	public static PortugueseTokenizer PTtokenizer;	
 	public static VectorSpaceModel vsm = null;
 	
 	public static String e1_type = null;
@@ -82,8 +77,7 @@ public class SnowballConfig {
 		}
 			
 		// Initialize a Tokenizer and load Stopwords		
-		PTtokenizer = new PortugueseTokenizer();		
-		EnglishLemm = new EnglishLemmatizer();		
+		PTtokenizer = new PortugueseTokenizer();				
 		System.out.print("Loading stopwords ...");
 		try {
 			Stopwords.loadStopWords(SnowballConfig.stopwords);

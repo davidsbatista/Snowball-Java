@@ -9,8 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.jblas.FloatMatrix;
-
 import tuples.Seed;
 import tuples.SnowballTuple;
 import utils.SortMaps;
@@ -28,13 +26,6 @@ public class SnowballPattern {
 	public Map<String,Double> left_centroid = new HashMap<String, Double>();
 	public Map<String,Double> middle_centroid = new HashMap<String, Double>();
 	public Map<String,Double> right_centroid = new HashMap<String, Double>();
-	
-	// Word2Vec representations
-	public FloatMatrix w2v_left_centroid;
-	public FloatMatrix w2v_middle_centroid;
-	public FloatMatrix w2v_right_centroid;
-	
-	public FloatMatrix w2v_centroid = new FloatMatrix();
 	
 	public int positive = 0;
 	public int negative = 0;	

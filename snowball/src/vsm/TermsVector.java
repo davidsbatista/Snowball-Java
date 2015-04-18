@@ -11,8 +11,6 @@ import java.util.regex.Pattern;
 
 import nlp.Stopwords;
 
-import org.jblas.FloatMatrix;
-
 public abstract class TermsVector {
 		
 	public static List<String> normalize(String text) {
@@ -36,20 +34,7 @@ public abstract class TermsVector {
 	    // remove stop-words and return
 	    return Stopwords.removeStopWords(terms);
 	}
-	
-	// Cosine Similarity between FloatMatrix vectors
-	public static double cosSimilarity(FloatMatrix a, FloatMatrix b){		 		
-		if (a.norm2()==0 || b.norm2()==0) return 0;
-		return (double) dotProdut(a,b) / (a.norm2() * b.norm2());
-	}
-	
-	public static double dotProdut(FloatMatrix a, FloatMatrix b) {		
-		double sum = 0;
-		for (int i = 0; i < b.length; i++) {
-			sum = sum + (a.get(i) * b.get(i));
-		}	
-		return sum;
-	} 
+
 	
 	public static double norm(double[] a){
 		double norm = 0;
