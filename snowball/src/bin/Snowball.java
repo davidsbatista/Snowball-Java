@@ -367,10 +367,6 @@ public class Snowball {
 		String right_context = StringUtils.join(tokens," ");
 		return right_context;
 	}
-	
-	
-	
-	
 
 	static LinkedList<SnowballTuple> matchSeedsTuples(List<SnowballTuple> processedTuples) {
 		
