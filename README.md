@@ -7,6 +7,4 @@ This is my own implementation of the the Snowball system to bootstrap relationsh
 - H Yu, E Agichtein, [Extracting synonymous gene and protein terms from biological literature](http://bioinformatics.oxfordjournals.org/content/19/suppl_1/i340.full.pdf). In Bioinformatics, 19(suppl 1), 2003 - Oxford University Press
 
 
-**NOTE**
-
-This version is not heavily tested and might contain errros, I advice you instead to look at the [Python implementation of Snowball](https://github.com/davidsbatista/Snowball)
+**NOTE**: this version is not tested and might contain bugs/errors, I recommend you instead to look at the [Python implementation of Snowball](https://github.com/davidsbatista/Snowball)
